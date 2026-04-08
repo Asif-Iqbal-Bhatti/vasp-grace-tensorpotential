@@ -13,12 +13,11 @@
 - **Molecular Dynamics (MD) Simulations**  
   Enables MD simulations through ASE with GRACE potentials.
 
-** GENERATED FILES **
+## **GENERATED FILES**
 - **Standard Output Files**  
   Generates `OUTCAR`, `OSZICAR`, and `CONTCAR` files in VASP-like formats for downstream compatibility and analysis.
 
 ## Installation
-
 uv pip install numpy tensorflow
 uv pip install tensorpotential
 uv pip install git+https://gitlab.com/ase/ase.git
