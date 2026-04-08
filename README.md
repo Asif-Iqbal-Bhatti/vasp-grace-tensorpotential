@@ -16,7 +16,7 @@
 - **Phonon and elastic constants**  
   TBD
 
-## **GENERATED FILES**
+## **Generated Files**
 - **Standard Output Files**  
   Generates `OUTCAR`, `OSZICAR`, and `CONTCAR` files in VASP-like formats for downstream compatibility and analysis.
 
