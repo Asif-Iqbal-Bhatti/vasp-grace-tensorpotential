@@ -1,0 +1,20 @@
+# vasp-grace — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Core scientific stack
+ase>=3.22
+numpy>=1.23
+scipy>=1.9
+matplotlib>=3.6
+pandas>=1.5
+pymatgen>=2023.1.1
+pyyaml>=6.0
+tqdm>=4.64
+
+# GRACE backend (choose one or both)
+tensorpotential       # gracemaker + GRACECalculator (GRACE-1L / GRACE-2L)
+python-ace            # PyGRACEFSCalculator (GRACE/FS YAML models)
+
+# Development / testing
+pytest>=7.0
+pytest-cov
