@@ -10,7 +10,7 @@ setup(
     version="0.1.0",
     description="A wrapper to use GRACE Machine Learning Potentials as a drop-in replacement for VASP.",
     author="Your Name",
-    author_email="your.email@example.com",
+    author_email="asif.iqbal.bhatti@vub.be",
     packages=find_packages(),
     install_requires=[
         "ase>=3.27.0",
