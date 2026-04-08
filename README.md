@@ -22,5 +22,7 @@
 
 ## Installation
 uv pip install numpy tensorflow
+
 uv pip install tensorpotential
+
 uv pip install git+https://gitlab.com/ase/ase.git
