@@ -22,9 +22,10 @@ Design choice for phonons in this version:
   to the ASE central-difference workflow.
 """
 
-import os
+import os, warnings
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+warnings.filterwarnings("ignore", category=UserWarning, module="tensorflow")
 
 import sys
 import argparse
@@ -48,16 +49,14 @@ from ase.md.velocitydistribution import (
     ZeroRotation,
 )
 from ase.md.nose_hoover_chain import MTKNPT
-
 from ase.phonons import Phonons
 
+from elastic import get_elementary_deformations, get_elastic_tensor
+from elastic import get_cij_order, get_lattice_type
+
 # GRACE / TensorPotential
-try:
-    from tensorpotential.calculator.foundation_models import grace_fm
-    from tensorpotential.calculator import TPCalculator
-except ImportError:
-    print("Error: 'tensorpotential' is not installed. Install via: pip install tensorpotential")
-    sys.exit(1)
+from tensorpotential.calculator.foundation_models import grace_fm
+from tensorpotential.calculator import TPCalculator
 
 
 # ==========================================
@@ -371,6 +370,169 @@ def parse_incar(filepath="INCAR"):
     return params
 
 
+def write_elastic_results(Cij, Bij, cryst, filename_cij="ELASTIC_Cij.dat", filename_bij="ELASTIC_Bij.dat"):
+    """
+    Save elastic outputs from jochym/Elastic.
+
+    get_elastic_tensor returns:
+        Cij, Bij
+    where Bij is the full lstsq return tuple:
+        (birch_coeffs, residuals, rank, singular_values)
+    """
+    Cij_arr = np.array(Cij, dtype=float)
+
+    birch_coeffs = np.array(Bij[0], dtype=float)
+    residuals = np.asarray(Bij[1], dtype=float)
+    rank = int(Bij[2])
+    singular_values = np.asarray(Bij[3], dtype=float)
+
+    # Save Cij
+    np.savetxt(
+        filename_cij,
+        np.atleast_2d(Cij_arr),
+        header="Cij returned by elastic.get_elastic_tensor (ASE units)"
+    )
+    
+    order = get_cij_order(cryst)
+    values = np.array(Cij, dtype=float) / units.GPa
+
+    with open("ELASTIC_Cij_GPa.dat", "w") as f:
+        f.write("Elastic constants (GPa)\n")
+        f.write("======================\n")
+        for name, value in zip(order, values):
+            f.write(f"{name:>5s} = {value:14.8f} GPa\n")
+
+    # Save Birch coefficients only
+    np.savetxt(
+        filename_bij,
+        np.atleast_2d(birch_coeffs),
+        header="Birch coefficients Bij[0] from elastic.get_elastic_tensor (ASE units)"
+    )
+    np.savetxt(
+        "ELASTIC_Bij_GPa.dat",
+        np.atleast_2d(birch_coeffs / units.GPa),
+        header="Birch coefficients in GPa"
+    )
+
+    # Save fit diagnostics safely
+    with open("ELASTIC_fit_info.txt", "w") as f:
+        f.write("jochym/Elastic least-squares fit diagnostics\n")
+        f.write("===========================================\n")
+        f.write(f"rank = {rank}\n")
+
+        f.write("residuals = ")
+        if residuals.size == 0:
+            f.write("[]")
+        else:
+            f.write(" ".join(f"{x:.12e}" for x in np.atleast_1d(residuals).ravel()))
+        f.write("\n")
+
+        f.write("singular_values = ")
+        if singular_values.size == 0:
+            f.write("[]")
+        else:
+            f.write(" ".join(f"{x:.12e}" for x in np.atleast_1d(singular_values).ravel()))
+        f.write("\n")
+        
+    
+def run_elastic_tensor_with_jochym(atoms, incar):
+    """
+    Compute elastic constants using jochym/Elastic.
+
+    Intended VASP-like trigger:
+      IBRION = 5 or 6
+      ISIF >= 3
+
+    Workflow:
+      1. Assume input structure is already reasonably relaxed (as in VASP practice).
+      2. Generate elementary strained structures using Elastic.
+      3. For each strained structure, relax internal coordinates only (fixed cell)
+         using ASE optimizer + GRACE calculator.
+      4. Evaluate stress on each strained structure.
+      5. Pass all strained systems to Elastic to obtain Cij, Bij.
+    """
+
+    print("\n--- Elastic tensor mode (jochym/Elastic) ---")
+    print("Trigger condition met: ISIF >= 3 together with IBRION = 5/6")
+
+    # Reference structure
+    cryst = atoms.copy()
+    cryst.calc = get_calculator(incar["GRACE_MODEL"])
+
+    # Check residual stress on the reference structure
+    try:
+        ref_stress = cryst.get_stress(voigt=True)
+        max_ref_stress_gpa = np.max(np.abs(ref_stress / units.GPa))
+        print(f"Reference max |stress| = {max_ref_stress_gpa:.4f} GPa")
+        if max_ref_stress_gpa > 1.0:
+            print("Warning: reference structure is not close to zero stress.")
+            print("         Elastic constants are best computed from a pre-relaxed structure.")
+    except Exception:
+        print("Warning: could not evaluate reference stress before elastic workflow.")
+
+    # n = number of points per elementary deformation
+    # d = deformation magnitude parameter as used in Elastic examples
+    systems = get_elementary_deformations(cryst, n=5, d=0.33)
+
+    print(f"Generated {len(systems)} elementary deformations")
+
+    # For VASP, the Elastic docs switch to internal degrees of freedom optimization
+    # before the strained stress calculations. We emulate that by relaxing atomic
+    # positions only (fixed cell) with ASE optimizer on each strained structure.
+    #
+    # Use a force threshold consistent
+    ediffg = incar.get("EDIFFG", -0.01)
+    fmax = abs(ediffg) if ediffg < 0 else 0.05
+
+    relaxed_systems = []
+
+    for i, s in enumerate(systems, start=1):
+        s = s.copy()
+        s.calc = get_calculator(incar["GRACE_MODEL"])
+
+        print(f"  deformation {i:3d}/{len(systems):3d}: relaxing internal coordinates...")
+
+        # Fixed-cell ionic relaxation only
+        opt = FIRE2(s, logfile=None)
+        opt.run(fmax=fmax, steps=max(incar.get("NSW", 50), 50))
+
+        # Ensure stress is evaluated and cached
+        _ = s.get_potential_energy()
+        _ = s.get_stress(voigt=True)
+
+        relaxed_systems.append(s)
+
+    # Now fit elastic tensor from the strained systems
+    Cij, Bij = get_elastic_tensor(cryst, systems=relaxed_systems)
+    order = get_cij_order(cryst)
+    write_elastic_results(Cij, Bij, cryst)
+
+    print("Elastic tensor calculation completed.")
+    print("Wrote:")
+    print("  - ELASTIC_Cij.dat")
+    print("  - ELASTIC_Bij.dat")
+    print("  - ELASTIC_Cij_GPa.dat")
+    print("  - ELASTIC_Bij_GPa.dat")
+    print("  - ELASTIC_fit_info.txt")
+    
+    print("\nElastic summary:")
+    print("Cij (GPa):")
+    for name, value in zip(order, np.array(Cij, dtype=float) / units.GPa):
+        print(f"{name} = {value:12.6f} GPa")
+    
+    print("Birch coefficients (GPa):")
+    print(np.array(Bij[0], dtype=float) / units.GPa)
+    
+    print("Fit residuals:")
+    print(np.array(Bij[1], dtype=float))
+    
+    print("Fit rank:")
+    print(Bij[2])
+    
+    print("Singular values:")
+    print(np.array(Bij[3], dtype=float))
+    print()
+    
 # ==========================================
 # 4. ASE Phonon Driver
 # ==========================================
@@ -387,6 +549,7 @@ def run_ase_phonons(atoms, incar):
         Therefore supercell=(1,1,1) is used inside ASE. If a larger phonon
         supercell is desired, the user should supply that supercell as POSCAR.
     """
+    N = 3
 
     if atoms.cell.rank < 3:
         print("Error: ASE phonons require a proper 3D periodic cell.")
@@ -417,7 +580,6 @@ def run_ase_phonons(atoms, incar):
     else:
         delta = float(potim)
     
-    N = 3
     print("\n--- ASE phonon mode (triggered by IBRION=5/6) ---")
     print(f"Using displacement delta = {delta:.6f} Å")
     print(f"Using ASE Phonons with supercell = {(N, N, N)}")
@@ -560,6 +722,12 @@ def main():
     # ==========================================
     if ibrion in (5, 6):
         run_ase_phonons(atoms, incar)
+
+        # VASP-like behavior: for finite differences, also compute elastic tensor
+        # when ISIF >= 3.
+        if incar["ISIF"] >= 3:
+            run_elastic_tensor_with_jochym(atoms, incar)
+
         return
 
     if ibrion in (7, 8):
