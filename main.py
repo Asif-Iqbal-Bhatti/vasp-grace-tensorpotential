@@ -8,9 +8,12 @@ Geometry Optimizations, and Molecular Dynamics natively using ASE.
 """
 
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import sys
 import argparse
 import numpy as np
+from itertools import groupby
 
 from ase.io import read, write
 from ase.optimize import LBFGS, FIRE2
@@ -32,7 +35,6 @@ try:
 except ImportError:
     print("Error: 'tensorpotential' is not installed. Install via: pip install tensorpotential")
     sys.exit(1)
-
 
 # ==========================================
 # 1. Output Formatting (Mock VASP Files)
@@ -79,14 +81,48 @@ class VaspWriterObserver:
         self.atoms = atoms
         self.step = 1
         self.is_md = is_md
+        
+        # Clear/initialize standard files
         open("OSZICAR", "w").close()
         open("OUTCAR", "w").close()
         
+        # Initialize XDATCAR with the VASP 5 header
+        self._init_xdatcar()
+        
+    def _init_xdatcar(self):
+        """Writes the VASP 5 standard header for XDATCAR."""
+        with open("XDATCAR", "w") as f:
+            f.write("System from vasp-grace\n")
+            f.write("  1.00000000000000\n")
+            
+            # Write initial lattice vectors
+            for row in self.atoms.get_cell():
+                f.write(f"    {row[0]:12.8f}  {row[1]:12.8f}  {row[2]:12.8f}\n")
+            
+            # Group consecutive elements (Standard VASP format)
+            symbols = self.atoms.get_chemical_symbols()
+            grouped =[(k, len(list(g))) for k, g in groupby(symbols)]
+            
+            # Write element names and their counts
+            f.write("  " + "  ".join([g[0] for g in grouped]) + "\n")
+            f.write("  " + "  ".join([str(g[1]) for g in grouped]) + "\n")
+
+    def _append_xdatcar(self):
+        """Appends the current fractional coordinates to the XDATCAR."""
+        with open("XDATCAR", "a") as f:
+            f.write(f"Direct configuration={self.step:8d}\n")
+            
+            # VASP XDATCAR uses fractional (Direct) coordinates wrapped between 0 and 1
+            scaled_positions = self.atoms.get_scaled_positions(wrap=False)
+            for pos in scaled_positions:
+                f.write(f"  {pos[0]:12.8f}  {pos[1]:12.8f}  {pos[2]:12.8f}\n")
+
     def __call__(self):
         energy = self.atoms.get_potential_energy()
         forces = self.atoms.get_forces()
         stress = safe_get_stress(self.atoms)
         
+        # 1. Update OSZICAR
         with open("OSZICAR", "a") as f:
             if self.is_md:
                 temp = self.atoms.get_temperature()
@@ -96,10 +132,16 @@ class VaspWriterObserver:
             else:
                 f.write(f"   {self.step:4d} F= {energy:15.8E} E0= {energy:15.8E}  d E ={0.0:15.8E}\n")
             
+        # 2. Update OUTCAR
         with open("OUTCAR", "a") as f:
             f.write(format_outcar_block(self.atoms, energy, forces, stress, self.step))
             
+        # 3. Update CONTCAR
         write("CONTCAR", self.atoms, format="vasp")
+        
+        # 4. Update XDATCAR
+        self._append_xdatcar()
+        
         self.step += 1
 
 def write_vasp_single_point(atoms, energy, forces, stress_voigt):
@@ -130,9 +172,9 @@ def parse_incar(filepath="INCAR"):
     params = {
         "IBRION": -1,
         "NSW": 0,
-        "ISIF": 2,
+        "ISIF": 3,
         "EDIFFG": -0.01,
-        "GRACE_MODEL": "GRACE-1L-OMAT-medium-ft-E", # Default GRACE model
+        "GRACE_MODEL": "GRACE-2L-OAM", # Default GRACE model
         "POTIM": 1.0,
         "TEBEG": 300.0,
         "MDALGO": 0
@@ -220,8 +262,20 @@ def main():
         if incar["ISIF"] >= 3:
             print("Using NPT Ensemble (ISIF=3)...")
             target_pressure = 1.0 * units.bar 
-            md = MTKNPT(atoms, timestep=dt, temperature_K=temperature, 
-                     pressure_au=target_pressure, tdamp = 100*dt, pdamp = 1000*dt)
+            
+            # Official ASE MTK-NPT implementation (Martyna-Tobias-Klein)
+            md = MTKNPT(
+                atoms, 
+                timestep=dt, 
+                temperature_K=temperature, 
+                pressure_au=target_pressure, 
+                tdamp=100 * dt, 
+                pdamp=1000 * dt,
+                tchain=3,  # Standard number of thermostat chains
+                pchain=3,  # Standard number of barostat chains
+                tloop=5,   # Sub-divide thermostat integration steps (Prevents exp overflow!)
+                ploop=5    # Sub-divide barostat integration steps (Prevents exp overflow!)
+            )
         else:
             if incar["MDALGO"] == 0:
                 print("Using NVE Ensemble (Velocity Verlet, MDALGO=0)...")
@@ -232,6 +286,9 @@ def main():
             elif incar["MDALGO"] == 2:
                 print("Using NVT Ensemble (Berendsen Thermostat, MDALGO=2)...")
                 md = NVTBerendsen(atoms, timestep=dt, temperature_K=temperature, taut=100*units.fs)
+            elif incar["MDALGO"] == 3:
+                print("Using NVT Ensemble (Langevin Thermostat, MDALGO=3)...")
+                md = Langevin(atoms, timestep=dt, temperature_K=temperature, friction=0.002)
             else:
                 print("Fallback: Using NVE Ensemble (Velocity Verlet)...")
                 md = VelocityVerlet(atoms, timestep=dt)
