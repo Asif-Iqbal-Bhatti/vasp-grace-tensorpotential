@@ -14,7 +14,9 @@
   Enables MD simulations through ASE with GRACE potentials.
 
 - **Phonon and elastic constants**  
-  Enabels Phonon calculation Band Strucutre and Density of States via ASE Phonon module.
+  - Enabels Phonon calculation Band Strucutre and Density of States via ASE Phonon module.
+  - Added https://github.com/jochym/Elastic/tree/master module  
+  
 
 ## **Generated Files**
 - **Standard Output Files**  
