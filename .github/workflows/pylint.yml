@@ -1,27 +1,36 @@
-name: Pylint
+name: Pylint + PyTorch
 
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
 
     steps:
-    - uses: actions/checkout@v4  # already latest ✔️
+    - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5   # 🔥 upgrade from v3 → v5
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        
+        # Install pylint
         pip install pylint
 
-    - name: Analysing the code with pylint
+        # ---- PyTorch (CPU version - works everywhere) ----
+        # pip install torch torchvision torchaudio
+
+        # ---- OR CUDA version (only useful with GPU runner) ----
+        # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+    - name: Run pylint
       run: |
         pylint . --exit-zero
