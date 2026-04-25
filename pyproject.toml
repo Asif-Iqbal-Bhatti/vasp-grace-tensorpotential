@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vasp-grace"
+version = "0.1.0"
+description = "GRACE Machine Learning Potentials as a drop-in VASP replacement"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "VASP-GRACE Contributors"}
+]
+keywords = ["VASP", "GRACE", "machine-learning", "molecular-dynamics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+dependencies = [
+    "numpy>=1.20.0",
+    "ase>=3.22.0",
+    "tensorflow>=2.10.0",
+    "tensorpotential>=0.5.8",
+    "matplotlib>=3.5.0",
+    "elastic>=5.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=22.0",
+    "flake8>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/vasp-grace"
+Documentation = "https://github.com/yourusername/vasp-grace"
+Repository = "https://github.com/yourusername/vasp-grace.git"
+"Bug Tracker" = "https://github.com/yourusername/vasp-grace/issues"
+
+[project.scripts]
+vasp-grace = "vasp_grace.cli:main"
+
+[tool.setuptools]
+packages = ["vasp_grace"]
+
+[tool.black]
+line-length = 99
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 99
