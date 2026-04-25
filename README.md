@@ -8,6 +8,7 @@
 - **Geometry Optimization:** Supports VASP's `IBRION` and `ISIF` tags for structural optimization natively via ASE.
 - **Molecular Dynamics:** Supports multiple ensemble types (NVE, NVT, NPT) via ASE.
 - **Phonon Calculations:** Finite-displacement phonons with band structure and DOS plotting.
+- **NEB:** Nudged Elastic Band calculations using ASE.
 - **Output Generation:** Writes standard `OUTCAR`, `OSZICAR`, and `CONTCAR` files mimicking VASP output structures.
 - **Backend:** Native Python integration using the GRACE `tensorpotential` ASE calculator (GPU accelerated via TensorFlow).
 - **pip-installable:** Install as a standard Python package with `pip install .`
