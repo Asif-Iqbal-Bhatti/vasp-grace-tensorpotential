@@ -57,9 +57,6 @@ from elastic import get_cij_order, get_lattice_type
 from tensorpotential.calculator.foundation_models import grace_fm
 from tensorpotential.calculator import TPCalculator
 
-# Constant-Potential Electrochemistry
-from constant_potential import run_constant_potential_md
-
 
 # ==========================================
 # 1. Helpers
@@ -312,9 +309,6 @@ def parse_incar(filepath="INCAR"):
     Read standard INCAR parameters plus GRACE_MODEL.
     Phonon logic uses only original VASP phonon tags:
     IBRION, NFREE, POTIM, LPHON_DISPERSION, PHON_DOS, PHON_NEDOS, PHON_SIGMA.
-
-    Constant-Potential (CP) electrochemistry tags:
-    CONSTANT_POTENTIAL, TARGET_POTENTIAL, ELECTRON_MASS, NELECT_INIT.
     """
     params = {
         # Basic run control
@@ -341,12 +335,6 @@ def parse_incar(filepath="INCAR"):
         "LEPSILON": False,
         "LCALCEPS": False,
         "ISYM": 0,
-
-        # Constant-Potential Electrochemistry
-        "CONSTANT_POTENTIAL": False,
-        "TARGET_POTENTIAL": -3.36,
-        "ELECTRON_MASS": 660.74,
-        "NELECT_INIT": None,
     }
 
     if os.path.exists(filepath):
@@ -749,13 +737,6 @@ def main():
 
     # Non-phonon workflows use attached calculator directly
     atoms.calc = get_calculator(incar["GRACE_MODEL"])
-
-    # ==========================================
-    # ROUTINE CP: Constant-Potential Electrochemistry
-    # ==========================================
-    if incar["CONSTANT_POTENTIAL"]:
-        run_constant_potential_md(atoms, incar)
-        return
 
     # ==========================================
     # ROUTINE A: Single Point
