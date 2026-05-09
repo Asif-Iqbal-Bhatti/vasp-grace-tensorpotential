@@ -115,4 +115,4 @@ If you use `vasp-grace-tensorpotential` in your research, please cite it as:
 - Bochkarev, A. *et al.* "Efficient parametrization of the atomic cluster expansion." *Physical Review Materials* **6**, 013804 (2022). https://doi.org/10.1103/PhysRevMaterials.6.013804
 - Larsen, A. H. *et al.* "The atomic simulation environment — a Python library for working with atoms." *J. Phys.: Condens. Matter* **29**, 273002 (2017). https://doi.org/10.1088/1361-648X/aa680e
 
-> **Note:** If you have published a paper describing this software, please update the BibTeX entry above with the full journal reference and DOI.
+> **Note:** I don't have a paper and i dont know i will but it was an inspiration form my work and I hope if it is useful please cite and like this repo it means a lot to me and my career.
