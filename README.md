@@ -1,6 +1,6 @@
 # vasp-grace
 
-`vasp-grace` is a lightweight Python package that allows you to use the **GRACE Machine Learning Potentials** as a drop-in replacement for VASP. By mimicking the VASP executable, it seamlessly integrates GRACE with higher-level materials science workflows (e.g., Phonopy, USPEX, CALYPSO) that normally parse VASP inputs and outputs.
+`vasp-grace` is a lightweight Python package that allows you to use the **GRACE Machine Learning Potentials** as a drop-in replacement for VASP. By mimicking the VASP executable, it seamlessly integrates GRACE with higher-level materials science workflows (e.g., Phonopy,) that normally parse VASP inputs and outputs.
 
 ## Features
 - **Direct VASP Compatibility:** Reads standard `POSCAR` and `INCAR` files.
