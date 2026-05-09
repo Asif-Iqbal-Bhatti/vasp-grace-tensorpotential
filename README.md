@@ -14,6 +14,7 @@
 - **pip-installable:** Install as a standard Python package with `pip install .`
 - **Active Learning / UQ:** Committee-model uncertainty quantification to identify structures for DFT labelling (`active_learning.py`).
 - **Monte Carlo sampling:** Metropolis MC with GRACE energies, swap moves for cation disorder, and live UQ flagging (`montecarlo.py`).
+- **Dislocation builder:** Edge, screw, and mixed dislocation structures via isotropic Volterra or anisotropic Stroh formalism, with dipole configuration and GRACE relaxation (`dislocation.py`).
 
 ## Installation
 
@@ -65,6 +66,37 @@ python montecarlo.py --poscar POSCAR --models m1.pb m2.pb m3.pb --temperature 80
 ```
 
 Outputs: `MC_energies.dat`, `XDATCAR_MC`, `CONTCAR_MC`, optionally `flagged/POSCAR_MC_NNNNN`.
+
+## Dislocation Builder
+
+`dislocation.py` creates edge, screw, and mixed dislocation structures from a perfect crystal POSCAR — similar to atomsk's `--dislocation` mode and atomman's dislocation module.
+
+**Physics implemented:**
+- **Isotropic Volterra** — closed-form displacement field (screw: `u_z = b/2π arctan2(y,x)`; edge: full Hirth & Lothe formula including Poisson ratio)
+- **Anisotropic Stroh formalism** — solves the 6×6 Stroh eigenvalue problem using elastic constants from `ELASTIC_Cij_GPa.dat` (produced by the elastic module in `main.py`)
+- **Dipole configuration** — two dislocations of opposite sign at ±Lx/4 for full 3D periodicity
+
+```bash
+# Screw dislocation dipole (isotropic)
+python dislocation.py --poscar POSCAR --type screw --burgers 2.8
+
+# Edge dislocation with Poisson ratio
+python dislocation.py --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
+
+# Anisotropic Stroh using elastic constants from elastic module
+python dislocation.py --poscar POSCAR --type edge --burgers 2.8 \
+                      --method anisotropic --elastic ELASTIC_Cij_GPa.dat
+
+# Miller index input for slip plane and line direction
+python dislocation.py --poscar POSCAR --type screw --burgers 2.8 \
+                      --hkl 1 1 0 --uvw 1 -1 0
+
+# Build then relax the core structure with GRACE
+python dislocation.py --poscar POSCAR --type edge --burgers 2.8 \
+                      --relax --model my_grace_model.pb --fmax 0.05
+```
+
+Outputs: `POSCAR_dislocation`, `dislocation_info.txt`, optionally `dislocation_relax.traj`.
 
 ## Citation
 
