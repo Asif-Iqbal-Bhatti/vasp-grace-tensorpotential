@@ -13,7 +13,7 @@ Strategy
   tensorpotential is installed, otherwise skipped.
 
 Run:
-    python test_modules.py
+    python tests/test_modules.py
 """
 
 import os
@@ -24,7 +24,9 @@ import shutil
 import textwrap
 import numpy as np
 
-SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR  = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "vasp_grace")
+)
 PYTHON      = sys.executable
 GRACE_MODEL = "GRACE-2L-OAM"
 
@@ -299,7 +301,7 @@ with tempfile.TemporaryDirectory() as tmp:
 section("6. Syntax check  (all modules)")
 
 all_scripts = [
-    "main.py", "__initi__.py",
+    "main.py", "__init__.py",
     "active_learning.py", "montecarlo.py", "thermal_conductivity.py",
     "topological_phonons.py", "phonon_berry.py",
 ]

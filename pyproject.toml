@@ -1,63 +1,67 @@
 [build-system]
-requires = ["setuptools>=45", "wheel"]
+requires = ["setuptools>=65", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "vasp-grace"
-version = "0.1.0"
+version = "2.0.0"
 description = "GRACE Machine Learning Potentials as a drop-in VASP replacement"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "VASP-GRACE Contributors"}
+    {name = "Asif Iqbal Bhatti", email = "asifbhatti235@gmail.com"}
 ]
-keywords = ["VASP", "GRACE", "machine-learning", "molecular-dynamics"]
+keywords = ["VASP", "GRACE", "machine-learning", "molecular-dynamics", "phonons", "topology"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics",
 ]
 
 dependencies = [
-    "numpy>=1.20.0",
-    "ase>=3.22.0",
-    "tensorflow>=2.10.0",
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "ase>=3.22",
+    "matplotlib>=3.5",
+    "tensorflow>=2.10",
     "tensorpotential>=0.5.8",
-    "matplotlib>=3.5.0",
-    "elastic>=5.1.0",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "black>=22.0",
-    "flake8>=4.0",
-]
+tda  = ["gudhi"]
+dev  = ["pytest>=7.0", "black", "flake8"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/vasp-grace"
-Documentation = "https://github.com/yourusername/vasp-grace"
-Repository = "https://github.com/yourusername/vasp-grace.git"
-"Bug Tracker" = "https://github.com/yourusername/vasp-grace/issues"
+Homepage   = "https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential"
+Repository = "https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential.git"
+"Bug Tracker" = "https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential/issues"
 
 [project.scripts]
-vasp-grace = "vasp_grace.cli:main"
+vasp-grace             = "vasp_grace.main:main"
+grace-active-learning  = "vasp_grace.active_learning:main"
+grace-mc               = "vasp_grace.montecarlo:main"
+grace-dislocation      = "vasp_grace.dislocation:main"
+grace-lihopping        = "vasp_grace.lihopping:main"
+grace-kappa            = "vasp_grace.thermal_conductivity:main"
+grace-topology         = "vasp_grace.topology:main"
+grace-topo-phonons     = "vasp_grace.topological_phonons:main"
+grace-phonon-berry     = "vasp_grace.phonon_berry:main"
+grace-moire            = "vasp_grace.moire:main"
 
-[tool.setuptools]
-packages = ["vasp_grace"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.black]
 line-length = 99
-target-version = ['py38']
+target-version = ["py39"]
 
-[tool.isort]
-profile = "black"
-line_length = 99
+[tool.pytest.ini_options]
+testpaths = ["tests"]
