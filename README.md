@@ -97,6 +97,12 @@ python dislocation.py --poscar POSCAR --type edge --burgers 2.8 \
 
 Outputs: `POSCAR_dislocation`, `dislocation_info.txt`, optionally `dislocation_relax.traj`.
 
+The dislocation builder draws inspiration from the following tools — please also consider citing them if you use this module:
+
+- **atomsk** — Hirel, P. *Atomsk: A tool for manipulating and converting atomic data files.* Computer Physics Communications **197**, 212–219 (2015). https://doi.org/10.1016/j.cpc.2015.07.012 | https://atomsk.univ-lille.fr
+- **atomman** — Hale, L. M. *et al.* NIST Atomistic Simulation Environment (atomman). https://github.com/usnistgov/atomman
+- **E. Clouet's dislocation tools** — Clouet, E. *Dislocation modeling in solids.* https://emmanuel.clouet.free.fr — reference implementation of the Stroh anisotropic formalism and Volterra displacement field used as theoretical basis here.
+
 ## Citation
 
 If you use `vasp-grace-tensorpotential` in your research, please cite it as:
