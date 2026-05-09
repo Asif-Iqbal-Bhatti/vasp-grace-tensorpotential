@@ -55,43 +55,28 @@ POSCAR / INCAR
 
 ---
 
-## Quick Usage
+## Project Structure
 
-```bash
-# VASP drop-in
-vasp-grace --poscar POSCAR --incar INCAR
-
-# Active learning: flag uncertain structures
-python active_learning.py --poscar_dir ./structs --models m1.pb m2.pb m3.pb
-
-# Metropolis MC + swap moves (Cl ↔ S disorder)
-python montecarlo.py --poscar POSCAR --model GRACE-2L-OAM \
-                     --swap Cl S --temperature 800 --steps 50000
-
-# Dislocation (isotropic edge)
-python dislocation.py --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
-
-# Li-ion hop detection + Arrhenius Ea
-python lihopping.py --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
-python lihopping.py --arrhenius --temps 600 800 1000 \
-                    --trajs traj_600K traj_800K traj_1000K --ref POSCAR --species Li
-
-# Lattice thermal conductivity (rNEMD)
-python thermal_conductivity.py --poscar POSCAR --model GRACE-2L-OAM \
-                               --temperature 300 --steps 200000
-
-# Topological Data Analysis (crystal vs grain boundary)
-python topology.py --poscar POSCAR_bulk --compare POSCAR_gb --rmax 8.0
-
-# Weyl/Dirac phonon points + Berry phase
-python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM --berry
-
-# Phonon Zak phases + Berry curvature
-python phonon_berry.py --poscar POSCAR --model GRACE-2L-OAM --curvature
-
-# Moiré superlattice (scan commensurate angles, then build)
-python moire.py --poscar POSCAR --scan --m_max 10
-python moire.py --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
+```
+vasp-grace-tensorpotential/
+├── src/
+│   └── vasp_grace/          # all modules (importable package)
+│       ├── main.py
+│       ├── active_learning.py
+│       ├── montecarlo.py
+│       ├── dislocation.py
+│       ├── lihopping.py
+│       ├── thermal_conductivity.py
+│       ├── topology.py
+│       ├── topological_phonons.py
+│       ├── phonon_berry.py
+│       └── moire.py
+├── tests/
+│   ├── test_modules.py      # integration test suite
+│   └── (POSCAR, INCAR_*, OUTCAR, ...)
+├── README.md
+├── pyproject.toml
+└── LICENSE
 ```
 
 ---
@@ -99,11 +84,61 @@ python moire.py --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
 ## Installation
 
 ```bash
+git clone https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential
+cd vasp-grace-tensorpotential
 pip install -e .
 ```
 
 **Dependencies:** `ase`, `numpy`, `scipy`, `matplotlib`, `tensorflow`, `tensorpotential`  
 Optional: `gudhi` (`pip install gudhi`) for full β₂ persistent homology in `topology.py`.
+
+---
+
+## Quick Usage
+
+After `pip install -e .`, all modules are available as CLI commands:
+
+```bash
+# VASP drop-in
+vasp-grace --poscar POSCAR --incar INCAR
+
+# Active learning: flag uncertain structures
+grace-active-learning --poscar_dir ./structs --models m1.pb m2.pb m3.pb
+
+# Metropolis MC + swap moves (Cl ↔ S disorder)
+grace-mc --poscar POSCAR --model GRACE-2L-OAM \
+         --swap Cl S --temperature 800 --steps 50000
+
+# Dislocation (isotropic edge)
+grace-dislocation --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
+
+# Li-ion hop detection + Arrhenius Ea
+grace-lihopping --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
+grace-lihopping --arrhenius --temps 600 800 1000 \
+                --trajs traj_600K traj_800K traj_1000K --ref POSCAR --species Li
+
+# Lattice thermal conductivity (rNEMD)
+grace-kappa --poscar POSCAR --model GRACE-2L-OAM --temperature 300 --steps 200000
+
+# Topological Data Analysis (crystal vs grain boundary)
+grace-topology --poscar POSCAR_bulk --compare POSCAR_gb --rmax 8.0
+
+# Weyl/Dirac phonon points + Berry phase
+grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM --berry
+
+# Phonon Zak phases + Berry curvature
+grace-phonon-berry --poscar POSCAR --model GRACE-2L-OAM --curvature
+
+# Moiré superlattice (scan commensurate angles, then build)
+grace-moire --poscar POSCAR --scan --m_max 10
+grace-moire --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
+```
+
+### Running tests
+
+```bash
+python tests/test_modules.py
+```
 
 ---
 
