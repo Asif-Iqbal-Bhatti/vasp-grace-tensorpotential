@@ -11,7 +11,6 @@
 - **NEB:** Nudged Elastic Band calculations using ASE.
 - **Output Generation:** Writes standard `OUTCAR`, `OSZICAR`, and `CONTCAR` files mimicking VASP output structures.
 - **Backend:** Native Python integration using the GRACE `tensorpotential` ASE calculator (GPU accelerated via TensorFlow).
-- **pip-installable:** Install as a standard Python package with `pip install .`
 - **Active Learning / UQ:** Committee-model uncertainty quantification to identify structures for DFT labelling (`active_learning.py`).
 - **Monte Carlo sampling:** Metropolis MC with GRACE energies, swap moves for cation disorder, and live UQ flagging (`montecarlo.py`).
 - **Dislocation builder:** Edge, screw, and mixed dislocation structures via isotropic Volterra or anisotropic Stroh formalism, with dipole configuration and GRACE relaxation (`dislocation.py`).
