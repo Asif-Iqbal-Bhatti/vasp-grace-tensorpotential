@@ -50,14 +50,14 @@ Outputs: `uncertainty_log.dat`, `flagged/POSCAR_uncertain_NNNN`, optionally `per
 
 `montecarlo.py` runs Metropolis MC using GRACE as the energy engine. Supports:
 - **Displacement moves** — random atomic perturbations
-- **Swap moves** — exchange two atom species (e.g. Li ↔ S for disorder at a grain boundary interface)
+- **Swap moves** — exchange two atom species (e.g. Cl ↔ S for antisite-disorder at a grain boundary interface)
 - **Live UQ** — when a model committee is provided, flags high-uncertainty MC snapshots for DFT
 
 ```bash
 # Basic MC at 800 K
 python montecarlo.py --poscar POSCAR --model GRACE-2L-OAM --temperature 800 --steps 50000
 
-# With Li ↔ S swap moves (20% of steps)
+# With Cl ↔ S swap moves (20% of steps)
 python montecarlo.py --poscar POSCAR --model m1.pb --swap Li S --temperature 1000 --steps 100000
 
 # Committee MC: energy from model[0], UQ from full committee
