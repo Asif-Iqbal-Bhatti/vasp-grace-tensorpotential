@@ -14,6 +14,9 @@
 - **Active Learning / UQ:** Committee-model uncertainty quantification to identify structures for DFT labelling (`active_learning.py`).
 - **Monte Carlo sampling:** Metropolis MC with GRACE energies, swap moves for cation disorder, and live UQ flagging (`montecarlo.py`).
 - **Dislocation builder:** Edge, screw, and mixed dislocation structures via isotropic Volterra or anisotropic Stroh formalism, with dipole configuration and GRACE relaxation (`dislocation.py`).
+- **Li-ion hop detection:** Sojourn-filtered hop event detection from MD/MC trajectories, per-site hop rates, hop network, and Arrhenius activation energy (`lihopping.py`).
+- **Thermal conductivity:** Lattice κ(T) via Müller-Plathe reverse NEMD — no per-atom stress needed, works with any GRACE model (`thermal_conductivity.py`).
+- **Topological Data Analysis:** Persistent homology (β₀, β₁, β₂ Betti curves) of crystal and grain boundary structures — symmetry-free structural fingerprinting (`topology.py`).
 
 ## Installation
 
@@ -65,6 +68,60 @@ python montecarlo.py --poscar POSCAR --models m1.pb m2.pb m3.pb --temperature 80
 ```
 
 Outputs: `MC_energies.dat`, `XDATCAR_MC`, `CONTCAR_MC`, optionally `flagged/POSCAR_MC_NNNNN`.
+
+## Li-ion Hop Detection
+
+`lihopping.py` tracks mobile ions (Li, Na, etc.) across reference lattice sites during MD or MC trajectories, detects hop events with a sojourn-time filter (eliminates false positives from oscillating atoms), and computes per-site hop rates, mean residence times, and the hop network.
+
+```bash
+# Detect Li hops from an MD trajectory
+python lihopping.py --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
+
+# With sojourn filter: only count hops where atom stays ≥3 frames
+python lihopping.py --traj XDATCAR --ref POSCAR --species Li --min_sojourn 3
+
+# Arrhenius activation energy from multiple temperatures
+python lihopping.py --arrhenius --temps 600 800 1000 \
+                    --trajs XDATCAR_600 XDATCAR_800 XDATCAR_1000 \
+                    --ref POSCAR --species Li --timestep 2.0
+```
+
+Outputs: `hop_events.dat`, `hop_statistics.dat`, `hop_network.dat`, `arrhenius.dat`, `arrhenius.png`.
+
+## Thermal Conductivity
+
+`thermal_conductivity.py` computes lattice thermal conductivity κ via the Müller-Plathe reverse NEMD method. Divides the cell into slabs, periodically swaps z-velocities between hot and cold regions, and measures the resulting temperature gradient. No per-atom stress tensor required — works directly with any GRACE model.
+
+```bash
+# Basic run at 300 K
+python thermal_conductivity.py --poscar POSCAR --model GRACE-2L-OAM \
+                               --temperature 300 --steps 200000
+
+# Custom slab count and swap interval
+python thermal_conductivity.py --poscar POSCAR --model my_model.pb \
+                               --temperature 500 --steps 300000 --nslabs 30
+```
+
+Outputs: `temperature_profile.dat`, `kappa_convergence.dat`, `kappa_summary.txt`, `temperature_profile.png`.
+
+## Topological Data Analysis
+
+`topology.py` fingerprints crystal and grain boundary structures using persistent homology — no crystal symmetry assumed. Computes Betti numbers β₀ (connected components), β₁ (loops/channels), β₂ (voids) as a function of distance threshold. Identifies structurally distinct regions (bulk vs GB) without needing order parameters.
+
+Uses `scipy` by default (β₀ exact via union-find, β₁ from graph cycle rank). Install `gudhi` for full β₂ and persistence diagrams: `pip install gudhi`.
+
+```bash
+# Single structure
+python topology.py --poscar POSCAR --rmax 8.0
+
+# Compare bulk vs grain boundary
+python topology.py --poscar POSCAR_bulk --compare POSCAR_gb
+
+# Li sublattice only, from trajectory
+python topology.py --xdatcar XDATCAR --species Li --stride 10 --rmax 6.0
+```
+
+Outputs: `betti_curves.dat`, `persistence_diagram.dat`, `tda_summary.txt`, `betti_curves.png`.
 
 ## Dislocation Builder
 
