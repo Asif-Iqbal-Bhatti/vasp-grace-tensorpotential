@@ -17,6 +17,9 @@
 - **Li-ion hop detection:** Sojourn-filtered hop event detection from MD/MC trajectories, per-site hop rates, hop network, and Arrhenius activation energy (`lihopping.py`).
 - **Thermal conductivity:** Lattice κ(T) via Müller-Plathe reverse NEMD — no per-atom stress needed, works with any GRACE model (`thermal_conductivity.py`).
 - **Topological Data Analysis:** Persistent homology (β₀, β₁, β₂ Betti curves) of crystal and grain boundary structures — symmetry-free structural fingerprinting (`topology.py`).
+- **Topological phonons:** Weyl/Dirac phonon point detection via band inversion and Berry phase Wilson loop on each detected crossing (`topological_phonons.py`).
+- **Phonon Berry phase / Zak phase:** Band-resolved Zak phases along closed BZ paths and Berry curvature Ω(k) on a 2D k-mesh — classifies phonon bands as topological or trivial (`phonon_berry.py`).
+- **Moiré superlattice builder:** Commensurate twisted-bilayer supercells via Coincidence Site Lattice (CSL) method, stacking analysis (AA/AB/SP regions), and optional GRACE relaxation (`moire.py`).
 
 ## Installation
 
@@ -122,6 +125,72 @@ python topology.py --xdatcar XDATCAR --species Li --stride 10 --rmax 6.0
 ```
 
 Outputs: `betti_curves.dat`, `persistence_diagram.dat`, `tda_summary.txt`, `betti_curves.png`.
+
+## Topological Phonons
+
+`topological_phonons.py` detects Weyl and Dirac phonon points in the phonon band structure computed with GRACE. Builds on cached force-constant data from the phonon module (`phonon.*.json`).
+
+**Physics:**
+- Band crossing detection via near-degeneracy and band inversion across adjacent k-points
+- Berry phase γ = -Im[ln ∏ ⟨uₙ(kⱼ)|uₙ(kⱼ₊₁)⟩] on a small closed loop around each crossing
+- γ ≈ π indicates a Weyl phonon or topological nodal line
+
+```bash
+# Detect crossings along a k-path (uses cached phonon.*.json)
+python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM
+
+# Custom path and threshold
+python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM \
+                              --path GXMGZ --nkpts 300 --tol 0.5
+
+# Compute Berry phase at each detected crossing
+python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM --berry
+```
+
+Outputs: `phonon_topo_bands.png`, `phonon_crossings.dat`, `phonon_topo_summary.txt`.
+
+## Phonon Berry Phase & Zak Phase
+
+`phonon_berry.py` computes the Zak phase (Berry phase along a closed BZ path) for each phonon band and optionally maps Berry curvature Ω(k) across a 2D k-mesh.
+
+**Physics:**
+- Zak phase γₙ = 0 → trivial band; γₙ = π → topological (phononic analogue of topological insulator)
+- Berry curvature Ωₙ(k) = Im[∂kx uₙ† ∂ky uₙ] computed via finite differences
+- Chern number C = (1/2π) ∫∫ Ωₙ(k) dkx dky integrates the curvature over the BZ
+
+```bash
+# Zak phases for all bands (GXG = closed BZ path)
+python phonon_berry.py --poscar POSCAR --model GRACE-2L-OAM
+
+# Berry curvature on a 2D k-mesh + Chern numbers
+python phonon_berry.py --poscar POSCAR --model GRACE-2L-OAM \
+                       --curvature --nkx 30 --nky 30
+```
+
+Outputs: `phonon_zak.dat`, `phonon_zak.png`, optionally `phonon_berry_curv.dat`, `phonon_chern.dat`, `phonon_chern.png`, `phonon_berry_summary.txt`.
+
+## Moiré Superlattice Builder
+
+`moire.py` constructs commensurate twisted-bilayer supercells for moiré physics studies. Uses the Coincidence Site Lattice (CSL) method to find the exact twist angle and supercell matrix for integer (m, n) pairs.
+
+**Physics:**
+- Hexagonal lattice: cos θ = (m²+4mn+n²) / [2(m²+mn+n²)], N = m²+mn+n²
+- Square lattice: cos θ = (m²-n²)/(m²+n²), N = m²+n²
+- Stacking analysis classifies each top-layer atom as AA, AB, or SP
+
+```bash
+# Build twisted bilayer at (m,n) = (5,6) ≈ 13.2°
+python moire.py --poscar POSCAR_monolayer --m 5 --n 6
+
+# Scan all commensurate angles up to m=10
+python moire.py --poscar POSCAR --scan --m_max 10
+
+# Build and relax with GRACE
+python moire.py --poscar POSCAR --m 5 --n 6 --gap 3.35 \
+                --relax --model GRACE-2L-OAM
+```
+
+Outputs: `POSCAR_moire`, `moire_info.txt`, `stacking_map.dat`, `stacking_map.png`.
 
 ## Dislocation Builder
 
