@@ -162,7 +162,7 @@ Inspired by: [atomsk](https://atomsk.univ-lille.fr) · [atomman](https://github.
 ```bibtex
 @software{bhatti_vasp_grace_2026,
   author = {Bhatti, Asif Iqbal},
-  title  = {{vasp-grace-tensorpotential}: A wrapper to use GRACE MLIP as a substitute for VASP/DFT backend for solid-state systems and advanced topological material analysis},
+  title  = {{vasp-grace-tensorpotential}: A Python toolkit interfacing GRACE machine learning interatomic potentials with VASP workflows for solid-state dynamics, defect analysis, and topological phonon characterisation},
   year   = {2026},
   url    = {https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential},
   note   = {Version 2.0.0}
