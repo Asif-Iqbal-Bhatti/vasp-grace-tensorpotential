@@ -33,19 +33,18 @@ See [INSTALL.md](INSTALL.md) for comprehensive installation and usage guide.
 
 ## Citation
 
-If you use `vasp-grace` in your research, please cite it as:
+If you use `vasp-grace-tensorpotential` in your research, please cite it as:
 
 ```bibtex
-@software{bhatti_vasp_grace_2026,
+@software{vasp_grace_2026,
   author       = {Bhatti, Asif Iqbal},
-  title        = {{vasp-grace}: GRACE Machine Learning Potentials as a drop-in VASP replacement},
+  title        = {{vasp-grace-tensorpotential}: GRACE Machine Learning Potentials as a drop-in VASP replacement},
   year         = {2026},
   url          = {https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential},
   note         = {Version 2.0.0}
 }
 ```
 
-You should also cite the underlying **GRACE / tensorpotential** model and **ASE**:
 
 - Bochkarev, A. *et al.* "Efficient parametrization of the atomic cluster expansion." *Physical Review Materials* **6**, 013804 (2022). https://doi.org/10.1103/PhysRevMaterials.6.013804
 - Larsen, A. H. *et al.* "The atomic simulation environment — a Python library for working with atoms." *J. Phys.: Condens. Matter* **29**, 273002 (2017). https://doi.org/10.1088/1361-648X/aa680e
