@@ -82,3 +82,6 @@ relaxed*.xyz
 nvt_*.xyz
 npt_*.xyz
 nve_*.xyz
+
+# marimo session cache
+__marimo__/
