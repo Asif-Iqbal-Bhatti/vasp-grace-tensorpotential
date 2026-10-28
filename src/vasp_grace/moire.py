@@ -35,16 +35,16 @@ top layer to its local stacking configuration relative to the bottom layer:
 Usage
 -----
     # Twist graphene at the magic angle (~1.05°): (m,n) = (31,32)
-    python moire.py --poscar POSCAR_monolayer --m 5 --n 6
+    grace-moire --poscar POSCAR_monolayer --m 5 --n 6
 
     # Specify interlayer distance and relax with GRACE
-    python moire.py --poscar POSCAR --m 5 --n 6 --gap 3.35 --relax --model GRACE-2L-OAM
+    grace-moire --poscar POSCAR --m 5 --n 6 --gap 3.35 --relax --model GRACE-2L-OAM
 
     # Square lattice
-    python moire.py --poscar POSCAR --m 3 --n 2 --lattice square
+    grace-moire --poscar POSCAR --m 3 --n 2 --lattice square
 
     # Scan over multiple (m,n) pairs
-    python moire.py --poscar POSCAR --scan --m_max 8
+    grace-moire --poscar POSCAR --scan --m_max 8
 
 Outputs
 -------
@@ -59,15 +59,18 @@ import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
 from ase.io import read, write
-from ase import Atoms
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
+
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python moire.py
+    from calculator import load_calculator
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -220,14 +223,6 @@ def build_bilayer(mono, M, theta_deg, gap, vacuum=15.0, lattice="hex"):
 # ──────────────────────────────────────────────────────────────────────────────
 # GRACE relaxation
 # ──────────────────────────────────────────────────────────────────────────────
-
-def load_model(model_path):
-    from tensorpotential.calculator.foundation_models import grace_fm
-    from tensorpotential.calculator import TPCalculator
-    if os.path.exists(model_path):
-        return TPCalculator(model_path)
-    return grace_fm(model_path)
-
 
 def relax_bilayer(bilayer, calc, fmax=0.05, steps=300):
     """Relax the bilayer with GRACE, keeping z-cell fixed."""
@@ -412,7 +407,7 @@ def main():
 
     if args.relax:
         print(f"\nRelaxing with {args.model}  (fmax={args.fmax} eV/Å)...")
-        calc = load_model(args.model)
+        calc = load_calculator(args.model)
         bilayer = relax_bilayer(bilayer, calc, fmax=args.fmax)
 
     write("POSCAR_moire", bilayer, format="vasp")

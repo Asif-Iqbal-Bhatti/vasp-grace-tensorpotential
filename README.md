@@ -14,7 +14,7 @@ POSCAR / INCAR
 ┌─────────────────────────────────────────────────────────────────┐
 │                        main.py  (VASP drop-in)                  │
 │  IBRION=1/2 → geometry opt │ IBRION=0 → MD │ IBRION=5/6 → phonon│
-│  ISIF=3 → cell relax       │ NEB           │ elastic constants   │
+│  ISIF=3 → cell relax       │ ISIF≥3 + IBRION=5/6 → elastic Cij   │
 └────────────┬────────────────────────────────────────────────────┘
              │ OUTCAR · CONTCAR · OSZICAR · phonon.*.json
              │
@@ -42,7 +42,7 @@ POSCAR / INCAR
 
 | Module | What it does | Key outputs |
 |--------|-------------|-------------|
-| `main.py` | VASP drop-in: opt · MD · phonon · NEB · elastic | `OUTCAR`, `CONTCAR`, band/DOS plots |
+| `main.py` | VASP drop-in: opt · MD · phonon · elastic | `OUTCAR`, `CONTCAR`, band/DOS plots |
 | `active_learning.py` | Committee-model UQ — flags uncertain structures for DFT | `uncertainty_log.dat`, `flagged/POSCAR_*` |
 | `montecarlo.py` | Metropolis MC with displacement + swap moves, live UQ | `MC_energies.dat`, `XDATCAR_MC` |
 | `dislocation.py` | Edge/screw dislocations via Volterra or Stroh formalism | `POSCAR_dislocation`, `dislocation_info.txt` |
@@ -61,6 +61,7 @@ POSCAR / INCAR
 vasp-grace-tensorpotential/
 ├── src/
 │   └── vasp_grace/          # all modules (importable package)
+│       ├── calculator.py    # shared GRACE model loader
 │       ├── main.py
 │       ├── active_learning.py
 │       ├── montecarlo.py
@@ -71,6 +72,8 @@ vasp-grace-tensorpotential/
 │       ├── topological_phonons.py
 │       ├── phonon_berry.py
 │       └── moire.py
+├── examples/
+│   └── quickstart.py        # interactive marimo notebook
 ├── tests/
 │   ├── test_modules.py      # integration test suite
 │   └── (POSCAR, INCAR_*, OUTCAR, ...)
@@ -89,8 +92,8 @@ cd vasp-grace-tensorpotential
 pip install -e .
 ```
 
-**Dependencies:** `ase`, `numpy`, `scipy`, `matplotlib`, `tensorflow`, `tensorpotential`  
-Optional: `gudhi` (`pip install gudhi`) for full β₂ persistent homology in `topology.py`.
+**Dependencies:** `ase`, `numpy`, `scipy`, `matplotlib`, `tensorflow`, `tensorpotential`, [`elastic`](https://github.com/jochym/Elastic) (elastic constants in `vasp-grace`)  
+Optional: `gudhi` (`pip install -e ".[tda]"`) for full β₂ persistent homology in `topology.py`; `marimo` (`pip install -e ".[examples]"`) for the example notebook.
 
 ---
 
@@ -133,6 +136,17 @@ grace-phonon-berry --poscar POSCAR --model GRACE-2L-OAM --curvature
 grace-moire --poscar POSCAR --scan --m_max 10
 grace-moire --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
 ```
+
+Every command accepts `--model` as either a GRACE foundation-model name (default `GRACE-2L-OAM`) or a path to your own fitted model; in `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
+
+### Interactive example
+
+```bash
+pip install -e ".[examples]"
+marimo edit examples/quickstart.py
+```
+
+The notebook loads a GRACE model, runs a single point, fits an equation of state, relaxes the cell, compares topological fingerprints of an ordered and a rattled crystal, and scans commensurate moiré angles, all with live controls.
 
 ### Running tests
 

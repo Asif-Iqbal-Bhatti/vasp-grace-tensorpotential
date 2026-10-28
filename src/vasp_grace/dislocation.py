@@ -22,25 +22,25 @@ Coordinate convention
 Usage
 -----
     # Screw dislocation dipole, isotropic
-    python dislocation.py --poscar POSCAR --type screw --burgers 2.8
+    grace-dislocation --poscar POSCAR --type screw --burgers 2.8
 
     # Edge dislocation, specify Poisson ratio
-    python dislocation.py --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
+    grace-dislocation --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
 
     # Anisotropic using elastic constants from the elastic module
-    python dislocation.py --poscar POSCAR --type edge --burgers 2.8 \\
+    grace-dislocation --poscar POSCAR --type edge --burgers 2.8 \\
                           --elastic ELASTIC_Cij_GPa.dat
 
     # Specify slip plane normal and slip direction as Cartesian unit vectors
-    python dislocation.py --poscar POSCAR --type screw --burgers 2.8 \\
+    grace-dislocation --poscar POSCAR --type screw --burgers 2.8 \\
                           --line 0 0 1 --normal 0 1 0
 
     # Miller index input (plane normal and line direction)
-    python dislocation.py --poscar POSCAR --type edge --burgers 2.8 \\
+    grace-dislocation --poscar POSCAR --type edge --burgers 2.8 \\
                           --hkl 1 1 0 --uvw 1 -1 0
 
     # Build then relax with GRACE
-    python dislocation.py --poscar POSCAR --type screw --burgers 2.8 \\
+    grace-dislocation --poscar POSCAR --type screw --burgers 2.8 \\
                           --relax --model GRACE-2L-OAM
 
 Outputs
@@ -61,7 +61,11 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="tensorflow")
 
 from ase.io import read, write
-from ase import units
+
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python dislocation.py
+    from calculator import load_calculator
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -579,10 +583,11 @@ def main():
                         help="Dislocation type (default: screw).")
     parser.add_argument("--burgers", type=float, required=True,
                         help="Burgers vector magnitude in Å.")
-    parser.add_argument("--dipole", action="store_true", default=True,
-                        help="Build a dipole (two dislocations of opposite sign, default).")
-    parser.add_argument("--single", action="store_true",
-                        help="Build a single dislocation instead of a dipole.")
+    config_grp = parser.add_mutually_exclusive_group()
+    config_grp.add_argument("--dipole", action="store_true",
+                            help="Build a dipole (two dislocations of opposite sign, default).")
+    config_grp.add_argument("--single", action="store_true",
+                            help="Build a single dislocation instead of a dipole.")
 
     # Geometry: Cartesian directions
     parser.add_argument("--line",   type=float, nargs=3, default=[0, 0, 1],
@@ -654,8 +659,7 @@ def main():
     print(f"  Plane normal   n : {np.round(builder.n, 5)}")
     print(f"  In-plane       m : {np.round(builder.m, 5)}")
 
-    use_single = args.single and not args.dipole
-    if use_single:
+    if args.single:
         disloc_atoms = builder.build_single(args.type, args.burgers)
     else:
         disloc_atoms = builder.build_dipole(args.type, args.burgers)
@@ -671,14 +675,7 @@ def main():
     if args.relax:
         from ase.optimize import LBFGS
 
-        if os.path.exists(args.model):
-            from tensorpotential.calculator import TPCalculator
-            calc = TPCalculator(args.model)
-        else:
-            from tensorpotential.calculator.foundation_models import grace_fm
-            calc = grace_fm(args.model)
-
-        disloc_atoms.calc = calc
+        disloc_atoms.calc = load_calculator(args.model)
 
         print(f"\nRelaxing with GRACE model: {args.model}")
         print(f"  fmax={args.fmax} eV/Å, max steps={args.steps}")

@@ -19,16 +19,16 @@ or any ASE-readable trajectory file.
 Usage
 -----
     # Basic hop analysis
-    python lihopping.py --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
+    grace-lihopping --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
 
     # With sojourn filter (ignore transient site visits < 3 frames)
-    python lihopping.py --traj XDATCAR --ref POSCAR --species Li --timestep 2.0 --min_sojourn 3
+    grace-lihopping --traj XDATCAR --ref POSCAR --species Li --timestep 2.0 --min_sojourn 3
 
     # Grain-boundary vs bulk hop comparison
-    python lihopping.py --traj XDATCAR --ref POSCAR --species Li --timestep 2.0 --gb_axis z --gb_frac 0.5
+    grace-lihopping --traj XDATCAR --ref POSCAR --species Li --timestep 2.0 --gb_axis z --gb_frac 0.5
 
     # Arrhenius analysis from multiple temperature trajectories
-    python lihopping.py --arrhenius \\
+    grace-lihopping --arrhenius \\
         --temps 600 800 1000 \\
         --trajs traj_600K XDATCAR_800K XDATCAR_1000K \\
         --ref POSCAR --species Li --timestep 2.0

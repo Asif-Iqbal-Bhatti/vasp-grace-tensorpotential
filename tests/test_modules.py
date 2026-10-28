@@ -300,11 +300,7 @@ with tempfile.TemporaryDirectory() as tmp:
 
 section("6. Syntax check  (all modules)")
 
-all_scripts = [
-    "main.py", "__init__.py",
-    "active_learning.py", "montecarlo.py", "thermal_conductivity.py",
-    "topological_phonons.py", "phonon_berry.py",
-]
+all_scripts = sorted(f for f in os.listdir(SCRIPT_DIR) if f.endswith(".py"))
 
 for script in all_scripts:
     path = os.path.join(SCRIPT_DIR, script)
@@ -402,7 +398,7 @@ from ase.io import read
 from ase.phonons import Phonons
 import topological_phonons as tp
 atoms = read({repr(poscar)}, format='vasp')
-calc  = tp.load_model({repr(GRACE_MODEL)})
+calc  = tp.load_calculator({repr(GRACE_MODEL)})
 ph    = Phonons(atoms, calc, supercell=(2,2,2), delta=0.015, name='phonon')
 ph.run()
 ph.read(method='Frederiksen', symmetrize=3, acoustic=True, cutoff=None, born=False)

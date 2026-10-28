@@ -25,11 +25,11 @@ https://doi.org/10.1063/1.473271
 Usage
 -----
     # Basic run at 300 K
-    python thermal_conductivity.py --poscar POSCAR --model GRACE-2L-OAM \\
+    grace-kappa --poscar POSCAR --model GRACE-2L-OAM \\
                                    --temperature 300 --steps 200000
 
     # Custom slab count and swap interval
-    python thermal_conductivity.py --poscar POSCAR --model my_model.pb \\
+    grace-kappa --poscar POSCAR --model my_model.pb \\
                                    --temperature 500 --steps 300000 \\
                                    --nslabs 30 --swap_interval 50
 
@@ -50,6 +50,11 @@ from ase.io import read, write
 from ase import units
 from ase.md.verlet import VelocityVerlet
 from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary, ZeroRotation
+
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python thermal_conductivity.py
+    from calculator import load_calculator
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -321,12 +326,7 @@ def main():
     print(f"Loaded: {len(atoms)} atoms from {args.poscar}")
 
     # Load GRACE model
-    if os.path.exists(args.model):
-        from tensorpotential.calculator import TPCalculator
-        calc = TPCalculator(args.model)
-    else:
-        from tensorpotential.calculator.foundation_models import grace_fm
-        calc = grace_fm(args.model)
+    calc = load_calculator(args.model)
 
     # Initialise velocities
     MaxwellBoltzmannDistribution(atoms, temperature_K=args.temperature)
@@ -358,7 +358,7 @@ def main():
     print("Running MD...")
     md.run(args.steps)
 
-    kappa = nemd.finalize(args.steps, args.timestep)
+    nemd.finalize(args.steps, args.timestep)
     write("CONTCAR_kappa", atoms, format="vasp")
     print("Final structure written to CONTCAR_kappa")
 

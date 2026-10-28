@@ -33,11 +33,13 @@ dependencies = [
     "matplotlib>=3.5",
     "tensorflow>=2.10",
     "tensorpotential>=0.5.8",
+    "elastic>=5.2",
 ]
 
 [project.optional-dependencies]
-tda  = ["gudhi"]
-dev  = ["pytest>=7.0", "black", "flake8"]
+tda      = ["gudhi"]
+examples = ["marimo"]
+dev      = ["pytest>=7.0", "black", "pylint"]
 
 [project.urls]
 Homepage   = "https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential"

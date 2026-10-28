@@ -71,6 +71,13 @@ validation/
 lammps_run/
 *.extxyz
 *.traj
+
+# Reference data used by the test suite
+!tests/XDATCAR
+!tests/grace_opt.traj
+
+# Local tool settings
+.claude/
 relaxed*.xyz
 nvt_*.xyz
 npt_*.xyz

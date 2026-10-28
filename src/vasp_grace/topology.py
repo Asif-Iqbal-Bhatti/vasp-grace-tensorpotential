@@ -28,16 +28,16 @@ Physical interpretation for grain boundaries
 Usage
 -----
     # Analyse a single structure
-    python topology.py --poscar POSCAR --rmax 8.0
+    grace-topology --poscar POSCAR --rmax 8.0
 
     # Compare perfect crystal with grain boundary
-    python topology.py --poscar POSCAR_bulk --compare POSCAR_gb
+    grace-topology --poscar POSCAR_bulk --compare POSCAR_gb
 
     # Screen a trajectory (every 10th frame), Li atoms only
-    python topology.py --xdatcar XDATCAR --stride 10 --species Li --rmax 6.0
+    grace-topology --xdatcar XDATCAR --stride 10 --species Li --rmax 6.0
 
     # Sublattice analysis: separate Li, P, S, Cl
-    python topology.py --poscar POSCAR --species Li --rmax 6.0
+    grace-topology --poscar POSCAR --species Li --rmax 6.0
 
 Outputs
 -------
@@ -49,7 +49,6 @@ Outputs
 """
 
 import os
-import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt

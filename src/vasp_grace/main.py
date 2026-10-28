@@ -51,11 +51,13 @@ from ase.md.nose_hoover_chain import MTKNPT
 from ase.phonons import Phonons
 
 from elastic import get_elementary_deformations, get_elastic_tensor
-from elastic import get_cij_order, get_lattice_type
+from elastic import get_cij_order
 
 # GRACE / TensorPotential
-from tensorpotential.calculator.foundation_models import grace_fm
-from tensorpotential.calculator import TPCalculator
+try:
+    from .calculator import load_calculator, DEFAULT_MODEL
+except ImportError:  # run as a plain script: python main.py
+    from calculator import load_calculator, DEFAULT_MODEL
 
 
 # ==========================================
@@ -73,15 +75,6 @@ def safe_get_stress(atoms):
         return stress if stress is not None else np.zeros(6)
     except Exception:
         return np.zeros(6)
-
-def get_calculator(model_identifier):
-    """Load the appropriate GRACE ML potential."""
-    if os.path.exists(model_identifier):
-        print(f"Loading custom GRACE model from path: {model_identifier}")
-        return TPCalculator(model_identifier)
-    else:
-        print(f"Loading GRACE foundation model: {model_identifier}")
-        return grace_fm(model_identifier)
 
 def generate_dummy_potcar(atoms):
     """Generate a dummy POTCAR to prevent downstream VASP parsers from failing."""
@@ -318,7 +311,7 @@ def parse_incar(filepath="INCAR"):
         "EDIFFG": -0.01,
 
         # GRACE model
-        "GRACE_MODEL": "GRACE-2L-OAM",
+        "GRACE_MODEL": DEFAULT_MODEL,
 
         # MD / ionic params
         "POTIM": None,
@@ -456,7 +449,7 @@ def run_elastic_tensor_with_jochym(atoms, incar):
 
     # Reference structure
     cryst = atoms.copy()
-    cryst.calc = get_calculator(incar["GRACE_MODEL"])
+    cryst.calc = load_calculator(incar["GRACE_MODEL"])
 
     # Check residual stress on the reference structure
     try:
@@ -487,7 +480,7 @@ def run_elastic_tensor_with_jochym(atoms, incar):
 
     for i, s in enumerate(systems, start=1):
         s = s.copy()
-        s.calc = get_calculator(incar["GRACE_MODEL"])
+        s.calc = load_calculator(incar["GRACE_MODEL"])
 
         print(f"  deformation {i:3d}/{len(systems):3d}: relaxing internal coordinates...")
 
@@ -586,7 +579,7 @@ def run_ase_phonons(atoms, incar):
 
     ph = Phonons(
         atoms,
-        get_calculator(incar["GRACE_MODEL"]),
+        load_calculator(incar["GRACE_MODEL"]),
         supercell=(N, N, N),
         delta=delta,
         name="phonon",
@@ -612,7 +605,7 @@ def run_ase_phonons(atoms, incar):
         pass
 
     # Reference energy on the unchanged structure
-    atoms.calc = get_calculator(incar["GRACE_MODEL"])
+    atoms.calc = load_calculator(incar["GRACE_MODEL"])
     energy = atoms.get_potential_energy()
 
     # Gamma frequencies
@@ -692,7 +685,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Mock VASP execution using GRACE Machine Learning Potential."
     )
-    parser.add_argument("--poscar", default="CONTCAR", help="Path to POSCAR file.")
+    parser.add_argument("--poscar", default="POSCAR", help="Path to POSCAR file.")
     parser.add_argument("--incar", default="INCAR", help="Path to INCAR file.")
     args = parser.parse_args()
 
@@ -736,7 +729,7 @@ def main():
         sys.exit(1)
 
     # Non-phonon workflows use attached calculator directly
-    atoms.calc = get_calculator(incar["GRACE_MODEL"])
+    atoms.calc = load_calculator(incar["GRACE_MODEL"])
 
     # ==========================================
     # ROUTINE A: Single Point

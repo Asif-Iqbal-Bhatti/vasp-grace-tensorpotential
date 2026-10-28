@@ -1,4 +1,4 @@
-name: Pylint + PyTorch
+name: Pylint
 
 on: [push]
 
@@ -25,12 +25,6 @@ jobs:
         # Install pylint
         pip install pylint
 
-        # ---- PyTorch (CPU version - works everywhere) ----
-        # pip install torch torchvision torchaudio
-
-        # ---- OR CUDA version (only useful with GPU runner) ----
-        # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-
     - name: Run pylint
       run: |
-        pylint . --exit-zero
+        pylint src/vasp_grace --exit-zero

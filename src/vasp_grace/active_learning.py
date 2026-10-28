@@ -10,13 +10,13 @@ energies and forces as a proxy for model uncertainty, and flags high-uncertainty
 structures for DFT labelling.
 
 Usage (single POSCAR):
-    python active_learning.py --poscar POSCAR --models m1.pb m2.pb m3.pb
+    grace-active-learning --poscar POSCAR --models m1.pb m2.pb m3.pb
 
 Usage (screen an MD trajectory):
-    python active_learning.py --xdatcar XDATCAR --models m1.pb m2.pb m3.pb --stride 10
+    grace-active-learning --xdatcar XDATCAR --models m1.pb m2.pb m3.pb --stride 10
 
 Usage (screen a directory of POSCARs):
-    python active_learning.py --poscar_dir ./structures --models m1.pb m2.pb m3.pb
+    grace-active-learning --poscar_dir ./structures --models m1.pb m2.pb m3.pb
 
 Outputs:
     uncertainty_log.dat         per-structure uncertainty metrics
@@ -36,21 +36,10 @@ warnings.filterwarnings("ignore", category=UserWarning, module="tensorflow")
 
 from ase.io import read, write
 
-
-# ──────────────────────────────────────────────
-# Model loading
-# ──────────────────────────────────────────────
-
-def _load_single_model(model_path):
-    from tensorpotential.calculator.foundation_models import grace_fm
-    from tensorpotential.calculator import TPCalculator
-
-    if os.path.exists(model_path):
-        print(f"  Loading custom model: {model_path}")
-        return TPCalculator(model_path)
-    else:
-        print(f"  Loading foundation model: {model_path}")
-        return grace_fm(model_path)
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python active_learning.py
+    from calculator import load_calculator
 
 
 # ──────────────────────────────────────────────
@@ -75,7 +64,7 @@ class CommitteeModel:
                 "Train the same architecture on different data subsets or random seeds."
             )
         print(f"Loading {len(model_paths)} committee members...")
-        self.calcs = [_load_single_model(p) for p in model_paths]
+        self.calcs = [load_calculator(p) for p in model_paths]
         self.n = len(self.calcs)
         print(f"Committee ready ({self.n} models).\n")
 

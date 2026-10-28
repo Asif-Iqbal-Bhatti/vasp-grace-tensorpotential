@@ -9,13 +9,13 @@ Supports displacement moves, atom-swap moves (useful for Li-site disorder in
 Li6PS5Cl), and optional live uncertainty flagging via a committee of GRACE models.
 
 Usage (basic):
-    python montecarlo.py --poscar POSCAR --model GRACE-2L-OAM --temperature 800 --steps 50000
+    grace-mc --poscar POSCAR --model GRACE-2L-OAM --temperature 800 --steps 50000
 
 Usage (with committee UQ — flags uncertain snapshots for DFT):
-    python montecarlo.py --poscar POSCAR --models m1.pb m2.pb m3.pb --temperature 800
+    grace-mc --poscar POSCAR --models m1.pb m2.pb m3.pb --temperature 800
 
 Usage (swap moves for Li-site disorder):
-    python montecarlo.py --poscar POSCAR --model m1.pb --swap Li S --temperature 1000
+    grace-mc --poscar POSCAR --model m1.pb --swap Li S --temperature 1000
 
 Outputs:
     MC_energies.dat         step, energy, accepted, [uncertainty if committee]
@@ -38,19 +38,10 @@ warnings.filterwarnings("ignore", category=UserWarning, module="tensorflow")
 from ase.io import read, write
 from ase import units
 
-
-# ──────────────────────────────────────────────
-# Model loading
-# ──────────────────────────────────────────────
-
-def _load_model(model_path):
-    from tensorpotential.calculator.foundation_models import grace_fm
-    from tensorpotential.calculator import TPCalculator
-
-    if os.path.exists(model_path):
-        return TPCalculator(model_path)
-    else:
-        return grace_fm(model_path)
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python montecarlo.py
+    from calculator import load_calculator
 
 
 # ──────────────────────────────────────────────
@@ -344,11 +335,14 @@ def main():
     # Single model
     committee = None
     if args.model:
-        calc = _load_model(args.model)
+        calc = load_calculator(args.model)
         atoms.calc = calc
     else:
         # Committee: use first model as the MC energy engine, full committee for UQ
-        from active_learning import CommitteeModel
+        try:
+            from .active_learning import CommitteeModel
+        except ImportError:
+            from active_learning import CommitteeModel
         committee = CommitteeModel(args.models)
         calc = committee.calcs[0]
         atoms.calc = calc

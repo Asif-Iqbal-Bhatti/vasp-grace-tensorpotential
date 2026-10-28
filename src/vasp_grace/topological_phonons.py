@@ -25,14 +25,14 @@ encircling the crossing in k-space:
 Usage
 -----
     # Uses cached phonon data (phonon.*.json) from main.py
-    python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM
+    grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM
 
     # Custom k-path and crossing threshold
-    python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM \\
+    grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM \\
                                   --path GXMGZ --nkpts 300 --tol 0.5
 
     # Compute Berry curvature at each detected crossing
-    python topological_phonons.py --poscar POSCAR --model GRACE-2L-OAM --berry
+    grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM --berry
 
 Outputs
 -------
@@ -46,7 +46,6 @@ import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -58,18 +57,15 @@ from ase.io import read
 from ase.phonons import Phonons
 from ase import units
 
+try:
+    from .calculator import load_calculator
+except ImportError:  # run as a plain script: python topological_phonons.py
+    from calculator import load_calculator
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Model loading
 # ──────────────────────────────────────────────────────────────────────────────
-
-def load_model(model_path):
-    from tensorpotential.calculator.foundation_models import grace_fm
-    from tensorpotential.calculator import TPCalculator
-    if os.path.exists(model_path):
-        return TPCalculator(model_path)
-    return grace_fm(model_path)
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Phonon setup
@@ -399,7 +395,7 @@ def main():
         print(f"Error: {args.poscar} not found."); sys.exit(1)
 
     atoms = read(args.poscar, format="vasp")
-    calc  = load_model(args.model)
+    calc  = load_calculator(args.model)
 
     ph = build_phonon_object(atoms, calc, tuple(args.supercell), args.delta)
 
