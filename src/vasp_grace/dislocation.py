@@ -114,6 +114,33 @@ def extract_QRT(C_full):
     return Q, R, T
 
 
+def _complete_by_symmetry(C):
+    """
+    Fill symmetry-equivalent Voigt constants when only the independent ones are
+    listed, as jochym/Elastic does for cubic, hexagonal, trigonal and tetragonal
+    cells. Keys are 0-based (i, j) with i <= j.
+    """
+    C = dict(C)
+    c11, c12, c13, c14 = (0, 0), (0, 1), (0, 2), (0, 3)
+    c33, c44, c66 = (2, 2), (3, 3), (5, 5)
+    present = set(C)
+
+    if present == {c11, c12, c44}:                       # cubic
+        C[(1, 1)] = C[c33] = C[c11]
+        C[c13] = C[(1, 2)] = C[c12]
+        C[(4, 4)] = C[c66] = C[c44]
+    elif {c11, c33, c12, c13, c44} <= present and (1, 1) not in present:
+        C[(1, 1)] = C[c11]                                # hexagonal / trigonal / tetragonal
+        C[(1, 2)] = C[c13]
+        C[(4, 4)] = C[c44]
+        if c66 not in present:                            # hexagonal and trigonal
+            C[c66] = 0.5 * (C[c11] - C[c12])
+        if c14 in present:                                # trigonal (32, 3m, -3m)
+            C[(1, 3)] = -C[c14]
+            C[(4, 5)] = C[c14]
+    return C
+
+
 def parse_elastic_file(filename):
     """
     Parse elastic constants from ELASTIC_Cij_GPa.dat (produced by main.py)
@@ -128,21 +155,24 @@ def parse_elastic_file(filename):
     labelled = any("=" in l for l in lines)
 
     if labelled:
-        C_voigt = np.zeros((6, 6))
+        C = {}
         for line in lines:
             line = line.strip()
             if not line or line.startswith("#") or "===" in line or line.startswith("Elastic"):
                 continue
             if "=" in line:
                 name, val = line.split("=")
-                name = name.strip()          # e.g. "C11"
-                val = float(val.strip().split()[0])
-                # Parse Cij → 0-based Voigt indices
-                digits = [int(c) - 1 for c in name[1:]]
+                digits = [c for c in name if c.isdigit()]   # "C11" or "C_11" (jochym/Elastic)
                 if len(digits) == 2:
-                    i, j = digits
-                    C_voigt[i, j] = val
-                    C_voigt[j, i] = val
+                    C[tuple(sorted(int(c) - 1 for c in digits))] = float(val.strip().split()[0])
+        C = _complete_by_symmetry(C)
+        C_voigt = np.zeros((6, 6))
+        for (i, j), val in C.items():
+            C_voigt[i, j] = C_voigt[j, i] = val
+        if np.any(np.diag(C_voigt) == 0):
+            raise ValueError(
+                f"Incomplete elastic tensor in {filename}: found {sorted(C)} (0-based Voigt)."
+            )
         return C_voigt
     else:
         # Try reading as plain 6×6 matrix (skip comment lines)

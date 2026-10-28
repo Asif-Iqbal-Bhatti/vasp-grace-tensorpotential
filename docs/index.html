@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>vasp-grace</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="GRACE machine-learning potentials as a drop-in VASP replacement, with tools for defects, ion transport and topological phonons.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab-notebook column. Hero pairs the thesis with a live phonon on a lattice;
+   sections below follow the path a user takes: inputs → modules → pipelines → scope → try → cite. */
+:root {
+  --paper: #f2f5f4;
+  --paper-2: #e6ecea;
+  --ink: #13201e;
+  --ink-2: #4a5a57;
+  --rule: #c9d4d1;
+  --teal: #0b6e7c;
+  --amber: #b86e00;
+  --code-bg: #e9efed;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: 1.6rem;
+  --step-3: clamp(2rem, 4vw, 2.6rem);
+  --step-4: clamp(2.6rem, 7vw, 4.4rem);
+  --measure: 66ch;
+  --wide: 72rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1716; --paper-2: #16201f; --ink: #e1ebe8; --ink-2: #9fb2ae;
+    --rule: #2a3836; --teal: #52c2cf; --amber: #e8a23c; --code-bg: #182422;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1716; --paper-2: #16201f; --ink: #e1ebe8; --ink-2: #9fb2ae;
+  --rule: #2a3836; --teal: #52c2cf; --amber: #e8a23c; --code-bg: #182422;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--teal); text-underline-offset: 0.18em; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 3px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.12; text-wrap: balance; margin: 0; }
+h2 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.015em; }
+h3 { font-size: var(--step-1); font-weight: 700; }
+p { margin: 0; }
+code, pre, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+:not(pre) > code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 4px; }
+
+.wrap {
+  max-width: var(--wide);
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--teal);
+}
+.lede { color: var(--ink-2); max-width: var(--measure); }
+
+/* ── Header ─────────────────────────────────────────── */
+.site-head { border-bottom: 1px solid var(--rule); }
+.site-head .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-block: 0.9rem; }
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
+.brand span { color: var(--teal); }
+.nav { display: flex; gap: 1.1rem; flex-wrap: wrap; font-family: var(--font-display); font-weight: 500; font-size: 0.95rem; }
+.nav a { color: var(--ink-2); text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+
+/* ── Hero ───────────────────────────────────────────── */
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+.hero h1 { font-size: var(--step-4); font-weight: 800; letter-spacing: -0.03em; }
+.hero h1 em { font-style: normal; color: var(--teal); }
+.hero .lede { font-size: var(--step-1); margin-top: 1.1rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.8rem; align-items: center; }
+.btn {
+  font-family: var(--font-display); font-weight: 700; font-size: 0.98rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 1.1rem; border-radius: 6px; text-decoration: none; cursor: pointer;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--paper);
+}
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+.btn.ghost:hover { border-color: var(--ink); }
+
+.cmd {
+  display: flex; align-items: center; gap: 0.6rem; min-width: 0;
+  background: var(--code-bg); border: 1px solid var(--rule); border-radius: 6px;
+  padding: 0.55rem 0.55rem 0.55rem 0.9rem; font-family: var(--font-mono); font-size: 0.9rem;
+}
+.cmd code { background: none; padding: 0; overflow-x: auto; white-space: nowrap; flex: 1; min-width: 0; }
+.cmd code::before { content: "$ "; color: var(--ink-2); }
+.copy {
+  font-family: var(--font-display); font-size: 0.8rem; font-weight: 700;
+  border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
+  border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; flex: none;
+}
+.copy:hover { border-color: var(--ink); }
+
+.phonon { min-width: 0; }
+.phonon figure { margin: 0; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper-2); overflow: hidden; }
+.phonon canvas { display: block; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; }
+.phonon figcaption { display: grid; gap: 0.55rem; padding: 0.8rem 1rem 1rem; border-top: 1px solid var(--rule); font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-2); }
+.phonon .readout { display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.phonon .readout b { color: var(--ink); font-weight: 600; }
+.phonon input[type="range"] { width: 100%; accent-color: var(--teal); }
+.phonon .ticks { display: flex; justify-content: space-between; }
+
+/* ── Sections ───────────────────────────────────────── */
+section { border-top: 1px solid var(--rule); }
+section > .wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); display: grid; gap: 2rem; }
+.section-head { display: grid; gap: 0.75rem; max-width: var(--measure); }
+
+/* Inputs → outputs */
+.io { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1.25rem; align-items: stretch; }
+.file { border: 1px solid var(--rule); border-radius: 8px; background: var(--code-bg); min-width: 0; overflow: hidden; }
+.file-name { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em; padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--rule); color: var(--ink-2); display: flex; justify-content: space-between; gap: 0.5rem; }
+.file pre { margin: 0; padding: 0.9rem; overflow-x: auto; line-height: 1.55; }
+.file .k { color: var(--teal); }
+.file .c { color: var(--ink-2); }
+.file .hl { color: var(--amber); font-weight: 600; }
+.arrow { display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; color: var(--ink-2); font-size: 1.6rem; }
+.outputs { list-style: none; margin: 0; padding: 0.6rem 0.9rem; display: grid; gap: 0.15rem; font-family: var(--font-mono); font-size: 0.86rem; }
+.outputs li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; border-bottom: 1px dashed var(--rule); }
+.outputs li:last-child { border-bottom: 0; }
+.outputs span { color: var(--ink-2); font-family: var(--font-body); font-size: 0.9rem; text-align: right; }
+
+.table-scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.03em; background: var(--paper-2); }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space: nowrap; color: var(--teal); }
+
+/* Modules */
+.families { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 2.5rem; }
+.family { display: grid; gap: 1rem; align-content: start; min-width: 0; }
+.family h3 { padding-bottom: 0.6rem; border-bottom: 2px solid var(--ink); }
+.mod { display: grid; gap: 0.35rem; padding-bottom: 1rem; border-bottom: 1px solid var(--rule); min-width: 0; }
+.mod:last-child { border-bottom: 0; }
+.mod .name { font-family: var(--font-mono); font-weight: 600; font-size: 0.95rem; color: var(--teal); }
+.mod p { font-size: 0.98rem; }
+.mod .out { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.dropin { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1.5rem 2.5rem; padding: 1.5rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper-2); }
+.dropin .name { font-family: var(--font-mono); font-weight: 600; color: var(--teal); }
+.dropin ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.3rem; }
+
+/* Pipelines */
+.pipes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.pipe { border: 1px solid var(--rule); border-radius: 10px; padding: 1.25rem; display: grid; gap: 0.9rem; align-content: start; min-width: 0; }
+.pipe h3 { font-size: 1.12rem; }
+.pipe ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; counter-reset: s; }
+.pipe li { display: grid; grid-template-columns: 1.7rem minmax(0, 1fr); gap: 0.6rem; counter-increment: s; font-size: 0.97rem; }
+.pipe li::before { content: counter(s); font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--teal); color: var(--teal); }
+.pipe li code { overflow-wrap: anywhere; }
+
+/* Scope */
+.scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.scope > div { display: grid; gap: 0.75rem; align-content: start; padding-top: 1rem; border-top: 3px solid var(--teal); min-width: 0; }
+.scope > div.no { border-top-color: var(--amber); }
+.scope ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+.note { max-width: var(--measure); color: var(--ink-2); }
+
+/* Try */
+.try { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 2rem; align-items: start; }
+.try .stack { display: grid; gap: 0.75rem; min-width: 0; }
+.numbers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.numbers div { padding: 1rem; display: grid; gap: 0.2rem; border-right: 1px solid var(--rule); }
+.numbers div:last-child { border-right: 0; }
+.numbers b { font-family: var(--font-display); font-size: var(--step-2); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.numbers span { font-size: 0.85rem; color: var(--ink-2); }
+.numbers-cap { grid-column: 1 / -1; border-top: 1px solid var(--rule); border-right: 0 !important; font-size: 0.85rem; color: var(--ink-2); padding: 0.6rem 1rem !important; }
+
+/* Roadmap */
+.roadmap { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem 2rem; }
+.roadmap li { display: grid; gap: 0.3rem; min-width: 0; }
+.roadmap b { font-family: var(--font-display); font-weight: 700; }
+.roadmap span { color: var(--ink-2); font-size: 0.97rem; }
+.tag { justify-self: start; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber); border: 1px solid currentColor; border-radius: 999px; padding: 0.05rem 0.5rem; }
+
+/* Cite */
+.cite pre { margin: 0; padding: 1rem; overflow-x: auto; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 8px; line-height: 1.5; }
+.refs { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.45rem; font-size: 0.95rem; max-width: 80ch; }
+
+.site-foot { border-top: 1px solid var(--rule); }
+.site-foot .wrap { padding-block: 1.75rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--ink-2); font-size: 0.92rem; }
+
+@media (max-width: 960px) {
+  .hero .wrap, .try { grid-template-columns: minmax(0, 1fr); }
+  .families, .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dropin { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  .io { grid-template-columns: minmax(0, 1fr); }
+  .arrow { transform: rotate(90deg); }
+  .families, .pipes, .scope, .roadmap { grid-template-columns: minmax(0, 1fr); }
+  .numbers { grid-template-columns: minmax(0, 1fr); }
+  .numbers div { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .nav { gap: 0.8rem; font-size: 0.9rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="#top">vasp<span>-</span>grace</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#inputs">Inputs</a>
+      <a href="#modules">Modules</a>
+      <a href="#pipelines">Pipelines</a>
+      <a href="#scope">Scope</a>
+      <a href="#try">Try it</a>
+      <a href="#cite">Cite</a>
+      <a href="https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">GRACE potentials · ASE · VASP file formats</p>
+        <h1 style="margin-top:0.7rem">Your VASP inputs, run on a <em>machine-learning potential</em>.</h1>
+        <p class="lede">vasp-grace reads <code>POSCAR</code> and <code>INCAR</code>, computes energies, forces and stresses with a GRACE model, and writes <code>OUTCAR</code>, <code>OSZICAR</code>, <code>CONTCAR</code> and <code>XDATCAR</code> the way VASP does. Ten command-line tools then take those results into defects, ion transport and topological phonons.</p>
+        <div class="hero-actions">
+          <div class="cmd" style="flex:1 1 20rem">
+            <code id="install-cmd">pip install -e .</code>
+            <button class="copy" type="button" data-copy="install-cmd">Copy</button>
+          </div>
+          <a class="btn" href="https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential">View on GitHub</a>
+        </div>
+      </div>
+
+      <div class="phonon">
+        <figure>
+          <canvas id="lattice" aria-label="Animated transverse acoustic phonon on a square lattice, with its dispersion curve"></canvas>
+          <figcaption>
+            <div class="readout">
+              <span>Transverse acoustic phonon</span>
+              <span>q = <b id="q-val">0.25</b> · π/a &nbsp; ω/ω<sub>max</sub> = <b id="w-val">0.38</b></span>
+            </div>
+            <label for="q-slider" class="readout"><span>Wavevector along Γ → X</span></label>
+            <input id="q-slider" type="range" min="0.05" max="1" step="0.01" value="0.25">
+            <div class="ticks"><span>Γ</span><span>X</span></div>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+
+  <section id="inputs">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">VASP drop-in</p>
+        <h2>Same files in, same files out</h2>
+        <p class="lede">An existing <code>INCAR</code> works unchanged. vasp-grace reads the tags it understands, adds one of its own (<code>GRACE_MODEL</code>), and ignores the rest, so scripts that parse VASP output keep working.</p>
+      </div>
+
+      <div class="io">
+        <div class="file">
+          <div class="file-name"><span>INCAR</span><span>phonons + elastic tensor</span></div>
+<pre><span class="hl">GRACE_MODEL</span> = GRACE-2L-OAM  <span class="c"># or a path</span>
+<span class="k">IBRION</span> = 6       <span class="c"># finite displacements</span>
+<span class="k">ISIF</span>   = 3       <span class="c"># also fit Cij</span>
+<span class="k">NSW</span>    = 1
+<span class="k">LPHON_DISPERSION</span> = .TRUE.
+<span class="k">PHON_DOS</span> = 1
+<span class="k">ENCUT</span>  = 520     <span class="c"># ignored</span></pre>
+        </div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="file">
+          <div class="file-name"><span>written to the run directory</span><span>vasp-grace</span></div>
+          <ul class="outputs">
+            <li>OUTCAR <span>Γ frequencies, THz and cm⁻¹</span></li>
+            <li>OSZICAR, CONTCAR <span>energy, structure</span></li>
+            <li>phonon_band.png <span>dispersion</span></li>
+            <li>phonon_dos.dat <span>density of states</span></li>
+            <li>ELASTIC_Cij_GPa.dat <span>elastic tensor</span></li>
+            <li>phonon.*.json <span>forces, reused by topology tools</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Tag</th><th>What vasp-grace does with it</th></tr></thead>
+          <tbody>
+            <tr><td>IBRION</td><td><code>-1</code> single point · <code>0</code> molecular dynamics · <code>1</code> LBFGS · <code>2</code> FIRE · <code>5</code>/<code>6</code> finite-displacement phonons</td></tr>
+            <tr><td>ISIF</td><td>Relaxation: <code>3</code> positions and cell, <code>4</code> cell shape at fixed volume. MD: <code>≥3</code> switches to NPT (MTK barostat). Phonons: <code>≥3</code> also fits the elastic tensor with jochym/Elastic.</td></tr>
+            <tr><td>MDALGO</td><td><code>0</code> NVE · <code>1</code> Andersen · <code>2</code> Berendsen · <code>3</code> Langevin, at <code>TEBEG</code> with time step <code>POTIM</code></td></tr>
+            <tr><td>EDIFFG</td><td>Negative values set the force criterion in eV/Å</td></tr>
+            <tr><td>GRACE_MODEL</td><td>Foundation-model name such as <code>GRACE-2L-OAM</code>, or a path to your fine-tuned model</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="modules">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Ten commands</p>
+        <h2>What you can compute</h2>
+        <p class="lede">Every command takes <code>--model</code> as a foundation-model name or a path to your own model, and writes plain-text data files next to publication-ready plots.</p>
+      </div>
+
+      <div class="dropin">
+        <div style="display:grid;gap:0.5rem;align-content:start">
+          <span class="name">vasp-grace</span>
+          <h3>The VASP drop-in</h3>
+          <p>Driven entirely by <code>INCAR</code>. Writes VASP-format output at every ionic step.</p>
+        </div>
+        <ul>
+          <li>Single points with energy, forces and full stress tensor</li>
+          <li>Relaxation of positions, cell, or cell shape at fixed volume</li>
+          <li>NVE, NVT (Andersen, Berendsen, Langevin) and NPT molecular dynamics, written to <code>XDATCAR</code></li>
+          <li>Phonon band structure and DOS from finite displacements</li>
+          <li>Full elastic tensor C<sub>ij</sub> and Birch coefficients</li>
+        </ul>
+      </div>
+
+      <div class="families">
+        <div class="family">
+          <h3>Structure and uncertainty</h3>
+          <div class="mod">
+            <span class="name">grace-active-learning</span>
+            <p>Runs a committee of GRACE models, measures how much they disagree on energies and forces, and flags structures that need a DFT label.</p>
+            <span class="out">uncertainty_log.dat · flagged/POSCAR_*</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-mc</span>
+            <p>Metropolis Monte Carlo with displacement and species-swap moves, for site disorder such as Cl/S in argyrodites. Flags uncertain snapshots on the fly.</p>
+            <span class="out">MC_energies.dat · XDATCAR_MC</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-dislocation</span>
+            <p>Edge, screw and mixed dislocations from the isotropic Volterra field or the anisotropic Stroh solution, as dipoles or single cores, with optional GRACE relaxation.</p>
+            <span class="out">POSCAR_dislocation · dislocation_info.txt</span>
+          </div>
+        </div>
+
+        <div class="family">
+          <h3>Ion dynamics and transport</h3>
+          <div class="mod">
+            <span class="name">grace-lihopping</span>
+            <p>Detects ion hops between lattice sites with a sojourn-time filter that ignores rattling, builds the hop network, separates grain-boundary from bulk hops, and fits an Arrhenius activation energy.</p>
+            <span class="out">hop_events.dat · hop_network.dat · arrhenius.png</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-kappa</span>
+            <p>Lattice thermal conductivity κ from Müller-Plathe reverse non-equilibrium MD. Needs no per-atom stress, so it works with any potential.</p>
+            <span class="out">kappa_summary.txt · temperature_profile.png</span>
+          </div>
+        </div>
+
+        <div class="family">
+          <h3>Condensed matter and topology</h3>
+          <div class="mod">
+            <span class="name">grace-topo-phonons</span>
+            <p>Finds phonon band crossings that are candidate Weyl, Dirac or nodal-line points, and computes the Berry phase on a loop around each one.</p>
+            <span class="out">phonon_crossings.dat · phonon_topo_bands.png</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-phonon-berry</span>
+            <p>Band-resolved phonon Zak phases along a closed k-path, plus Berry curvature Ω(k) on a 2D mesh integrated to Chern numbers.</p>
+            <span class="out">phonon_zak.dat · phonon_chern.png</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-topology</span>
+            <p>Persistent homology of the atomic structure. Betti curves β₀, β₁, β₂ give a fingerprint that needs no symmetry, for grain boundaries and amorphous regions.</p>
+            <span class="out">betti_curves.dat · persistence_diagram.png</span>
+          </div>
+          <div class="mod">
+            <span class="name">grace-moire</span>
+            <p>Commensurate twisted bilayers by the coincidence-site-lattice method, angle scans, GRACE relaxation and AA/AB/SP stacking maps.</p>
+            <span class="out">POSCAR_moire · stacking_map.png</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipelines">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Worked pipelines</p>
+        <h2>The tools feed each other</h2>
+        <p class="lede">Outputs from one command are inputs to the next, so a full study runs on one potential without leaving the package.</p>
+      </div>
+      <div class="pipes">
+        <article class="pipe">
+          <h3>Anisotropic dislocation core</h3>
+          <ol>
+            <li><span>Fit the elastic tensor: <code>IBRION = 6</code>, <code>ISIF = 3</code> in <code>vasp-grace</code></span></li>
+            <li><span>Build the Stroh displacement field from it: <code>grace-dislocation --method anisotropic --elastic ELASTIC_Cij_GPa.dat</code></span></li>
+            <li><span>Relax the core with the same model: add <code>--relax</code></span></li>
+          </ol>
+        </article>
+        <article class="pipe">
+          <h3>Fine-tuning by active learning</h3>
+          <ol>
+            <li><span>Sample configurations with MD (<code>IBRION = 0</code>) or <code>grace-mc</code></span></li>
+            <li><span>Score them with a model committee: <code>grace-active-learning --xdatcar XDATCAR --models m1 m2 m3</code></span></li>
+            <li><span>Label <code>flagged/POSCAR_*</code> with DFT and fine-tune GRACE on them</span></li>
+          </ol>
+        </article>
+        <article class="pipe">
+          <h3>Ionic conductivity of an electrolyte</h3>
+          <ol>
+            <li><span>Run NVT MD at 600, 800 and 1000 K with <code>vasp-grace</code></span></li>
+            <li><span>Extract hop rates per temperature: <code>grace-lihopping --arrhenius --temps 600 800 1000</code></span></li>
+            <li><span>Read the activation energy Eₐ and compare grain boundary against bulk</span></li>
+          </ol>
+        </article>
+        <article class="pipe">
+          <h3>Topological phonons</h3>
+          <ol>
+            <li><span>Compute force constants with <code>IBRION = 6</code>; they are cached in <code>phonon.*.json</code></span></li>
+            <li><span>Locate crossings and their Berry phase: <code>grace-topo-phonons --berry</code></span></li>
+            <li><span>Classify bands with Zak phases and Chern numbers: <code>grace-phonon-berry --curvature</code></span></li>
+          </ol>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="scope">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Scope</p>
+        <h2>What a potential can tell you</h2>
+        <p class="lede">GRACE models the Born–Oppenheimer energy surface. Anything that follows from the motion of the nuclei is in reach. Anything that needs the electrons is not.</p>
+      </div>
+      <div class="scope">
+        <div>
+          <h3>In reach</h3>
+          <ul>
+            <li>Structures, relaxations, equations of state</li>
+            <li>Phonons, elastic constants, lattice instabilities</li>
+            <li>Diffusion, hopping barriers, thermal conductivity</li>
+            <li>Defects, dislocations, grain boundaries, twisted bilayers</li>
+            <li>Topology of phonon bands and of the atomic structure</li>
+          </ul>
+        </div>
+        <div class="no">
+          <h3>Hand off to DFT</h3>
+          <ul>
+            <li>Electronic bands, Z₂ and Chern invariants of electrons</li>
+            <li>Electron–phonon coupling λ and superconducting T<sub>c</sub></li>
+            <li>Magnetic order and spin textures</li>
+            <li>Energy differences below a few meV/atom without fine-tuning</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">For these, use vasp-grace to screen and pre-relax structures cheaply, then pass them to VASP, Wannier90 or EPW.</p>
+    </div>
+  </section>
+
+  <section id="try">
+    <div class="wrap">
+      <div class="try">
+        <div class="stack">
+          <p class="eyebrow">Interactive example</p>
+          <h2>Try it in a notebook</h2>
+          <p class="lede">A marimo notebook loads a GRACE model, evaluates a crystal, fits its equation of state, relaxes the cell, compares Betti curves for an ordered and a rattled lattice, and scans moiré angles. Every plot updates when you move a control.</p>
+          <div class="cmd"><code id="nb-install">pip install -e ".[examples]"</code><button class="copy" type="button" data-copy="nb-install">Copy</button></div>
+          <div class="cmd"><code id="nb-run">marimo edit examples/quickstart.py</code><button class="copy" type="button" data-copy="nb-run">Copy</button></div>
+        </div>
+        <div class="numbers" aria-label="Example results for fcc copper">
+          <div><b>11.84 Å³</b><span>equilibrium volume V₀</span></div>
+          <div><b>142 GPa</b><span>bulk modulus B₀</span></div>
+          <div><b>3.617 Å</b><span>lattice constant a</span></div>
+          <div class="numbers-cap">fcc Cu with GRACE-2L-OAM, from the notebook. Experiment: V₀ ≈ 11.8 Å³, B₀ ≈ 140 GPa, a = 3.615 Å.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Roadmap</p>
+        <h2>Coming next</h2>
+        <p class="lede">Planned additions aimed at superconductors and topological phases.</p>
+      </div>
+      <ul class="roadmap">
+        <li><span class="tag">Planned</span><b>Anharmonic phonons</b><span>Temperature-dependent force constants fitted from GRACE MD, for phases stabilised by anharmonicity such as superconducting hydrides.</span></li>
+        <li><span class="tag">Planned</span><b>Soft-mode and CDW finder</b><span>Follow imaginary modes into the distorted ground state and report the energy gain and space group.</span></li>
+        <li><span class="tag">Planned</span><b>Phonon surface states</b><span>Surface Green's functions showing the arcs and drumhead states of Weyl and nodal-line phonons.</span></li>
+        <li><span class="tag">Planned</span><b>Chiral phonons</b><span>Phonon angular momentum and circular polarisation at the valleys of 2D materials.</span></li>
+        <li><span class="tag">Planned</span><b>Allen–Dynes T<sub>c</sub></b><span>Combine α²F(ω) or λ from DFT with GRACE phonon frequencies.</span></li>
+        <li><span class="tag">Planned</span><b>phonopy backend</b><span>Symmetry-reduced displacements, irreducible representations and LO–TO splitting.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="cite" class="cite">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Citation</p>
+        <h2>Cite vasp-grace</h2>
+      </div>
+      <div style="display:grid;gap:0.6rem;min-width:0">
+        <div style="display:flex;justify-content:flex-end"><button class="copy" type="button" data-copy="bibtex">Copy BibTeX</button></div>
+<pre id="bibtex">@software{bhatti_vasp_grace_2026,
+  author = {Bhatti, Asif Iqbal},
+  title  = {{vasp-grace-tensorpotential}: A Python toolkit interfacing GRACE machine
+            learning interatomic potentials with VASP workflows for solid-state dynamics,
+            defect analysis, and topological phonon characterisation},
+  year   = {2026},
+  url    = {https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential},
+  note   = {Version 2.0.0}
+}</pre>
+      </div>
+      <ul class="refs">
+        <li>Bochkarev, Lysogorskiy &amp; Drautz, Graph atomic cluster expansion for semilocal interactions beyond equivariant message passing, <i>Phys. Rev. X</i> <b>14</b>, 021036 (2024). <a href="https://doi.org/10.1103/PhysRevX.14.021036">doi</a></li>
+        <li>Bochkarev <i>et al.</i>, Efficient parametrization of the atomic cluster expansion, <i>Phys. Rev. Mater.</i> <b>6</b>, 013804 (2022). <a href="https://doi.org/10.1103/PhysRevMaterials.6.013804">doi</a></li>
+        <li>Larsen <i>et al.</i>, The atomic simulation environment, <i>J. Phys.: Condens. Matter</i> <b>29</b>, 273002 (2017). <a href="https://doi.org/10.1088/1361-648X/aa680e">doi</a></li>
+        <li>Müller-Plathe, A simple nonequilibrium molecular dynamics method for calculating the thermal conductivity, <i>J. Chem. Phys.</i> <b>106</b>, 6082 (1997). <a href="https://doi.org/10.1063/1.473271">doi</a></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>vasp-grace 2.0.0 · MIT licence · Asif Iqbal Bhatti</span>
+    <span><a href="https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential">Source</a> · <a href="https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential/issues">Issues</a></span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  // Copy buttons
+  document.querySelectorAll("[data-copy]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const el = document.getElementById(btn.dataset.copy);
+      const text = el.textContent;
+      const done = () => { const t = btn.textContent; btn.textContent = "Copied"; setTimeout(() => (btn.textContent = t), 1400); };
+      const fallback = () => { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+      try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+
+  // Transverse acoustic phonon on a square lattice: u_y = A sin(q x - ω t), ω ∝ |sin(q a / 2)|
+  const canvas = document.getElementById("lattice");
+  const ctx = canvas.getContext("2d");
+  const slider = document.getElementById("q-slider");
+  const qOut = document.getElementById("q-val");
+  const wOut = document.getElementById("w-val");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  let colors = {};
+
+  const readColors = () => {
+    const cs = getComputedStyle(document.documentElement);
+    colors = { ink: cs.getPropertyValue("--ink").trim(), ink2: cs.getPropertyValue("--ink-2").trim(),
+               rule: cs.getPropertyValue("--rule").trim(), teal: cs.getPropertyValue("--teal").trim(),
+               amber: cs.getPropertyValue("--amber").trim(), bg: cs.getPropertyValue("--paper-2").trim() };
+  };
+  readColors();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  const resize = () => {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const r = canvas.getBoundingClientRect();
+    canvas.width = Math.round(r.width * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  new ResizeObserver(resize).observe(canvas);
+  resize();
+
+  const qFrac = () => parseFloat(slider.value);          // q in units of π/a, 1 = X point
+  const omega = q => Math.sin(q * Math.PI / 2);           // normalised to ω_max at X
+
+  const draw = t => {
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    if (!W || !H) return;
+    ctx.fillStyle = colors.bg; ctx.fillRect(0, 0, W, H);
+
+    const q = qFrac(), w = omega(q);
+    const cols = 12, rows = 6;
+    const pad = W * 0.07;
+    const latH = H * 0.66;
+    const a = Math.min((W - 2 * pad) / (cols - 1), (latH - 2 * pad * 0.6) / (rows - 1));
+    const x0 = (W - a * (cols - 1)) / 2, y0 = pad * 0.6 + (latH - pad * 0.6 - a * (rows - 1)) / 2;
+    const amp = a * 0.28;
+    const phase = t * 0.0024 * Math.max(w, 0.08) * 2.2;
+
+    // equilibrium sites
+    ctx.fillStyle = colors.rule;
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      ctx.beginPath(); ctx.arc(x0 + i * a, y0 + j * a, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    // displaced positions
+    const pos = (i, j) => [x0 + i * a, y0 + j * a + amp * Math.sin(q * Math.PI * i - phase)];
+    ctx.strokeStyle = colors.ink2; ctx.lineWidth = 1; ctx.globalAlpha = 0.45;
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const [x, y] = pos(i, j);
+      if (i < cols - 1) { const [x2, y2] = pos(i + 1, j); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke(); }
+      if (j < rows - 1) { const [x2, y2] = pos(i, j + 1); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke(); }
+    }
+    ctx.globalAlpha = 1;
+    const r = Math.max(3.5, a * 0.17);
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const [x, y] = pos(i, j);
+      const s = Math.sin(q * Math.PI * i - phase);
+      ctx.fillStyle = Math.abs(s) > 0.7 ? colors.teal : colors.ink;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // dispersion inset
+    const gx = pad, gy = latH + H * 0.04, gw = W - 2 * pad, gh = H - gy - H * 0.08;
+    ctx.strokeStyle = colors.rule; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx, gy + gh); ctx.lineTo(gx + gw, gy + gh); ctx.stroke();
+    ctx.strokeStyle = colors.teal; ctx.lineWidth = 2; ctx.beginPath();
+    for (let k = 0; k <= 60; k++) {
+      const qq = k / 60, px = gx + qq * gw, py = gy + gh - omega(qq) * gh;
+      k ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.stroke();
+    const mx = gx + q * gw, my = gy + gh - w * gh;
+    ctx.strokeStyle = colors.amber; ctx.setLineDash([3, 3]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mx, gy + gh); ctx.lineTo(mx, my); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = colors.amber; ctx.beginPath(); ctx.arc(mx, my, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = colors.ink2; ctx.font = "11px JetBrains Mono, monospace";
+    ctx.textBaseline = "top";
+    ctx.fillText("Γ", gx - 3, gy + gh + 4);
+    ctx.fillText("X", gx + gw - 4, gy + gh + 4);
+    ctx.textBaseline = "middle";
+    ctx.fillText("ω", gx + 6, gy + 4);
+  };
+
+  const update = () => {
+    const q = qFrac();
+    qOut.textContent = q.toFixed(2);
+    wOut.textContent = omega(q).toFixed(2);
+    if (reduce.matches) draw(0);
+  };
+  slider.addEventListener("input", update);
+  update();
+
+  let start = null;
+  const loop = ts => {
+    if (start === null) start = ts;
+    if (!reduce.matches) draw(ts - start);
+    requestAnimationFrame(loop);
+  };
+  draw(0);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
