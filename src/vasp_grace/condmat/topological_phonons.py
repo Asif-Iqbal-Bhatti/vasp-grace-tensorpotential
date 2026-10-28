@@ -272,18 +272,65 @@ def compute_berry_phase_at_crossing(ph, atoms, q0_frac, band_n, n_loop=20, radiu
 # Chern number on a sphere around a node
 # ──────────────────────────────────────────────────────────────────────────────
 
+def multiplets(nu, tol=0.05):
+    """Group bands at one q into multiplets: consecutive gaps below tol THz chain together."""
+    groups, lo = [], 0
+    for n in range(1, len(nu) + 1):
+        if n == len(nu) or nu[n] - nu[n - 1] >= tol:
+            groups.append((lo, n - 1))
+            lo = n
+    return groups
+
+
 def degenerate_multiplet(nu, band, tol=0.05):
-    """Indices of the bands degenerate (within tol THz) with `band` at one q."""
-    lo = hi = band
-    while lo > 0 and nu[band] - nu[lo - 1] < tol:
-        lo -= 1
-    while hi < len(nu) - 1 and nu[hi + 1] - nu[band] < tol:
-        hi += 1
-    return lo, hi
+    """The multiplet (lo, hi) that contains `band` at one q."""
+    return next(g for g in multiplets(nu, tol) if g[0] <= band <= g[1])
+
+
+def same_node(a, b, rec, tol):
+    """
+    Same multiplet within `tol` (1/Å, no 2π) modulo a reciprocal lattice vector.
+    Finite-displacement force constants are not exactly space-group symmetric,
+    so symmetry partners found independently sit slightly apart; nodes closer
+    than the sphere radius cannot be told apart by the Chern calculation anyway.
+    """
+    d = (np.asarray(a["q"]) - np.asarray(b["q"]) + 0.5) % 1.0 - 0.5
+    return a["bands"] == b["bands"] and np.linalg.norm(d @ rec) < tol
+
+
+def symmetry_images(node, rotations):
+    """
+    Copies of a node at all symmetry-equivalent q, with their charges.
+
+    `rotations` are spglib's integer rotations W (fractional direct-lattice
+    basis). A reduced q transforms as q' = W^-T q; a proper rotation keeps the
+    charge and an improper one flips it. Time reversal maps q -> -q and keeps
+    a phonon Weyl charge.
+    """
+    out = []
+    for W in rotations:
+        sign = int(round(np.linalg.det(W)))
+        Wq = np.linalg.inv(W).T
+        for tr in (1, -1):
+            img = dict(node)
+            img["q"] = np.mod(tr * (Wq @ node["q"]), 1.0)
+            img["charges"] = {g: sign * c for g, c in node["charges"].items()}
+            img["band_chern"] = [None if c is None else sign * c for c in node["band_chern"]]
+            img["from_symmetry"] = True
+            out.append(img)
+    return out
+
+
+def unique_nodes(nodes, rec, tol):
+    out = []
+    for n in nodes:
+        if not any(same_node(n, m, rec, tol) for m in out):
+            out.append(n)
+    return out
 
 
 def node_chern(ph, atoms, q0, band_lo, band_hi, radius=0.01, n_theta=16, tol=0.05,
-               gap_tol=0.02):
+               gap_floor=1e-3):
     """
     Topological charge of the crossing between bands band_lo..band_hi at q0.
 
@@ -291,16 +338,24 @@ def node_chern(ph, atoms, q0, band_lo, band_hi, radius=0.01, n_theta=16, tol=0.0
     (a threefold node involves three bands). On a sphere of `radius` (1/Å, no
     2π) around q0, the node's charge in each internal gap g (lo <= g < hi) is
     C(bands <= g) - C(bands <= lo-1); the subtraction removes other nodes at
-    the same q (e.g. lower multiplets at Γ). A gap counts only if it stays open
-    on the whole sphere: bands can remain paired along lines through the node
-    (screw axes), and then only the gaps between the pairs carry a charge.
+    the same q (e.g. lower multiplets at Γ).
+
+    A gap counts only if its Chern number is the same integer on spheres of
+    radius r and r/2 and the gap stays above `gap_floor` THz on both. Bands can
+    remain paired along lines or planes through the node (screw axes), and Weyl
+    points can split very slowly, so a fixed gap cut would either accept the
+    first or reject the second; agreement between two radii separates them.
     """
     nu0, _ = eigensystem(ph, q0)
     lo, _ = degenerate_multiplet(nu0, band_lo, tol)
     _, hi = degenerate_multiplet(nu0, band_hi, tol)
-    res = chern_on_sphere(lambda q: eigensystem(ph, q), q0, radius,
-                          atoms.cell.reciprocal(), (lo, hi), n_theta=n_theta)
-    is_open = lambda g: g < 0 or res["min_gap"].get(g, 0.0) > gap_tol
+    eig = lambda q: eigensystem(ph, q)
+    rec = atoms.cell.reciprocal()
+    res = chern_on_sphere(eig, q0, radius, rec, (lo, hi), n_theta=n_theta)
+    half = chern_on_sphere(eig, q0, radius / 2, rec, (lo, hi), n_theta=n_theta)
+    is_open = lambda g: g < 0 or (
+        min(res["min_gap"].get(g, 0.0), half["min_gap"].get(g, 0.0)) > gap_floor
+        and res["gap_charge"].get(g) == half["gap_charge"].get(g))
     base = res["gap_charge"].get(lo - 1, 0)
     charges = {g: res["gap_charge"][g] - base
                for g in range(lo, hi) if is_open(g) and is_open(lo - 1)}
@@ -316,14 +371,15 @@ def node_chern(ph, atoms, q0, band_lo, band_hi, radius=0.01, n_theta=16, tol=0.0
         "band_chern": band_chern,
         "gap_charge": {g: c - base for g, c in res["gap_charge"].items() if g >= lo},
         "open_gaps": [g for g in range(lo - 1, hi + 1) if g >= 0 and is_open(g)],
+        "unresolved_gaps": [g for g in range(lo, hi) if g not in charges],
     }
 
 
 def classify_node(node, berry=None):
     """Name the node from its charges in the open internal gaps and its multiplicity."""
     if not node["charges"]:
-        return ("gap closes on the sphere: a nodal line, or another node within "
-                "--sphere_r (try a smaller radius)")
+        return ("unresolved: charge differs between r and r/2 or the gap closes on the "
+                "sphere (nodal line or surface, or a second node within --sphere_r)")
     cmax = max(abs(c) for c in node["charges"].values())
     m = node["multiplicity"]
     if cmax == 0:
@@ -439,12 +495,20 @@ def write_nodes(nodes, filename="phonon_nodes.dat"):
 
 
 def charge_balance(nodes):
-    """Total charge per gap over the nodes found; zero when the search is complete."""
-    total = {}
+    """
+    Total charge per gap over the nodes found, and the number of unresolved
+    crossings in that gap. A gap's total is zero when its point nodes are all
+    found; unresolved crossings (nodal lines or surfaces) can carry the rest.
+    """
+    total, unresolved = {}, {}
     for n in nodes:
         for gap, c in n["charges"].items():
             total[gap] = total.get(gap, 0) + c
-    return {g: c for g, c in sorted(total.items()) if c != 0}
+        for gap in n["unresolved_gaps"]:
+            unresolved[gap] = unresolved.get(gap, 0) + 1
+    return {g: (total.get(g, 0), unresolved.get(g, 0))
+            for g in sorted(set(total) | set(unresolved))
+            if total.get(g, 0) != 0 or unresolved.get(g, 0)}
 
 
 def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary.txt",
@@ -468,9 +532,19 @@ def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary
                         f"bands {n['bands'][0]}-{n['bands'][1]}  "
                         f"charges {n['charges']}  {n['class']}\n")
         if balance is not None:
-            f.write("\nCharge balance over the zone (Nielsen-Ninomiya): "
-                    + ("every gap sums to zero" if not balance else
-                       f"nonzero totals {balance}: some nodes were not found") + "\n")
+            f.write("\nCharge balance over the zone (Nielsen-Ninomiya)\n")
+            closed = [g for g, (c, u) in balance.items() if c == 0]
+            if not any(c for c, _ in balance.values()):
+                f.write("  every gap with point nodes sums to zero\n")
+            for g, (c, u) in balance.items():
+                if c == 0 and not u:
+                    continue
+                note = ("closes" if c == 0 else
+                        "open: point nodes missed, or charge on unresolved lines/surfaces"
+                        if u else "open: some point nodes were not found")
+                f.write(f"  gap {g:3d}|{g + 1:<3d}  total {c:+d}   unresolved crossings {u:3d}   {note}\n")
+            if closed:
+                f.write(f"  gaps that close with unresolved crossings present: {closed}\n")
     print(f"Wrote {filename}")
 
 
@@ -506,6 +580,8 @@ def main():
                         help="Search the whole zone on an N×N×N mesh for nodes and compute their charges.")
     parser.add_argument("--bands",   type=int, nargs=2, metavar=("LO", "HI"),
                         help="Restrict --search to gaps LO..HI (default: all optical gaps).")
+    parser.add_argument("--max_seeds", type=int, default=60,
+                        help="Crossings refined per gap in --search (default: 60).")
     parser.add_argument("--sphere_r", type=float, default=0.01,
                         help="Sphere radius in 1/Å without 2π (default: 0.01).")
     parser.add_argument("--sphere_n", type=int, default=16,
@@ -550,6 +626,7 @@ def main():
 
     # Chern numbers: crossings on the path, user-given q-points, zone-wide search
     nodes, balance = [], None
+    rec = np.asarray(atoms.cell.reciprocal())
     chern_args = dict(radius=args.sphere_r, n_theta=args.sphere_n, tol=args.degen_tol)
     if args.chern:
         print(f"\nChern numbers on spheres of radius {args.sphere_r} 1/Å...")
@@ -558,34 +635,40 @@ def main():
             node["class"] = classify_node(node, c.get("berry"))
             c["chern"] = node["band_chern"]
             nodes.append(node)
+    point_nodes = []
     for q in args.node or []:
         nu0, _ = eigensystem(ph, q)
-        n = 0
-        while n < len(nu0) - 1:
-            lo, hi = degenerate_multiplet(nu0, n, args.degen_tol)
+        for lo, hi in multiplets(nu0, args.degen_tol):
             if hi > lo and nu0[lo] > 0.1:             # skip the acoustic zero at Γ
                 node = node_chern(ph, atoms, q, lo, hi, **chern_args)
                 node["class"] = classify_node(node)
-                nodes.append(node)
-            n = hi + 1
+                point_nodes.append(node)
     if args.search:
         n_modes_all = omega_kn.shape[1]
         gaps = range(args.bands[0], args.bands[1] + 1) if args.bands else range(3, n_modes_all - 1)
         print(f"\nSearching the zone on a {args.search}³ mesh for nodes in gaps "
               f"{gaps.start}..{gaps.stop - 1}...")
-        found = find_nodes(lambda q: eigensystem(ph, q), args.search, gaps, tol_THz=args.tol)
+        found = find_nodes(lambda q: eigensystem(ph, q), args.search, gaps, tol_THz=args.tol,
+                           max_nodes=args.max_seeds)
         print(f"  {len(found)} crossing point(s) found")
-        searched, seen = [], set()
+        searched = []
         for f in found:
             node = node_chern(ph, atoms, f["q"], f["band_lo"], f["band_lo"] + 1, **chern_args)
-            key = (tuple(np.round(np.mod(node["q"] + 1e-6, 1.0), 3)), node["bands"])
-            if key in seen:                       # same multiplet reached from another gap
-                continue
-            seen.add(key)
             node["class"] = classify_node(node)
             searched.append(node)
-        nodes += searched
-        balance = charge_balance(searched)
+        # complete each node's symmetry orbit, then keep one entry per multiplet and q
+        import spglib
+        ds = spglib.get_symmetry_dataset(
+            (atoms.cell.array, atoms.get_scaled_positions(), atoms.numbers), symprec=1e-3)
+        rotations = ds.rotations if ds is not None else [np.eye(3, dtype=int)]
+        computed = unique_nodes(point_nodes + searched, rec, args.sphere_r)
+        point_nodes = unique_nodes(computed + [img for n in computed
+                                               for img in symmetry_images(n, rotations)],
+                                   rec, args.sphere_r)
+        print(f"  {len(computed)} distinct nodes computed, {len(point_nodes)} after adding "
+              f"symmetry-equivalent copies ({len(rotations)} rotations × time reversal)")
+        balance = {g: v for g, v in charge_balance(point_nodes).items() if g in gaps}
+    nodes = unique_nodes(nodes + point_nodes, rec, args.sphere_r)
     for n in nodes:
         print(f"  q = ({n['q'][0]:.4f}, {n['q'][1]:.4f}, {n['q'][2]:.4f})  bands {n['bands'][0]}-"
               f"{n['bands'][1]}  ν = {n['frequency_THz']:.3f} THz  charges {n['charges']}  → {n['class']}")
