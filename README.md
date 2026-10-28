@@ -72,8 +72,8 @@ POSCAR / INCAR
 | `grace-lihopping` | `lihopping.py` | Sojourn-filtered ion hop detection, hop networks, Arrhenius Eₐ | `hop_events.dat`, `arrhenius.png` |
 | `grace-kappa` | `thermal_conductivity.py` | Müller-Plathe reverse NEMD lattice thermal conductivity κ | `kappa_summary.txt`, `temperature_profile.png` |
 | `grace-topology` | `condmat/topology.py` | Persistent homology (β₀ β₁ β₂): symmetry-free structural fingerprint | `betti_curves.dat`, `betti_curves.png` |
-| `grace-topo-phonons` | `condmat/topological_phonons.py` | Weyl/Dirac phonon crossings with local Berry phase | `phonon_crossings.dat`, `phonon_topo_bands.png` |
-| `grace-phonon-berry` | `condmat/phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k), Chern numbers | `phonon_zak.dat`, `phonon_chern.png` |
+| `grace-topo-phonons` | `condmat/topological_phonons.py` | Phonon Weyl, double-Weyl, spin-1 and fourfold nodes with their Chern numbers on a sphere; zone-wide node search with charge balance | `phonon_nodes.dat`, `phonon_crossings.dat`, `phonon_topo_bands.png` |
+| `grace-phonon-berry` | `condmat/phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k) and plane Chern numbers (lattice plaquette method) | `phonon_zak.dat`, `phonon_chern.png` |
 | `grace-moire` | `condmat/moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
 | `grace-symmetry` | `condmat/symmetry_stability.py` | Band-insulator verdict (filling rule, via [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint)) tested against relaxation, soft phonons and temperature; structural chirality; VASP + SOC inputs | `symmetry_report.txt`, `soft_modes.dat`, `dft_handoff/` |
 
@@ -164,8 +164,9 @@ grace-kappa --poscar POSCAR --model GRACE-2L-OAM --temperature 300 --steps 20000
 # Topological Data Analysis (crystal vs grain boundary)
 grace-topology --poscar POSCAR_bulk --compare POSCAR_gb --rmax 8.0
 
-# Weyl/Dirac phonon points + Berry phase
-grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM --berry
+# Phonon Weyl points: charges of the nodes at Γ and R, then search the whole zone
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5
+grace-topo-phonons --poscar POSCAR --search 10 --bands 3 8
 
 # Phonon Zak phases + Berry curvature
 grace-phonon-berry --poscar POSCAR --model GRACE-2L-OAM --curvature
@@ -272,6 +273,19 @@ Checks with `GRACE-2L-OAM` (2×2×2 phonon supercell):
 | Na, simple cubic (ν = 11, odd) | soft X and M modes double the cell to P2₁/m and P4/nmm, where ν = 22 is still forbidden |
 
 Limits: degenerate soft modes are sampled by their basis vectors and sum, so the highest-symmetry isotropy subgroup can be missed (for cubic SrTiO₃ the R mode gives R-3c rather than I4/mcm). Only commensurate q-points of the chosen supercell are checked. Electronic topology itself needs the DFT step.
+
+### Phonon Weyl points and their charges
+
+`grace-topo-phonons` classifies a phonon band crossing by its topological charge: the Chern number of the bands below it on a small sphere around the node, computed with the gauge-invariant lattice method of Fukui, Hatsugai and Suzuki [J. Phys. Soc. Jpn. 74, 1674 (2005)].
+
+- `--node qx qy qz` analyses every degeneracy at a q-point; `--chern` does the same for crossings found on the band path.
+- `--search N` scans the whole zone on an N³ mesh, refines each crossing and computes its charge. The charges in each gap must sum to zero over the zone (Nielsen–Ninomiya), and the summary reports whether they do.
+- A node's charge is read from every gap inside its multiplet that stays open on the sphere. Bands that remain paired along lines through the node (screw axes) are handled, and a crossing whose gap closes on the sphere is reported as a nodal line or as a neighbouring node, never as a Weyl point.
+- Eigenvectors come from the mass-weighted dynamical matrix, so they are orthonormal and frequencies are in THz.
+
+Checks: analytic models give exactly +1/−1 (Weyl), ±2 (double Weyl), (+2, 0, −2) (spin-1), and a two-node lattice model is found complete with charges summing to zero. For CoSi (P2₁3, GRACE-2L-OAM, a = 4.436 Å vs 4.443 Å measured) the threefold nodes at Γ carry |C| = 2 (spin-1) and the fourfold nodes at R carry charge 2 between their band pairs. These are the double-Weyl phonons reported by Zhang et al., Phys. Rev. Lett. 120, 016401 (2018) and observed by Miao et al., Phys. Rev. Lett. 121, 035302 (2018). The search also finds generic Weyl points (C = ±1) in symmetry-related sets.
+
+`grace-phonon-berry --curvature` computes Berry curvature and Chern numbers on a k_z plane with the same lattice method. With time-reversal symmetry these vanish on planes through Γ (CoSi gives exactly 0 for all 24 bands); a difference between two parallel planes counts the Weyl charge between them.
 
 ---
 

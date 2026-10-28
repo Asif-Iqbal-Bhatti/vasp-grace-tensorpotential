@@ -538,6 +538,61 @@ else:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# 11. Phonon Chern numbers  (condmat/phonon_tools, grace-topo-phonons --node)
+# ──────────────────────────────────────────────────────────────────────────────
+
+section("11. Chern numbers on a sphere  (analytic models, CoSi phonons)")
+
+chern_models = textwrap.dedent("""
+    import numpy as np
+    from vasp_grace.condmat.phonon_tools import chern_on_sphere, find_nodes
+    sx = np.array([[0, 1], [1, 0]], complex); sy = np.array([[0, -1j], [1j, 0]])
+    sz = np.diag([1., -1]).astype(complex)
+    Sx = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]]) / np.sqrt(2)
+    Sy = np.array([[0, -1j, 0], [1j, 0, -1j], [0, 1j, 0]]) / np.sqrt(2)
+    Sz = np.diag([1., 0, -1])
+    eig = lambda H: (lambda q: np.linalg.eigh(H(np.asarray(q, float))))
+    I = np.eye(3)
+    cases = {
+        "weyl":   (eig(lambda k: k[0]*sx + k[1]*sy + k[2]*sz), [1, -1]),
+        "double": (eig(lambda k: (k[0]**2 - k[1]**2)*sx + 2*k[0]*k[1]*sy + k[2]*sz), [2, -2]),
+        "spin1":  (eig(lambda k: k[0]*Sx + k[1]*Sy + k[2]*Sz), [2, 0, -2]),
+        "gapped": (eig(lambda k: k[0]*sx + k[1]*sy + (1 + k[2])*sz), [0, 0]),
+    }
+    for name, (e, want) in cases.items():
+        r = chern_on_sphere(e, [0, 0, 0], 0.1, I, (0, len(want) - 1))
+        got = [r["band_chern"][m] for m in range(len(want))]
+        assert got == want, (name, got)
+    t = 2 * np.pi
+    lat = eig(lambda q: np.sin(t*q[0])*sx + np.sin(t*q[1])*sy
+              + (2 - np.cos(t*q[0]) - np.cos(t*q[1]) + np.cos(t*q[2]))*sz)
+    nodes = find_nodes(lat, 12, [0], tol_THz=1.0, node_tol_THz=1e-3)
+    charges = sorted(chern_on_sphere(lat, n["q"], 0.03, I, (0, 0))["gap_charge"][0] for n in nodes)
+    assert charges == [-1, 1], charges
+    print("OK")
+""")
+rc, out = run([PYTHON, "-c", chern_models], timeout=120)
+record("Chern on sphere -- Weyl ±1, double Weyl ±2, spin-1 (2,0,-2), Weyl pair sums to 0",
+       "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
+if not HAS_TP:
+    record("grace-topo-phonons -- CoSi spin-1 node at Γ", "skip", "tensorpotential not installed")
+else:
+    with tempfile.TemporaryDirectory() as tmp:
+        from ase.spacegroup import crystal
+        from ase.io import write as ase_write
+        cosi = crystal(["Co", "Si"], [(0.143,) * 3, (0.844,) * 3], spacegroup=198,
+                       cellpar=[4.443] * 3 + [90] * 3)
+        ase_write(os.path.join(tmp, "POSCAR"), cosi, format="vasp", direct=True)
+        rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "topological_phonons.py"),
+                       "--poscar", "POSCAR", "--model", GRACE_MODEL, "--path", "GXMGRX",
+                       "--nkpts", "40", "--node", "0", "0", "0"], cwd=tmp, timeout=900)
+        ok = rc == 0 and "threefold (spin-1) node, |C| = 2" in out
+        record("grace-topo-phonons -- CoSi spin-1 node at Γ (|C| = 2)",
+               "pass" if ok else "fail", out[-400:] if not ok else "")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Summary
 # ──────────────────────────────────────────────────────────────────────────────
 

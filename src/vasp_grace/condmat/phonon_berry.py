@@ -24,8 +24,11 @@ Physical meaning:
     - Band-resolved Zak phases can reveal polarization, charge pumping,
       and phononic edge states in finite systems
 
-This module also computes local Berry curvature Ωₙ(k) = Im[∂kₓ uₙ†  ∂ky uₙ]
-using finite differences, which integrates to give the Chern number for 2D BZs.
+This module also computes the Berry curvature Ωₙ(k) on a kx-ky plane with the
+lattice plaquette method (gauge invariant), which sums to the plane's Chern
+number. With time-reversal symmetry, phonon Chern numbers vanish on the planes
+through Γ; a difference between two parallel planes counts the Weyl charge
+between them (see grace-topo-phonons --search for the nodes themselves).
 
 Usage
 -----
@@ -63,12 +66,14 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 from ase.io import read
 from ase.phonons import Phonons
-from ase import units
 
 try:
     from ..calculator import load_calculator
+    from .phonon_tools import bands_and_vectors, eigensystem, plaquette_flux_map
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
+    from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
+                                                 plaquette_flux_map)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -109,20 +114,11 @@ def build_bz_path(atoms, path_str, n_kpts):
 def get_eigenvectors(ph, q_pts):
     """
     Compute phonon eigenvectors at all q_pts.
-    Returns omega (N, n_modes) and u (N, n_modes, n_modes) or None.
+    Returns omega (N, n_modes) in THz and orthonormal u (N, n_modes, n_modes).
     """
     print(f"Computing phonon eigenvectors at {len(q_pts)} k-points...")
-    try:
-        omega_raw, u_kn = ph.band_structure(q_pts, modes=True)
-    except TypeError:
-        print("Warning: this ASE version does not support modes=True. "
-              "Zak phase calculation requires eigenvectors.")
-        omega_raw = ph.band_structure(q_pts)
-        return omega_raw, None
-
-    ev_to_THz = units._e / (2 * np.pi * units._hbar) * 1e-12
-    omega = np.sign(omega_raw) * np.sqrt(np.abs(omega_raw)) * ev_to_THz
-    return omega, u_kn
+    # THz frequencies and orthonormal eigenvectors of the dynamical matrix
+    return bands_and_vectors(ph, q_pts)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -192,69 +188,27 @@ def build_2d_kmesh(atoms, nkx, nky, kz=0.0):
     return q, KX, KY
 
 
-def compute_berry_curvature_2d(ph, atoms, nkx, nky, dk=0.005):
+def compute_berry_curvature_2d(ph, atoms, nkx, nky, dk=None):
     """
-    Compute Berry curvature Ωₙ(k) = Im[∂kx uₙ† ∂ky uₙ] using finite differences.
+    Berry curvature Ωₙ(k) on a periodic kx-ky mesh (reduced coordinates).
 
-    Ωₙ(k) ≈ Im[ ⟨∂kx uₙ | ∂ky uₙ⟩ ]
-
-    Approximated via:
-        ∂kx uₙ(k) ≈ [uₙ(k+dk_x) - uₙ(k-dk_x)] / (2 dk)
+    Uses lattice plaquette fluxes (Fukui–Hatsugai–Suzuki): the flux through each
+    mesh cell comes from overlaps of neighbouring eigenvectors, so it does not
+    depend on their arbitrary phases, and the sum over the mesh gives integer
+    Chern numbers. Ω is the flux divided by the cell area, so that
+    compute_chern_numbers() recovers the flux sum. `dk` is no longer used.
 
     Returns
     -------
     Omega : (n_modes, nkx, nky) Berry curvature
     """
     q, KX, KY = build_2d_kmesh(atoms, nkx, nky)
-
-    print(f"Computing Berry curvature on {nkx}×{nky} k-mesh "
-          f"({len(q)} k-points × 4 finite-difference shifts)...")
-
-    # We need 4 additional meshes for finite differences
-    def shifted_mesh(dkx=0, dky=0):
-        q_shifted = q.copy()
-        q_shifted[:, 0] += dkx
-        q_shifted[:, 1] += dky
-        return q_shifted
-
-    q_px = shifted_mesh(dkx=+dk)
-    q_mx = shifted_mesh(dkx=-dk)
-    q_py = shifted_mesh(dky=+dk)
-    q_my = shifted_mesh(dky=-dk)
-
-    def get_u(qpts):
-        try:
-            _, u = ph.band_structure(qpts, modes=True)
-            return u   # (N, n_modes, n_modes)
-        except Exception:
-            return None
-
-    u_px = get_u(q_px)
-    u_mx = get_u(q_mx)
-    u_py = get_u(q_py)
-    u_my = get_u(q_my)
-
-    if u_px is None:
-        print("Error: eigenvectors unavailable — Berry curvature skipped.")
-        return None
-
-    n_modes = u_px.shape[1]
-    N = len(q)
-
-    # Central difference derivatives
-    du_dkx = (u_px - u_mx) / (2 * dk)   # (N, n_modes, n_modes)
-    du_dky = (u_py - u_my) / (2 * dk)
-
-    Omega = np.zeros((n_modes, nkx, nky))
-    for band in range(n_modes):
-        for i in range(N):
-            ix = i // nky
-            iy = i % nky
-            dx = du_dkx[i, band, :]
-            dy = du_dky[i, band, :]
-            Omega[band, ix, iy] = np.imag(np.vdot(dx, dy))
-
-    return Omega
+    print(f"Computing Berry curvature on {nkx}×{nky} k-mesh (lattice plaquette method)...")
+    vecs = [eigensystem(ph, qi)[1] for qi in q]
+    grid = [[vecs[ix * nky + iy] for iy in range(nky)] for ix in range(nkx)]
+    n_modes = vecs[0].shape[1]
+    area = (1.0 / nkx) * (1.0 / nky)
+    return np.array([plaquette_flux_map(grid, band) / area for band in range(n_modes)])
 
 
 def compute_chern_numbers(Omega, nkx, nky):
@@ -421,7 +375,7 @@ def main():
     parser.add_argument("--nky",       type=int, default=20,
                         help="k-points along ky for curvature mesh (default: 20).")
     parser.add_argument("--dk",        type=float, default=0.005,
-                        help="Finite-difference step for ∂k (default: 0.005).")
+                        help="Unused; kept for compatibility (curvature now uses lattice plaquettes).")
     args = parser.parse_args()
 
     if not os.path.exists(args.poscar):

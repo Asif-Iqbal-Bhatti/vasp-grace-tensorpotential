@@ -17,10 +17,15 @@ The phonon band structure can carry non-trivial topological invariants:
     - Nodal-line phonons : line of band crossings forming a loop in k-space
     - Dirac phonons  : fourfold-degenerate crossing (two Weyl of opposite chirality)
 
-These are characterized by the Berry phase accumulated along a closed loop
-encircling the crossing in k-space:
-    - Chern number C = ±1 → Weyl phonon
-    - Berry phase γ = π  → topological nodal line
+A point node is classified by its topological charge, the Chern number of the
+bands below it on a small sphere around the node (--chern, --node, --search):
+    - C = ±1          → Weyl phonon
+    - C = ±2          → double-Weyl, or a threefold spin-1 node (bands +2, 0, -2)
+    - C = 0           → no monopole; with a Berry phase γ = π on a loop, a nodal line
+The Berry phase on a loop alone (--berry) is π both for a nodal line and for a
+loop centred on a Weyl point, so it cannot separate them.
+Over the whole Brillouin zone the charges in each gap sum to zero
+(Nielsen–Ninomiya); --search reports this balance as a completeness check.
 
 Usage
 -----
@@ -29,15 +34,23 @@ Usage
 
     # Custom k-path and crossing threshold
     grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM \\
-                                  --path GXMGZ --nkpts 300 --tol 0.5
+                                  --path GXMGZ --nkpts 300 --tol 0.1
 
-    # Compute Berry curvature at each detected crossing
-    grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM --berry
+    # Berry phase and Chern number at each detected crossing
+    grace-topo-phonons --poscar POSCAR --model GRACE-2L-OAM --berry --chern
+
+    # Charges of every degeneracy at Γ and R (e.g. spin-1 and fourfold nodes in CoSi)
+    grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5
+
+    # Search the whole zone for nodes in gaps 10..14 and check the charge balance
+    grace-topo-phonons --poscar POSCAR --search 12 --bands 10 14
 
 Outputs
 -------
     phonon_topo_bands.png     band structure with crossings highlighted
     phonon_crossings.dat      table of detected crossings (k, bands, gap, Berry phase)
+    phonon_nodes.dat          nodes with band Chern numbers and classification
+                              (with --chern, --node or --search)
     phonon_topo_summary.txt   summary of topological classification
 """
 
@@ -55,12 +68,14 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 from ase.io import read
 from ase.phonons import Phonons
-from ase import units
 
 try:
     from ..calculator import load_calculator
+    from .phonon_tools import bands_and_vectors, eigensystem, chern_on_sphere, find_nodes
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
+    from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
+                                                 chern_on_sphere, find_nodes)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -103,7 +118,7 @@ def get_bands_and_modes(ph, atoms, path_str, n_kpts):
     -------
     q_pts    : (N, 3) k-points in fractional coordinates
     omega_kn : (N, n_modes) frequencies in THz
-    u_kn     : list of (n_modes, n_modes) eigenvector matrices
+    u_kn     : (N, n_modes, n_modes) orthonormal eigenvectors
                u_kn[k][n, :] = eigenvector for band n at k-point k
     x_coords : (N,) x-axis coordinates for plotting
     special_x: list of (x, label) for high-symmetry points
@@ -112,19 +127,8 @@ def get_bands_and_modes(ph, atoms, path_str, n_kpts):
     q_pts = path.kpts
 
     print(f"Computing phonon eigenvectors at {len(q_pts)} k-points...")
-    try:
-        # ASE internal method that returns eigenvectors
-        omega_kn_raw, u_kn = ph.band_structure(q_pts, modes=True)
-    except TypeError:
-        # Older ASE: modes parameter not supported
-        print("Warning: this ASE version does not support modes=True. "
-              "Eigenvectors unavailable — Berry phase skipped.")
-        omega_kn_raw = ph.band_structure(q_pts)
-        u_kn = None
-
-    # Convert ω² (eV²) → THz
-    ev_to_THz = units._e / (2 * np.pi * units._hbar) * 1e-12
-    omega_kn = np.sign(omega_kn_raw) * np.sqrt(np.abs(omega_kn_raw)) * ev_to_THz
+    # THz frequencies and orthonormal eigenvectors of the dynamical matrix
+    omega_kn, u_kn = bands_and_vectors(ph, q_pts)
 
     # Build x-axis from path
     x_coords, special_x = _build_x_axis(path, q_pts, atoms)
@@ -159,7 +163,7 @@ def _build_x_axis(path, q_pts, atoms):
 # Band crossing detection
 # ──────────────────────────────────────────────────────────────────────────────
 
-def detect_crossings(omega_kn, x_coords, tol_THz=0.5):
+def detect_crossings(omega_kn, x_coords, tol_THz=0.1):
     """
     Detect band crossings: adjacent bands approaching within `tol_THz` THz.
 
@@ -234,7 +238,8 @@ def compute_berry_phase_at_crossing(ph, atoms, q0_frac, band_n, n_loop=20, radiu
     in the qx-qy plane centred at q0_frac.
 
     γ = 0   → trivial (no topological charge)
-    γ = π   → topological (Weyl/nodal line)
+    γ = π   → nodal line or Weyl point; the loop alone cannot tell them
+              apart, use node_chern() for the charge
 
     Returns the Berry phase in radians.
     """
@@ -247,10 +252,7 @@ def compute_berry_phase_at_crossing(ph, atoms, q0_frac, band_n, n_loop=20, radiu
     # Close the loop
     loop_kpts = np.vstack([loop_kpts, loop_kpts[0]])
 
-    try:
-        _, u_loop = ph.band_structure(loop_kpts, modes=True)
-    except Exception:
-        return None
+    _, u_loop = bands_and_vectors(ph, loop_kpts)
 
     # Wilson loop product
     product = 1.0 + 0j
@@ -267,6 +269,78 @@ def compute_berry_phase_at_crossing(ph, atoms, q0_frac, band_n, n_loop=20, radiu
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Chern number on a sphere around a node
+# ──────────────────────────────────────────────────────────────────────────────
+
+def degenerate_multiplet(nu, band, tol=0.05):
+    """Indices of the bands degenerate (within tol THz) with `band` at one q."""
+    lo = hi = band
+    while lo > 0 and nu[band] - nu[lo - 1] < tol:
+        lo -= 1
+    while hi < len(nu) - 1 and nu[hi + 1] - nu[band] < tol:
+        hi += 1
+    return lo, hi
+
+
+def node_chern(ph, atoms, q0, band_lo, band_hi, radius=0.01, n_theta=16, tol=0.05,
+               gap_tol=0.02):
+    """
+    Topological charge of the crossing between bands band_lo..band_hi at q0.
+
+    The node's bands are widened to the full degenerate multiplet lo..hi at q0
+    (a threefold node involves three bands). On a sphere of `radius` (1/Å, no
+    2π) around q0, the node's charge in each internal gap g (lo <= g < hi) is
+    C(bands <= g) - C(bands <= lo-1); the subtraction removes other nodes at
+    the same q (e.g. lower multiplets at Γ). A gap counts only if it stays open
+    on the whole sphere: bands can remain paired along lines through the node
+    (screw axes), and then only the gaps between the pairs carry a charge.
+    """
+    nu0, _ = eigensystem(ph, q0)
+    lo, _ = degenerate_multiplet(nu0, band_lo, tol)
+    _, hi = degenerate_multiplet(nu0, band_hi, tol)
+    res = chern_on_sphere(lambda q: eigensystem(ph, q), q0, radius,
+                          atoms.cell.reciprocal(), (lo, hi), n_theta=n_theta)
+    is_open = lambda g: g < 0 or res["min_gap"].get(g, 0.0) > gap_tol
+    base = res["gap_charge"].get(lo - 1, 0)
+    charges = {g: res["gap_charge"][g] - base
+               for g in range(lo, hi) if is_open(g) and is_open(lo - 1)}
+    band_chern = [res["band_chern"][m] if (m in res["band_chern"] and is_open(m)
+                                           and is_open(m - 1)) else None
+                  for m in range(lo, hi + 1)]
+    return {
+        "q": np.asarray(q0, float),
+        "bands": (lo, hi),
+        "multiplicity": hi - lo + 1,
+        "frequency_THz": float(np.mean(nu0[lo:hi + 1])),
+        "charges": charges,
+        "band_chern": band_chern,
+        "gap_charge": {g: c - base for g, c in res["gap_charge"].items() if g >= lo},
+        "open_gaps": [g for g in range(lo - 1, hi + 1) if g >= 0 and is_open(g)],
+    }
+
+
+def classify_node(node, berry=None):
+    """Name the node from its charges in the open internal gaps and its multiplicity."""
+    if not node["charges"]:
+        return ("gap closes on the sphere: a nodal line, or another node within "
+                "--sphere_r (try a smaller radius)")
+    cmax = max(abs(c) for c in node["charges"].values())
+    m = node["multiplicity"]
+    if cmax == 0:
+        if berry is not None and abs(abs(berry) % (2 * np.pi) - np.pi) < 0.3:
+            return "C = 0, Berry phase π: nodal line"
+        return "C = 0: no monopole charge"
+    if m == 2:
+        return {1: "Weyl point", 2: "double-Weyl point"}.get(cmax, f"charge-{cmax} node")
+    if m == 3:
+        return f"threefold (spin-1) node, |C| = {cmax}"
+    if m == 4:
+        return (f"fourfold node, charge {cmax} between its band pairs"
+                + (" (charge-2 Dirac)" if cmax == 2 else ""))
+    return f"{m}-fold node, |C| = {cmax}"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Classification
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -278,7 +352,7 @@ def classify_crossing(berry_phase):
     if gamma_mod < 0.3 or gamma_mod > 2 * np.pi - 0.3:
         return "trivial"
     elif abs(gamma_mod - np.pi) < 0.3:
-        return "Weyl/nodal-line (γ≈π)"
+        return "nodal line or Weyl (γ≈π)"
     else:
         return f"non-trivial (γ={np.degrees(berry_phase):.1f}°)"
 
@@ -347,7 +421,34 @@ def write_crossings(crossings, q_pts, filename="phonon_crossings.dat"):
     print(f"Wrote {filename}  ({len(crossings)} crossings)")
 
 
-def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary.txt"):
+def write_nodes(nodes, filename="phonon_nodes.dat"):
+    with open(filename, "w") as f:
+        f.write("# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)\n")
+        f.write("# charges: node charge in each internal gap g (bands <= g) that is open on the sphere\n")
+        f.write("# band Chern: per band, '?' where a neighbouring gap closes on the sphere\n")
+        f.write(f"# {'qx':>8}  {'qy':>8}  {'qz':>8}  {'bands':>9}  {'mult':>4}  {'freq(THz)':>10}  "
+                f"{'charges':>18}  {'band Chern':>16}  class\n")
+        for n in nodes:
+            q = n["q"]
+            bc = ",".join("?" if c is None else f"{c:+d}" for c in n["band_chern"])
+            ch = ",".join(f"{g}:{c:+d}" for g, c in n["charges"].items()) or "-"
+            f.write(f"  {q[0]:8.5f}  {q[1]:8.5f}  {q[2]:8.5f}  {n['bands'][0]:>4}-{n['bands'][1]:<4}  "
+                    f"{n['multiplicity']:4d}  {n['frequency_THz']:10.4f}  {ch:>18}  {bc:>16}  "
+                    f"{n['class']}\n")
+    print(f"Wrote {filename}  ({len(nodes)} nodes)")
+
+
+def charge_balance(nodes):
+    """Total charge per gap over the nodes found; zero when the search is complete."""
+    total = {}
+    for n in nodes:
+        for gap, c in n["charges"].items():
+            total[gap] = total.get(gap, 0) + c
+    return {g: c for g, c in sorted(total.items()) if c != 0}
+
+
+def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary.txt",
+                  nodes=None, balance=None):
     n_weyl = sum(1 for c in crossings
                  if c["berry"] is not None
                  and abs(abs(c["berry"]) % (2*np.pi) - np.pi) < 0.3)
@@ -359,9 +460,17 @@ def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary
         f.write(f"Band crossings detected : {len(crossings)}\n")
         f.write(f"  - by band inversion   : {sum(1 for c in crossings if c['type']=='inversion')}\n")
         f.write(f"  - by near-degeneracy  : {sum(1 for c in crossings if c['type']=='degeneracy')}\n")
-        f.write(f"Weyl/nodal phonon pts   : {n_weyl}  (Berry phase ≈ π)\n")
-        f.write("\nNote: Berry phase = π indicates a topologically non-trivial crossing.\n")
-        f.write("      Verify with a full Chern number calculation on a closed surface.\n")
+        f.write(f"Crossings with γ ≈ π    : {n_weyl}  (nodal line or Weyl; see Chern numbers)\n")
+        if nodes:
+            f.write(f"\nNodes with Chern numbers: {len(nodes)} (phonon_nodes.dat)\n")
+            for n in nodes:
+                f.write(f"  q = ({n['q'][0]:.4f}, {n['q'][1]:.4f}, {n['q'][2]:.4f})  "
+                        f"bands {n['bands'][0]}-{n['bands'][1]}  "
+                        f"charges {n['charges']}  {n['class']}\n")
+        if balance is not None:
+            f.write("\nCharge balance over the zone (Nielsen-Ninomiya): "
+                    + ("every gap sums to zero" if not balance else
+                       f"nonzero totals {balance}: some nodes were not found") + "\n")
     print(f"Wrote {filename}")
 
 
@@ -381,14 +490,28 @@ def main():
                         metavar=("Nx","Ny","Nz"), help="Phonon supercell (default: 3 3 3).")
     parser.add_argument("--delta",   type=float, default=0.015,
                         help="Displacement amplitude in Å (default: 0.015).")
-    parser.add_argument("--tol",     type=float, default=0.5,
-                        help="Crossing detection threshold in THz (default: 0.5).")
+    parser.add_argument("--tol",     type=float, default=0.1,
+                        help="Crossing detection threshold in THz (default: 0.1).")
     parser.add_argument("--berry",   action="store_true",
                         help="Compute Berry phase at each detected crossing (slower).")
     parser.add_argument("--loop_pts",type=int, default=30,
                         help="k-points on Berry phase loop (default: 30).")
     parser.add_argument("--loop_r",  type=float, default=0.02,
                         help="Berry loop radius in reduced coords (default: 0.02).")
+    parser.add_argument("--chern",   action="store_true",
+                        help="Chern number on a small sphere around each crossing on the path.")
+    parser.add_argument("--node",    type=float, nargs=3, action="append", metavar=("qx", "qy", "qz"),
+                        help="Also analyse every degeneracy at this reduced q (repeatable), e.g. --node 0 0 0.")
+    parser.add_argument("--search",  type=int, metavar="N",
+                        help="Search the whole zone on an N×N×N mesh for nodes and compute their charges.")
+    parser.add_argument("--bands",   type=int, nargs=2, metavar=("LO", "HI"),
+                        help="Restrict --search to gaps LO..HI (default: all optical gaps).")
+    parser.add_argument("--sphere_r", type=float, default=0.01,
+                        help="Sphere radius in 1/Å without 2π (default: 0.01).")
+    parser.add_argument("--sphere_n", type=int, default=16,
+                        help="Polar divisions of the sphere mesh (default: 16).")
+    parser.add_argument("--degen_tol", type=float, default=0.05,
+                        help="Bands within this many THz at a node form one multiplet (default: 0.05).")
     args = parser.parse_args()
 
     if not os.path.exists(args.poscar):
@@ -425,9 +548,53 @@ def main():
                   f"γ = {np.degrees(gamma):.1f}°  → {cls}" if gamma is not None
                   else f"  Crossing {i}: Berry phase failed")
 
+    # Chern numbers: crossings on the path, user-given q-points, zone-wide search
+    nodes, balance = [], None
+    chern_args = dict(radius=args.sphere_r, n_theta=args.sphere_n, tol=args.degen_tol)
+    if args.chern:
+        print(f"\nChern numbers on spheres of radius {args.sphere_r} 1/Å...")
+        for c in crossings:
+            node = node_chern(ph, atoms, q_pts[c["k_idx"]], c["band_lo"], c["band_hi"], **chern_args)
+            node["class"] = classify_node(node, c.get("berry"))
+            c["chern"] = node["band_chern"]
+            nodes.append(node)
+    for q in args.node or []:
+        nu0, _ = eigensystem(ph, q)
+        n = 0
+        while n < len(nu0) - 1:
+            lo, hi = degenerate_multiplet(nu0, n, args.degen_tol)
+            if hi > lo and nu0[lo] > 0.1:             # skip the acoustic zero at Γ
+                node = node_chern(ph, atoms, q, lo, hi, **chern_args)
+                node["class"] = classify_node(node)
+                nodes.append(node)
+            n = hi + 1
+    if args.search:
+        n_modes_all = omega_kn.shape[1]
+        gaps = range(args.bands[0], args.bands[1] + 1) if args.bands else range(3, n_modes_all - 1)
+        print(f"\nSearching the zone on a {args.search}³ mesh for nodes in gaps "
+              f"{gaps.start}..{gaps.stop - 1}...")
+        found = find_nodes(lambda q: eigensystem(ph, q), args.search, gaps, tol_THz=args.tol)
+        print(f"  {len(found)} crossing point(s) found")
+        searched, seen = [], set()
+        for f in found:
+            node = node_chern(ph, atoms, f["q"], f["band_lo"], f["band_lo"] + 1, **chern_args)
+            key = (tuple(np.round(np.mod(node["q"] + 1e-6, 1.0), 3)), node["bands"])
+            if key in seen:                       # same multiplet reached from another gap
+                continue
+            seen.add(key)
+            node["class"] = classify_node(node)
+            searched.append(node)
+        nodes += searched
+        balance = charge_balance(searched)
+    for n in nodes:
+        print(f"  q = ({n['q'][0]:.4f}, {n['q'][1]:.4f}, {n['q'][2]:.4f})  bands {n['bands'][0]}-"
+              f"{n['bands'][1]}  ν = {n['frequency_THz']:.3f} THz  charges {n['charges']}  → {n['class']}")
+    if nodes:
+        write_nodes(nodes)
+
     plot_bands_with_crossings(x_coords, omega_kn, crossings, special_x)
     write_crossings(crossings, q_pts)
-    write_summary(crossings, n_modes, n_imaginary)
+    write_summary(crossings, n_modes, n_imaginary, nodes=nodes, balance=balance)
 
 
 if __name__ == "__main__":
