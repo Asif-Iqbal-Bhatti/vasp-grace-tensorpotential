@@ -15,7 +15,7 @@ Open work, in the order to pick it up.
 ### Validated (CoSi, GRACE-2L-OAM, 3×3×3 supercell)
 
 - **Comparison with harmonic at 100 K:** effective frequencies at X, M, R and two generic q-points are within 0.06–0.10 THz (0.4–0.6 %) of the harmonic phonopy values.
-- **Structure:** the space group stays P2₁3 after symmetrizing the average structure at 100, 300 and 600 K. Thermal expansion from NPT: V = 87.27 Å³ (0 K), 88.33 Å³ (300 K), 89.19 Å³ (600 K).
+- **Structure:** the space group stays P2₁3 after symmetrizing the average structure at 100, 300 and 600 K. Thermal expansion from NPT: V = 87.32 Å³ (0 K), 88.33 Å³ (300 K), 89.19 Å³ (600 K).
 - **R-point charges:** all six fourfold nodes keep charge 2 between their band pairs up to 600 K, and the gaps inside each pair stay exactly closed.
 
 ### Open
