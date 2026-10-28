@@ -16,7 +16,7 @@
 
 - **Keep your VASP workflow.** Same input files, same tags, same output files. Existing scripts that parse `OUTCAR` or `XDATCAR` keep working.
 - **DFT-quality forces at MD cost.** The GRACE foundation-model family (`GRACE-1L-*`, `GRACE-2L-*`, `GRACE-3L-*`) covers most of the periodic table; you can also load your own fine-tuned model.
-- **Physics on top, not just a wrapper.** Ten command-line tools cover uncertainty-driven active learning, Monte Carlo, dislocations, Li-ion hopping, thermal conductivity, persistent homology, phonon topology and moiré bilayers.
+- **Physics on top, not just a wrapper.** Eleven command-line tools cover uncertainty-driven active learning, Monte Carlo, dislocations, Li-ion hopping, thermal conductivity, persistent homology, phonon topology, moiré bilayers and symmetry-enforced gaplessness.
 
 ---
 
@@ -48,6 +48,7 @@ POSCAR / INCAR
 │montecarlo     │        │  thermal_cond.  │         │phonon_berry       │
 │dislocation    │        │                 │         │topology (TDA)     │
 │               │        │                 │         │moire              │
+│               │        │                 │         │condmat/symmetry   │
 └───────────────┘        └─────────────────┘         └───────────────────┘
 ```
 
@@ -67,6 +68,7 @@ POSCAR / INCAR
 | `grace-topo-phonons` | `topological_phonons.py` | Weyl/Dirac phonon crossings with local Berry phase | `phonon_crossings.dat`, `phonon_topo_bands.png` |
 | `grace-phonon-berry` | `phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k), Chern numbers | `phonon_zak.dat`, `phonon_chern.png` |
 | `grace-moire` | `moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
+| `grace-symmetry` | `condmat/symmetry_stability.py` | Band-insulator verdict (filling rule, via [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint)) tested against relaxation, soft phonons and temperature; structural chirality; VASP + SOC inputs | `symmetry_report.txt`, `soft_modes.dat`, `dft_handoff/` |
 
 Every command accepts `--model` as any GRACE foundation-model name or a path to your own fitted model; see [Choosing a GRACE model](#choosing-a-grace-model). In `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
 
@@ -120,6 +122,7 @@ pip install -e .
 |-------|---------|------|
 | `tda` | `pip install -e ".[tda]"` | `gudhi`, for full β₁/β₂ persistent homology in `grace-topology` |
 | `examples` | `pip install -e ".[examples]"` | `marimo`, for the interactive example notebook |
+| `condmat` | `pip install -e ".[condmat]"` | [`symlint`](https://github.com/Asif-Iqbal-Bhatti/symlint), for band-insulator verdicts in `grace-symmetry` (Python ≥ 3.10) |
 | `dev` | `pip install -e ".[dev]"` | `pytest`, `black`, `pylint` |
 
 The first call to a foundation model downloads it to `~/.cache/grace/`.
@@ -163,6 +166,9 @@ grace-phonon-berry --poscar POSCAR --model GRACE-2L-OAM --curvature
 # Moiré superlattice (scan commensurate angles, then build)
 grace-moire --poscar POSCAR --scan --m_max 10
 grace-moire --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
+
+# Can it be a band insulator, and does that survive soft modes and 300 K?
+grace-symmetry --poscar POSCAR --md 300 --handoff
 ```
 
 Run any command with `--help` for the full option list.
@@ -235,6 +241,33 @@ Inspired by: [atomsk](https://atomsk.univ-lille.fr) · [atomman](https://github.
 
 ---
 
+## Condensed matter: symmetry-enforced gaplessness and chirality
+
+`grace-symmetry` (in `src/vasp_grace/condmat/`) asks whether a crystal can be a band insulator, and whether that answer survives the lattice dynamics.
+
+For a nonmagnetic crystal with space group G and ν electrons per primitive cell, Watanabe, Po, Zaletel and Vishwanath [PRL 117, 096404 (2016)] showed that a band insulator needs ν in an allowed set S_G. Otherwise the crystal is forced to be gapless (`odd_filling` or `symmetry_enforced`). [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint) applies that rule to a fixed structure. The verdict is only as good as the space group, and GRACE can test the space group cheaply:
+
+1. **Relaxation** with the space group held fixed (`FixSymmetry`), then the verdict for the relaxed primitive cell.
+2. **Soft phonons** at Γ and at the zone-boundary points commensurate with an n×n×n supercell. Each imaginary mode is followed into its distorted supercell (mass-scaled displacements; every basis vector of a degenerate set plus their sum) and the rule is applied again. Zone-boundary modes multiply the cell and change ν, which is the Peierls / CDW route to opening a gap.
+3. **Temperature** (`--md T`): NVT MD and the space group of the time-averaged structure. The symmetry tolerance is set above the statistical noise of the average (block averaging), and the tool declines to give a space group when the average is too noisy or atoms diffuse.
+4. **Chirality**: Sohncke-group test and the enantiomer's space group (e.g. Te P3₁21 ↔ P3₂21; CoSi P2₁3 keeps its group).
+5. **CALM γ** for UQ-capable models, on the relaxed cell, every distorted structure and the MD snapshots.
+6. **DFT hand-off** (`--handoff`): VASP + SOC inputs and an IrRep script that reads `NELECT` from the SCF `OUTCAR` and extends the band window past the Fermi level.
+
+Checks with `GRACE-2L-OAM` (2×2×2 phonon supercell):
+
+| Structure | Result |
+|-----------|--------|
+| Si, Fd-3m | ν = 28 allowed; 300 K average structure stays Fd-3m |
+| Te, P3₁21 | ν = 156 allowed; chiral, enantiomer P3₂21 |
+| SrIrO₃, Pnma | ν = 556 symmetry-enforced; no soft modes at the checked q-points, so nothing there removes the protection |
+| SrTiO₃, cubic Pm-3m | finds the ferroelectric Γ mode (−3.6 THz) and the octahedral-rotation R mode (−2.1 THz, cell doubles, ν 84 → 168) |
+| Na, simple cubic (ν = 11, odd) | soft X and M modes double the cell to P2₁/m and P4/nmm, where ν = 22 is still forbidden |
+
+Limits: degenerate soft modes are sampled by their basis vectors and sum, so the highest-symmetry isotropy subgroup can be missed (for cubic SrTiO₃ the R mode gives R-3c rather than I4/mcm). Only commensurate q-points of the chosen supercell are checked. Electronic topology itself needs the DFT step.
+
+---
+
 ## Scope: what a machine-learning potential can and cannot give you
 
 GRACE predicts the Born–Oppenheimer energy surface: energies, forces and stresses. Everything that follows from the lattice is in reach (structures, phonons, elastic constants, diffusion, thermal transport, lattice topology). Quantities that need electrons are not: band structures, electronic Berry phases or Z₂/Chern invariants, electron–phonon coupling, superconducting gaps and magnetism. For those, use vasp-grace to prepare and pre-relax structures, then hand them to DFT, Wannier90 or EPW.
@@ -274,7 +307,10 @@ vasp-grace-tensorpotential/
 │       ├── topology.py
 │       ├── topological_phonons.py
 │       ├── phonon_berry.py
-│       └── moire.py
+│       ├── moire.py
+│       └── condmat/         # condensed-matter physics
+│           ├── chirality.py
+│           └── symmetry_stability.py
 ├── examples/
 │   └── quickstart.py        # interactive marimo notebook
 ├── docs/

@@ -151,6 +151,7 @@ for pkg, import_str in [
     ("matplotlib",       "import matplotlib"),
     ("tensorpotential",  "import tensorpotential"),
     ("gudhi",            "import gudhi"),
+    ("symlint",          "import symlint"),
 ]:
     rc, _ = run([PYTHON, "-c", import_str])
     record(pkg, "pass" if rc == 0 else "skip",
@@ -158,6 +159,7 @@ for pkg, import_str in [
 
 HAS_TP    = any(r[0] == "tensorpotential" and r[1] == "pass" for r in results)
 HAS_GUDHI = any(r[0] == "gudhi"           and r[1] == "pass" for r in results)
+HAS_SYMLINT = any(r[0] == "symlint"       and r[1] == "pass" for r in results)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -301,7 +303,11 @@ with tempfile.TemporaryDirectory() as tmp:
 
 section("6. Syntax check  (all modules)")
 
-all_scripts = sorted(f for f in os.listdir(SCRIPT_DIR) if f.endswith(".py"))
+all_scripts = sorted(
+    os.path.relpath(os.path.join(root, f), SCRIPT_DIR)
+    for root, _, files in os.walk(SCRIPT_DIR)
+    for f in files if f.endswith(".py")
+)
 
 for script in all_scripts:
     path = os.path.join(SCRIPT_DIR, script)
@@ -448,6 +454,66 @@ print('phonon force constants built')
             record("phonon_berry -- Zak phases GXG, 20 k-pts",
                    "pass" if rc == 0 and os.path.exists(os.path.join(tmp, "phonon_zak.dat")) else "fail",
                    out[-400:] if rc else "")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 10. Condensed matter  (condmat/chirality, condmat/symmetry_stability)
+# ──────────────────────────────────────────────────────────────────────────────
+
+section("10. Condensed matter  (chirality, grace-symmetry)")
+
+SRC_DIR = os.path.dirname(SCRIPT_DIR)
+
+
+def run_with_src(args, cwd=None, timeout=300):
+    """Run `python <args>` with src/ on the path (condmat uses package imports)."""
+    env_path = os.environ.get("PYTHONPATH", "")
+    os.environ["PYTHONPATH"] = SRC_DIR + (os.pathsep + env_path if env_path else "")
+    try:
+        return run([PYTHON] + args, cwd=cwd, timeout=timeout)
+    finally:
+        os.environ["PYTHONPATH"] = env_path
+
+
+chirality_check = textwrap.dedent("""
+    from ase.spacegroup import crystal
+    from vasp_grace.condmat.chirality import chirality_report as c
+    te = crystal('Te', [(0.2636, 0, 1/3)], spacegroup=152,
+                 cellpar=[4.457, 4.457, 5.929, 90, 90, 120])
+    cosi = crystal(['Co', 'Si'], [(0.143,)*3, (0.844,)*3], spacegroup=198,
+                   cellpar=[4.443]*3 + [90]*3)
+    a, b = c(te), c(cosi)
+    assert a['chiral'] and a['enantiomer_sg_number'] == 154, a
+    assert b['chiral'] and not b['enantiomorphic_pair'], b
+    print('OK')
+""")
+rc, out = run_with_src(["-c", chirality_check], timeout=60)
+record("chirality -- Te P3_121 -> P3_221, CoSi P2_13 self-enantiomorphic",
+       "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
+rc, out = run_with_src(["-m", "vasp_grace.condmat.symmetry_stability", "--help"], timeout=60)
+record("grace-symmetry --help", "pass" if rc == 0 else "fail", out[-200:] if rc else "")
+
+if not HAS_TP:
+    record("grace-symmetry -- Si end-to-end", "skip", "tensorpotential not installed")
+else:
+    with tempfile.TemporaryDirectory() as tmp:
+        from ase.build import bulk
+        from ase.io import write as ase_write
+        ase_write(os.path.join(tmp, "POSCAR"), bulk("Si", "diamond", a=5.43), format="vasp")
+        rc, out = run_with_src(["-m", "vasp_grace.condmat.symmetry_stability",
+                                "--poscar", "POSCAR", "--model", GRACE_MODEL, "--handoff"],
+                               cwd=tmp, timeout=600)
+        ok = rc == 0 and os.path.exists(os.path.join(tmp, "symmetry_report.json"))
+        if ok:
+            import json
+            rep = json.load(open(os.path.join(tmp, "symmetry_report.json")))
+            ok = rep["chirality_relaxed"]["sg_number"] == 227
+            if HAS_SYMLINT:
+                ok = ok and rep["verdict_relaxed"]["verdict"] == "allowed"
+        record("grace-symmetry -- Si end-to-end"
+               + ("" if HAS_SYMLINT else " (symlint not installed: no verdict)"),
+               "pass" if ok else "fail", out[-400:] if not ok else "")
 
 
 # ──────────────────────────────────────────────────────────────────────────────

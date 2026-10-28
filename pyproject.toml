@@ -34,11 +34,14 @@ dependencies = [
     "tensorflow>=2.10",
     "tensorpotential>=0.5.8",
     "elastic>=5.2",
+    "spglib>=2.0",
 ]
 
 [project.optional-dependencies]
 tda      = ["gudhi"]
 examples = ["marimo"]
+# symlint (filling-enforced gaplessness) needs Python >= 3.10 and is installed from GitHub
+condmat  = ["symlint @ git+https://github.com/Asif-Iqbal-Bhatti/symlint.git"]
 dev      = ["pytest>=7.0", "black", "pylint"]
 
 [project.urls]
@@ -57,6 +60,7 @@ grace-topology         = "vasp_grace.topology:main"
 grace-topo-phonons     = "vasp_grace.topological_phonons:main"
 grace-phonon-berry     = "vasp_grace.phonon_berry:main"
 grace-moire            = "vasp_grace.moire:main"
+grace-symmetry         = "vasp_grace.condmat.symmetry_stability:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -154,7 +154,7 @@ details pre { margin: 1rem 0 0; background: var(--surface); border-radius: 6px; 
     <div class="wrap">
       <p class="label">GRACE machine-learning potentials for VASP users</p>
       <h1>Run your VASP inputs on a machine-learning potential</h1>
-      <p class="lead">vasp-grace reads <code>POSCAR</code> and <code>INCAR</code>, computes energies, forces and stresses with a GRACE model, and writes VASP-format output. Ten command-line tools build on it for defects, ion transport and topological phonons.</p>
+      <p class="lead">vasp-grace reads <code>POSCAR</code> and <code>INCAR</code>, computes energies, forces and stresses with a GRACE model, and writes VASP-format output. Eleven command-line tools build on it for defects, ion transport, topological phonons and symmetry-enforced gaplessness.</p>
       <div class="actions">
         <a class="btn" href="#start">Get started</a>
         <a class="btn secondary" href="https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential">View on GitHub</a>
@@ -212,6 +212,7 @@ LPHON_DISPERSION = .TRUE.</pre>
             <li><code>grace-phonon-berry</code><span>Phonon Zak phases, Berry curvature and Chern numbers</span></li>
             <li><code>grace-topology</code><span>Persistent-homology fingerprints of crystal and defect structures</span></li>
             <li><code>grace-moire</code><span>Commensurate twisted bilayers and their stacking maps</span></li>
+            <li><code>grace-symmetry</code><span>Whether a crystal can be a band insulator, and whether that survives soft phonons and temperature; chirality</span></li>
           </ul>
         </div>
       </div>
