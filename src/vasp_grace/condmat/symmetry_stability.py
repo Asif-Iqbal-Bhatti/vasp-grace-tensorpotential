@@ -204,10 +204,12 @@ def degenerate_groups(freqs, tol=0.05, skip=()):
 
 def modulated_supercell(prim, q, pattern, n, amplitude):
     """
-    n×n×n supercell displaced along u(R, κ) = Re[e_κ(q) exp(2πi q·R)].
+    n×n×n supercell displaced along u(R, κ) = Re[e_κ(q) exp(-2πi q·R)].
 
-    `pattern` is ASE's mode (natoms, 3), already scaled by 1/√m. The global phase
-    is fixed so the largest component is real. Max displacement = amplitude (Å).
+    `pattern` is ASE's mode (natoms, 3), already scaled by 1/√m. The sign of the
+    phase matches ASE's dynamical-matrix convention (checked by F = -m ω² u on a
+    3×3×3 supercell). The global phase is fixed so the largest component is real.
+    Max displacement = amplitude (Å).
     """
     e = np.asarray(pattern, dtype=complex)
     j = np.argmax(np.abs(e.ravel()))
@@ -215,7 +217,7 @@ def modulated_supercell(prim, q, pattern, n, amplitude):
 
     # same image order as Atoms.repeat
     R = np.array([(a, b, c) for a in range(n) for b in range(n) for c in range(n)])
-    phase = np.exp(2j * np.pi * (R @ q))
+    phase = np.exp(-2j * np.pi * (R @ q))
     u = np.real(phase[:, None, None] * e[None, :, :]).reshape(-1, 3)
     umax = np.linalg.norm(u, axis=1).max()
     if umax < 1e-10:
@@ -231,7 +233,10 @@ def analyse_soft_modes(prim, qs, freqs, modes, n, imag_tol, amplitude, symprec, 
     Follow every imaginary mode (|ν| > imag_tol) into its distorted supercell.
 
     For a degenerate set, each basis vector and their sum are tried, because a
-    single numpy eigenvector picks an arbitrary direction in the subspace.
+    single numpy eigenvector picks an arbitrary direction in the subspace. The
+    trial with the highest-symmetry result is marked as the representative:
+    Landau theory puts the minima on high-symmetry directions of the order
+    parameter, while generic directions give P1/P-1 where every even ν is allowed.
     """
     rows = []
     lowest = None
@@ -248,6 +253,7 @@ def analyse_soft_modes(prim, qs, freqs, modes, n, imag_tol, amplitude, symprec, 
             trials = [modes[iq, i] for i in g]
             if len(g) > 1:
                 trials.append(np.sum([modes[iq, i] for i in g], axis=0))
+            first = len(rows)
             for t_idx, pattern in enumerate(trials):
                 sc = modulated_supercell(prim, q, pattern, n, amplitude)
                 if sc is None:
@@ -265,10 +271,14 @@ def analyse_soft_modes(prim, qs, freqs, modes, n, imag_tol, amplitude, symprec, 
                     "nu_distorted": ver["nu"] if ver else None,
                     "verdict_distorted": ver["verdict"] if ver else None,
                     "gamma_max": None,
+                    "representative": False,
                 }
                 if calm_ok:
                     row["gamma_max"] = calm_gamma(sc, calc)[0]
                 rows.append(row)
+            if len(rows) > first:
+                best = max(range(first, len(rows)), key=lambda k: rows[k]["distorted_order"])
+                rows[best]["representative"] = True
     return rows, lowest
 
 
@@ -452,6 +462,13 @@ def _json_default(o):
 def assess(report):
     """Plain-language conclusions from the collected results."""
     lines = []
+    reps = [r for r in report["soft_modes"] if r["representative"]]
+    if reps:
+        qs = sorted({"(" + ", ".join(f"{x:.2f}" for x in r["q"]) + ")" for r in reps})
+        lines.append(f"Dynamically unstable: {len(reps)} soft mode(s) at q = {', '.join(qs)} "
+                     f"(lowest {min(r['frequency_THz'] for r in reps):.2f} THz).")
+    else:
+        lines.append(f"No imaginary modes at the {report['phonons']['n_qpoints']} checked q-points.")
     v = report.get("verdict_relaxed")
     if v is None:
         lines.append("Band-insulator verdict unavailable: install symlint "
@@ -462,18 +479,18 @@ def assess(report):
     else:
         lines.append(f"ν = {v['nu']} is forbidden in {v['sg_symbol']} ({v['verdict']}): "
                      "the relaxed crystal cannot be a band insulator.")
-        gapping = [r for r in report["soft_modes"] if r["verdict_distorted"] == "allowed"]
-        if not report["soft_modes"]:
-            lines.append("No imaginary phonons at the commensurate q-points: the protected "
-                         "structure is dynamically stable at this level.")
+        gapping = [r for r in reps if r["verdict_distorted"] == "allowed"]
+        if not reps:
+            lines.append("Nothing at the checked q-points can remove the protection.")
         elif gapping:
             qs = sorted({"(" + ", ".join(f"{x:.2f}" for x in r["q"]) + ")" for r in gapping})
             lines.append(f"Soft modes at q = {', '.join(qs)} lead to distorted "
                          "structures where a band insulator is allowed: the crystal can "
                          "remove the protection by distorting (Peierls/CDW-type).")
         else:
-            lines.append("Every soft-mode distortion keeps the filling forbidden: the "
-                         "protection survives the lattice instabilities found.")
+            lines.append("Every soft-mode distortion (highest-symmetry direction of each "
+                         "mode) keeps the filling forbidden: the protection survives the "
+                         "lattice instabilities found.")
         md = report.get("md")
         if md:
             if md["diffusing"]:
@@ -508,14 +525,15 @@ def write_reports(report, soft_rows):
 
     with open("soft_modes.dat", "w") as f:
         f.write(f"# {'q':>20}  {'freq(THz)':>10}  {'deg':>4}  {'trial':>8}  "
-                f"{'SG':>4}  {'symbol':>12}  {'nu':>6}  {'verdict':>18}  {'max_γ':>7}\n")
+                f"{'SG':>4}  {'symbol':>12}  {'nu':>6}  {'verdict':>18}  {'max_γ':>7}  rep\n")
+        f.write("# rep = * marks the highest-symmetry trial of each soft mode, used in the assessment\n")
         for r in soft_rows:
             q = "(" + ", ".join(f"{x:.3f}" for x in r["q"]) + ")"
             gm = f"{r['gamma_max']:.3f}" if r["gamma_max"] is not None else "-"
             f.write(f"  {q:>20}  {r['frequency_THz']:10.3f}  {r['degeneracy']:4d}  "
                     f"{r['trial']:>8}  {r['distorted_sg_number']!s:>4}  "
                     f"{r['distorted_sg_symbol']!s:>12}  {r['nu_distorted']!s:>6}  "
-                    f"{r['verdict_distorted']!s:>18}  {gm:>7}\n")
+                    f"{r['verdict_distorted']!s:>18}  {gm:>7}  {'*' if r['representative'] else ''}\n")
 
     def ver(v):
         return "n/a (symlint not installed)" if v is None else \

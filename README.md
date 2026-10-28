@@ -248,7 +248,7 @@ Inspired by: [atomsk](https://atomsk.univ-lille.fr) · [atomman](https://github.
 For a nonmagnetic crystal with space group G and ν electrons per primitive cell, Watanabe, Po, Zaletel and Vishwanath [PRL 117, 096404 (2016)] showed that a band insulator needs ν in an allowed set S_G. Otherwise the crystal is forced to be gapless (`odd_filling` or `symmetry_enforced`). [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint) applies that rule to a fixed structure. The verdict is only as good as the space group, and GRACE can test the space group cheaply:
 
 1. **Relaxation** with the space group held fixed (`FixSymmetry`), then the verdict for the relaxed primitive cell.
-2. **Soft phonons** at Γ and at the zone-boundary points commensurate with an n×n×n supercell. Each imaginary mode is followed into its distorted supercell (mass-scaled displacements; every basis vector of a degenerate set plus their sum) and the rule is applied again. Zone-boundary modes multiply the cell and change ν, which is the Peierls / CDW route to opening a gap.
+2. **Soft phonons** at Γ and at the zone-boundary points commensurate with an n×n×n supercell. Each imaginary mode is followed into its distorted supercell and the rule is applied again. Displacements are true phonon eigen-displacements (checked against F = −mω²u). For a degenerate mode every basis vector and their sum are tried, and the highest-symmetry result is used for the verdict, since generic directions in the order-parameter space give P1, where every even ν is allowed. Zone-boundary modes multiply the cell and change ν, which is the Peierls / CDW route to opening a gap.
 3. **Temperature** (`--md T`): NVT MD and the space group of the time-averaged structure. The symmetry tolerance is set above the statistical noise of the average (block averaging), and the tool declines to give a space group when the average is too noisy or atoms diffuse.
 4. **Chirality**: Sohncke-group test and the enantiomer's space group (e.g. Te P3₁21 ↔ P3₂21; CoSi P2₁3 keeps its group).
 5. **CALM γ** for UQ-capable models, on the relaxed cell, every distorted structure and the MD snapshots.
@@ -261,7 +261,7 @@ Checks with `GRACE-2L-OAM` (2×2×2 phonon supercell):
 | Si, Fd-3m | ν = 28 allowed; 300 K average structure stays Fd-3m |
 | Te, P3₁21 | ν = 156 allowed; chiral, enantiomer P3₂21 |
 | SrIrO₃, Pnma | ν = 556 symmetry-enforced; no soft modes at the checked q-points, so nothing there removes the protection |
-| SrTiO₃, cubic Pm-3m | finds the ferroelectric Γ mode (−3.6 THz) and the octahedral-rotation R mode (−2.1 THz, cell doubles, ν 84 → 168) |
+| SrTiO₃, cubic Pm-3m | finds the ferroelectric Γ mode (−3.6 THz → Cm) and the octahedral-rotation R mode (−2.1 THz → R-3c, cell doubles, ν 84 → 168) |
 | Na, simple cubic (ν = 11, odd) | soft X and M modes double the cell to P2₁/m and P4/nmm, where ν = 22 is still forbidden |
 
 Limits: degenerate soft modes are sampled by their basis vectors and sum, so the highest-symmetry isotropy subgroup can be missed (for cubic SrTiO₃ the R mode gives R-3c rather than I4/mcm). Only commensurate q-points of the chosen supercell are checked. Electronic topology itself needs the DFT step.

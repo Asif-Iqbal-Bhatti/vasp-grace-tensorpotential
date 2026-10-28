@@ -497,6 +497,31 @@ record("grace-symmetry --help", "pass" if rc == 0 else "fail", out[-200:] if rc 
 if not HAS_TP:
     record("grace-symmetry -- Si end-to-end", "skip", "tensorpotential not installed")
 else:
+    # Soft-mode supercells must be true phonon displacements: F = -m ω² u
+    phase_check = textwrap.dedent(f"""
+        import numpy as np, tempfile
+        from ase.build import bulk
+        from vasp_grace.calculator import load_calculator
+        from vasp_grace.condmat import symmetry_stability as ss
+        prim = bulk("Si", "diamond", a=5.43)
+        calc = load_calculator("{GRACE_MODEL}", verbose=False)
+        conv = 1.66053906660e-27 * 1e-20 / 1.602176634e-19
+        qs, f, modes = ss.phonons_at(prim, calc, 3, 0.01, tempfile.mkdtemp())
+        iq = next(i for i, q in enumerate(qs) if np.allclose(q, [1/3, 0, 0]))
+        worst = 0.0
+        for l in range(6):
+            sc = ss.modulated_supercell(prim, qs[iq], modes[iq, l], 3, 0.003)
+            u = sc.positions - prim.repeat((3, 3, 3)).positions
+            sc.calc = calc
+            pred = -np.tile(prim.get_masses(), 27)[:, None] * (f[iq, l]*2e12*np.pi)**2 * conv * u
+            worst = max(worst, np.linalg.norm(sc.get_forces() - pred) / np.linalg.norm(pred))
+        assert worst < 0.05, worst
+        print("OK", round(worst, 4))
+    """)
+    rc, out = run_with_src(["-c", phase_check], timeout=600)
+    record("grace-symmetry -- soft-mode displacement is a phonon eigenmode (Si, q=1/3)",
+           "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
     with tempfile.TemporaryDirectory() as tmp:
         from ase.build import bulk
         from ase.io import write as ase_write
