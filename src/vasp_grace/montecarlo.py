@@ -6,10 +6,14 @@ Metropolis Monte Carlo structural sampling using GRACE MLIP energies.
 
 Designed for exploring asymmetric/low-symmetry structures such as grain boundaries.
 Supports displacement moves, atom-swap moves (useful for Li-site disorder in
-Li6PS5Cl), and optional live uncertainty flagging via a committee of GRACE models.
+Li6PS5Cl), and optional live uncertainty flagging, either from GRACE's built-in
+CALM extrapolation grade (one UQ-capable model) or from a committee of GRACE models.
 
 Usage (basic):
     grace-mc --poscar POSCAR --model GRACE-2L-OAM --temperature 800 --steps 50000
+
+Usage (with CALM UQ — one UQ-capable model, flags snapshots with max gamma > 1):
+    grace-mc --poscar POSCAR --model GRACE-2L-OMAT-medium-ft-AM --calm --temperature 800
 
 Usage (with committee UQ — flags uncertain snapshots for DFT):
     grace-mc --poscar POSCAR --models m1.pb m2.pb m3.pb --temperature 800
@@ -18,9 +22,9 @@ Usage (swap moves for Li-site disorder):
     grace-mc --poscar POSCAR --model m1.pb --swap Li S --temperature 1000
 
 Outputs:
-    MC_energies.dat         step, energy, accepted, [uncertainty if committee]
+    MC_energies.dat         step, energy, accepted, [uncertainty if CALM or committee]
     XDATCAR_MC              trajectory in VASP format
-    flagged/POSCAR_MC_N     high-uncertainty snapshots for DFT (committee mode only)
+    flagged/POSCAR_MC_N     high-uncertainty snapshots for DFT (CALM or committee mode)
 """
 
 import os
@@ -158,7 +162,7 @@ class MetropolisMC:
         swap_prob=0.0,
         save_interval=100,
         committee=None,
-        uq_threshold=0.1,
+        uq_threshold=None,
         flagged_dir="flagged",
         log_file="MC_energies.dat",
         xdatcar="XDATCAR_MC",
@@ -171,8 +175,9 @@ class MetropolisMC:
         steps           : total MC steps
         swap_prob       : probability of attempting a swap move (0.0–1.0)
         save_interval   : write trajectory frame every N steps
-        committee       : CommitteeModel instance for live UQ (optional)
-        uq_threshold    : flag structures with max_force_unc > threshold (eV/Å)
+        committee       : CommitteeModel or CalmModel instance for live UQ (optional)
+        uq_threshold    : flag structures with max uncertainty > threshold
+                          (estimator's default_threshold if None)
         flagged_dir     : directory for uncertain POSCARs
         log_file        : energy + uncertainty log
         xdatcar         : VASP-format trajectory output
@@ -180,6 +185,10 @@ class MetropolisMC:
         use_uq = committee is not None
         if use_uq:
             os.makedirs(flagged_dir, exist_ok=True)
+            if uq_threshold is None:
+                uq_threshold = committee.default_threshold
+            unc_name = f"max_{committee.label}"
+            unc_unit = f" {committee.unit}" if committee.unit else ""
 
         self._init_xdatcar(xdatcar)
         flagged_count = 0
@@ -189,7 +198,8 @@ class MetropolisMC:
             f"{'accepted':>9}  {'acc_rate':>9}"
         )
         if use_uq:
-            header += f"  {'max_σ_F(eV/Å)':>14}  {'uq_flagged':>10}"
+            unc_col = unc_name + (f"({committee.unit})" if committee.unit else "")
+            header += f"  {unc_col:>14}  {'uq_flagged':>10}"
 
         with open(log_file, "w") as f:
             f.write(header + "\n")
@@ -200,7 +210,7 @@ class MetropolisMC:
         print(f"Max disp    : {self.max_disp} Å")
         if self.swap_species:
             print(f"Swap moves  : {self.swap_species[0]} ↔ {self.swap_species[1]}  (prob={swap_prob:.2f})")
-        print(f"UQ active   : {use_uq}" + (f"  (threshold={uq_threshold} eV/Å)" if use_uq else ""))
+        print(f"UQ active   : {use_uq}" + (f"  ({unc_name} > {uq_threshold}{unc_unit})" if use_uq else ""))
         print(f"Save every  : {save_interval} steps\n")
 
         e0 = self.energy
@@ -229,7 +239,7 @@ class MetropolisMC:
 
                 if use_uq:
                     metrics = committee.evaluate(self.atoms)
-                    max_unc = metrics["max_force_unc"]
+                    max_unc = metrics["max_unc"]
                     uq_flagged = max_unc > uq_threshold
                     if uq_flagged:
                         out = os.path.join(flagged_dir, f"POSCAR_MC_{flagged_count:05d}")
@@ -253,7 +263,7 @@ class MetropolisMC:
                 print(
                     f"  step {step:6d}/{steps}  E={self.energy:10.4f} eV  "
                     f"acc={acc_rate:.3f}"
-                    + (f"  max_σ_F={max_unc:.4f}" if use_uq and not np.isnan(max_unc) else "")
+                    + (f"  {unc_name}={max_unc:.4f}" if use_uq and not np.isnan(max_unc) else "")
                     + (f"  [FLAGGED]" if uq_flagged else "")
                 )
 
@@ -293,7 +303,7 @@ def main():
     parser = argparse.ArgumentParser(
         description=(
             "Metropolis Monte Carlo sampling with GRACE MLIP. "
-            "Optionally integrates committee UQ to flag uncertain structures."
+            "Optionally flags uncertain structures with CALM or committee UQ."
         )
     )
     parser.add_argument("--poscar", default="POSCAR", help="Input structure (POSCAR/CONTCAR).")
@@ -305,6 +315,10 @@ def main():
         help="≥2 GRACE models for committee UQ (enables live uncertainty flagging)."
     )
 
+    parser.add_argument(
+        "--calm", action="store_true",
+        help="With --model: flag snapshots using the model's built-in CALM gamma (UQ-capable models)."
+    )
     parser.add_argument("--temperature", type=float, default=500.0, help="Temperature in K (default: 500).")
     parser.add_argument("--steps", type=int, default=10000, help="Number of MC steps (default: 10000).")
     parser.add_argument("--max_disp", type=float, default=0.15, help="Max atomic displacement in Å (default: 0.15).")
@@ -316,8 +330,9 @@ def main():
                         help="Fraction of moves that are swaps when --swap is set (default: 0.2).")
     parser.add_argument("--save_interval", type=int, default=100,
                         help="Save trajectory frame every N steps (default: 100).")
-    parser.add_argument("--uq_threshold", type=float, default=0.1,
-                        help="Force uncertainty threshold for flagging in eV/Å (default: 0.1).")
+    parser.add_argument("--uq_threshold", type=float, default=None,
+                        help="Flagging threshold: max gamma with --calm (default: 1.0), "
+                             "max force std in eV/Å with --models (default: 0.1).")
     parser.add_argument("--flagged_dir", default="flagged",
                         help="Directory for uncertain POSCARs (default: flagged/).")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42).")
@@ -325,6 +340,9 @@ def main():
     parser.add_argument("--xdatcar", default="XDATCAR_MC", help="Trajectory output filename.")
 
     args = parser.parse_args()
+    if args.calm and not args.model:
+        parser.error("--calm needs --model (a single UQ-capable GRACE model)")
+
 
     if not os.path.exists(args.poscar):
         print(f"Error: {args.poscar} not found."); sys.exit(1)
@@ -332,17 +350,22 @@ def main():
     atoms = read(args.poscar, format="vasp")
     print(f"Loaded structure: {len(atoms)} atoms from {args.poscar}")
 
-    # Single model
+    try:
+        from .active_learning import CalmModel, CommitteeModel
+    except ImportError:
+        from active_learning import CalmModel, CommitteeModel
+
     committee = None
-    if args.model:
+    if args.model and args.calm:
+        # One model drives the MC and supplies the CALM uncertainty
+        committee = CalmModel(args.model)
+        calc = committee.calc
+        atoms.calc = calc
+    elif args.model:
         calc = load_calculator(args.model)
         atoms.calc = calc
     else:
         # Committee: use first model as the MC energy engine, full committee for UQ
-        try:
-            from .active_learning import CommitteeModel
-        except ImportError:
-            from active_learning import CommitteeModel
         committee = CommitteeModel(args.models)
         calc = committee.calcs[0]
         atoms.calc = calc

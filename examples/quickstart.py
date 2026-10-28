@@ -36,10 +36,11 @@ def _():
     from ase.optimize import LBFGS
     from ase.units import GPa
 
-    from vasp_grace.calculator import DEFAULT_MODEL, load_calculator
+    from vasp_grace.calculator import DEFAULT_MODEL, available_models, load_calculator
     from vasp_grace import moire, topology
     return (
         DEFAULT_MODEL,
+        available_models,
         EquationOfState,
         FrechetCellFilter,
         GPa,
@@ -59,30 +60,38 @@ def _(mo):
     mo.md(r"""
     ## 1. Pick a crystal and a GRACE model
 
-    The model is either a foundation-model name (e.g. `GRACE-2L-OAM`) or a path
-    to your own fitted model — the same value you would put in `GRACE_MODEL`
-    in an `INCAR` for `vasp-grace`.
+    Any model from the GRACE foundation-model family works: `FS`, `1L`, `2L` and
+    `3L` architectures trained on OAM, OMAT or SMAX data. The list below comes from
+    your installed `tensorpotential`; `grace_models list` shows the same names.
+    A path to your own fitted model overrides the list. Either value is what you
+    would put in `GRACE_MODEL` in an `INCAR` for `vasp-grace`.
     """)
     return
 
 
 @app.cell
-def _(DEFAULT_MODEL, mo):
+def _(DEFAULT_MODEL, available_models, mo):
     element = mo.ui.dropdown(
         options=["Cu", "Al", "Ni", "Ag", "Au", "Si", "Mo", "W"],
         value="Cu",
         label="Element (ASE reference structure)",
     )
-    model_form = mo.ui.text(value=DEFAULT_MODEL, full_width=True).form(
-        submit_button_label="Load model"
+    model_choice = mo.ui.dropdown(
+        options=[m for m in available_models() if not m.endswith("-fp64")],
+        value=DEFAULT_MODEL,
+        label="GRACE foundation model",
+        searchable=True,
     )
-    mo.vstack([element, model_form])
-    return element, model_form
+    model_path = mo.ui.text(
+        placeholder="optional: path to your own GRACE model", full_width=True
+    ).form(submit_button_label="Use this model")
+    mo.vstack([element, model_choice, model_path])
+    return element, model_choice, model_path
 
 
 @app.cell
-def _(DEFAULT_MODEL, load_calculator, model_form):
-    model_name = model_form.value or DEFAULT_MODEL
+def _(load_calculator, model_choice, model_path):
+    model_name = (model_path.value or "").strip() or model_choice.value
     calc = load_calculator(model_name)
     return calc, model_name
 

@@ -15,7 +15,7 @@
 ## Why vasp-grace
 
 - **Keep your VASP workflow.** Same input files, same tags, same output files. Existing scripts that parse `OUTCAR` or `XDATCAR` keep working.
-- **DFT-quality forces at MD cost.** GRACE foundation models (e.g. `GRACE-2L-OAM`) cover most of the periodic table; you can also load your own fine-tuned model.
+- **DFT-quality forces at MD cost.** The GRACE foundation-model family (`GRACE-1L-*`, `GRACE-2L-*`, `GRACE-3L-*`) covers most of the periodic table; you can also load your own fine-tuned model.
 - **Physics on top, not just a wrapper.** Ten command-line tools cover uncertainty-driven active learning, Monte Carlo, dislocations, Li-ion hopping, thermal conductivity, persistent homology, phonon topology and moiré bilayers.
 
 ---
@@ -58,8 +58,8 @@ POSCAR / INCAR
 | Command | Module | What it does | Key outputs |
 |---------|--------|--------------|-------------|
 | `vasp-grace` | `main.py` | VASP drop-in: single point · relaxation · MD · phonons · elastic tensor | `OUTCAR`, `CONTCAR`, `XDATCAR`, `phonon_band.png`, `ELASTIC_Cij_GPa.dat` |
-| `grace-active-learning` | `active_learning.py` | Committee-model uncertainty; flags structures that need DFT | `uncertainty_log.dat`, `flagged/POSCAR_*` |
-| `grace-mc` | `montecarlo.py` | Metropolis MC with displacement and swap moves, live uncertainty | `MC_energies.dat`, `XDATCAR_MC` |
+| `grace-active-learning` | `active_learning.py` | Single-model CALM uncertainty (γ) or committee disagreement; flags structures that need DFT | `uncertainty_log.dat`, `flagged/POSCAR_*` |
+| `grace-mc` | `montecarlo.py` | Metropolis MC with displacement and swap moves, live CALM or committee uncertainty | `MC_energies.dat`, `XDATCAR_MC` |
 | `grace-dislocation` | `dislocation.py` | Edge, screw and mixed dislocations (isotropic Volterra or anisotropic Stroh) | `POSCAR_dislocation`, `dislocation_info.txt` |
 | `grace-lihopping` | `lihopping.py` | Sojourn-filtered ion hop detection, hop networks, Arrhenius Eₐ | `hop_events.dat`, `arrhenius.png` |
 | `grace-kappa` | `thermal_conductivity.py` | Müller-Plathe reverse NEMD lattice thermal conductivity κ | `kappa_summary.txt`, `temperature_profile.png` |
@@ -68,7 +68,39 @@ POSCAR / INCAR
 | `grace-phonon-berry` | `phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k), Chern numbers | `phonon_zak.dat`, `phonon_chern.png` |
 | `grace-moire` | `moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
 
-Every command accepts `--model` as either a GRACE foundation-model name (default `GRACE-2L-OAM`) or a path to your own fitted model. In `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
+Every command accepts `--model` as any GRACE foundation-model name or a path to your own fitted model; see [Choosing a GRACE model](#choosing-a-grace-model). In `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
+
+---
+
+## Choosing a GRACE model
+
+`--model` (or `GRACE_MODEL` in the `INCAR`) accepts every foundation model your `tensorpotential` installation knows about, or a path to your own fitted or fine-tuned model. The default is `GRACE-2L-OAM`; nothing in vasp-grace is tied to it. Run `grace_models list` to see all names and which ones are already downloaded.
+
+Names follow `GRACE-<architecture>-<training data>[-<size>][-<variant>][-fp64]`:
+
+| Part | Options | Meaning |
+|------|---------|---------|
+| Architecture | `FS`, `1L`, `2L`, `3L` | `FS` (Finnis–Sinclair-like) and `1L` are local single-layer models and the fastest. `2L` adds a second message-passing layer (semi-local) for higher accuracy. `3L` is the three-layer generation. |
+| Training data | `OAM`, `OMAT`, `SMAX`, `SMAX-OMAT` | `OAM`: pre-fitted on OMat24, fine-tuned on sAlex + MPtraj. `OMAT`: OMat24 only. `SMAX` and `SMAX-OMAT`: newer training sets, see `grace_models info <name>`. |
+| Size | `medium`, `large` | Larger models are more accurate and slower. |
+| Variant | `base`, `ft-E`, `ft-AM` | The base model and its fine-tuned variants. |
+| Precision | `-fp64` suffix | Full double precision; the bare name is fp32. |
+
+The `GRACE-2L` family is the recommended starting point, for example:
+
+| Model | Notes |
+|-------|-------|
+| `GRACE-2L-OAM` | Default. Fine-tuned on sAlex + MPtraj, so energies line up with Materials Project–style PBE data |
+| `GRACE-2L-OMAT` | Fitted on OMat24 only |
+| `GRACE-2L-OMAT-medium-*`, `GRACE-2L-OMAT-large-*` | Newer generation in two sizes, with `base`, `ft-E` and `ft-AM` variants and built-in per-atom uncertainty |
+| `GRACE-2L-SMAX-*`, `GRACE-2L-SMAX-OMAT-*` | Newer generation trained on the SMAX data sets, with built-in per-atom uncertainty |
+
+Practical guidance:
+
+- **Long MD on large cells:** a `1L` or `FS` model is faster than `2L`.
+- **Phonons, elastic constants and phonon topology** come from finite differences of forces; consider the `-fp64` variant to keep numerical noise out of small frequencies.
+- **Uncertainty:** models with built-in UQ (the newer `-medium`, `-large`, `SMAX` and `3L` models; see the UQ column of `grace_models list`) work with `--calm`. Older models such as `GRACE-2L-OAM` can still be used through a committee (`--models`).
+- **License:** the foundation models are released under the Academic Software License; check that it fits your use.
 
 ---
 
@@ -101,10 +133,11 @@ The first call to a foundation model downloads it to `~/.cache/grace/`.
 vasp-grace --poscar POSCAR --incar INCAR
 
 # Active learning: flag uncertain structures
-grace-active-learning --poscar_dir ./structs --models m1.pb m2.pb m3.pb
+grace-active-learning --xdatcar XDATCAR --calm GRACE-2L-OMAT-medium-ft-AM --stride 10   # one UQ model
+grace-active-learning --poscar_dir ./structs --models m1.pb m2.pb m3.pb                 # committee
 
-# Metropolis MC + swap moves (Cl ↔ S disorder)
-grace-mc --poscar POSCAR --model GRACE-2L-OAM \
+# Metropolis MC + swap moves (Cl ↔ S disorder), flagging extrapolated snapshots
+grace-mc --poscar POSCAR --model GRACE-2L-OMAT-medium-ft-AM --calm \
          --swap Cl S --temperature 800 --steps 50000
 
 # Dislocation (isotropic edge)
@@ -156,6 +189,23 @@ Run any command with `--help` for the full option list.
 | `PHON_NEDOS`, `PHON_SIGMA` | `1000`, `0.001` | DOS grid points and smearing |
 
 Phonons use the `POSCAR` you supply as the displaced cell, so give a supercell `POSCAR` for a supercell phonon calculation. Elastic constants are fitted with [jochym/Elastic](https://github.com/jochym/Elastic) and written to `ELASTIC_Cij_GPa.dat`, `ELASTIC_Bij_GPa.dat` and `ELASTIC_fit_info.txt`.
+
+---
+
+## Uncertainty: CALM or committee
+
+`grace-active-learning` and `grace-mc` flag structures that the model has not seen before, so you can send them to DFT and fine-tune. Two estimators are available:
+
+| | CALM (`--calm`) | Committee (`--models`) |
+|---|---|---|
+| Models needed | One UQ-capable GRACE model | Two or more models |
+| Signal | Per-atom extrapolation grade γ = σ / threshold, from the Mahalanobis distance of each atom's descriptor to the training-set clusters | Spread of predicted forces across the committee (eV/Å) |
+| Default threshold | γ > 1 (outside the training distribution) | σ_F > 0.1 eV/Å |
+| Cost | One evaluation | One evaluation per member |
+
+Both write the same `uncertainty_log.dat`, `per_atom_uncertainty.dat` (with `--per_atom`) and `flagged/POSCAR_*`. In Python, `load_calculator(name, uq=True)` from `vasp_grace.calculator` returns a calculator whose `calc.results["gamma"]` holds per-atom γ.
+
+As a check on the 108-atom argyrodite cell in `tests/POSCAR` (Li₄₈BP₈H₄S₄₀Cl₇) with `GRACE-2L-OMAT-medium-base`, max γ is 0.85 for the relaxed cell, 1.50 after random displacements of 0.3 Å and 3.51 after 0.6 Å, so only the distorted cells are flagged.
 
 ---
 

@@ -2,12 +2,21 @@
 """
 active_learning.py
 
-Committee-based Active Learning and Uncertainty Quantification for GRACE models.
+Active Learning and Uncertainty Quantification for GRACE models.
 
 Designed for finetuning workflows on low-symmetry structures (e.g., grain boundaries).
-Loads N GRACE models trained on the same system, measures disagreement in predicted
-energies and forces as a proxy for model uncertainty, and flags high-uncertainty
-structures for DFT labelling.
+Two uncertainty estimators are available:
+
+    CALM (--calm MODEL)       one UQ-capable GRACE model; per-atom extrapolation grade
+                              gamma from GRACE's built-in CALM uncertainty
+                              (gamma > 1 = outside the training distribution)
+    Committee (--models ...)  N GRACE models trained on the same system; disagreement
+                              in predicted forces as a proxy for uncertainty
+
+High-uncertainty structures are flagged for DFT labelling.
+
+Usage (CALM, single model):
+    grace-active-learning --xdatcar XDATCAR --calm GRACE-2L-OMAT-medium-ft-AM --stride 10
 
 Usage (single POSCAR):
     grace-active-learning --poscar POSCAR --models m1.pb m2.pb m3.pb
@@ -43,7 +52,10 @@ except ImportError:  # run as a plain script: python active_learning.py
 
 
 # ──────────────────────────────────────────────
-# Committee model
+# Uncertainty estimators
+#
+# Both expose .calcs, .label, .unit, .default_threshold and
+# .evaluate(atoms) -> dict(mean_energy, std_energy, max_unc, mean_unc, per_atom_unc)
 # ──────────────────────────────────────────────
 
 class CommitteeModel:
@@ -51,11 +63,15 @@ class CommitteeModel:
     Wraps N GRACE calculators and quantifies uncertainty via committee disagreement.
 
     Uncertainty metrics:
-        std_energy          : std of total energies across committee (eV)
-        max_force_unc       : max per-atom force-magnitude std across committee (eV/Å)
-        mean_force_unc      : mean per-atom force-magnitude std across committee (eV/Å)
-        per_atom_force_unc  : (natoms,) array of per-atom force uncertainty
+        std_energy    : std of total energies across committee (eV)
+        max_unc       : max per-atom force-magnitude std across committee (eV/Å)
+        mean_unc      : mean per-atom force-magnitude std across committee (eV/Å)
+        per_atom_unc  : (natoms,) array of per-atom force uncertainty
     """
+
+    label = "σ_F"
+    unit = "eV/Å"
+    default_threshold = 0.1
 
     def __init__(self, model_paths):
         if len(model_paths) < 2:
@@ -96,10 +112,53 @@ class CommitteeModel:
             "mean_energy": mean_energy,
             "std_energy": std_energy,
             "mean_forces": mean_forces,
-            "max_force_unc": per_atom_unc.max(),
-            "mean_force_unc": per_atom_unc.mean(),
-            "per_atom_force_unc": per_atom_unc,
+            "max_unc": per_atom_unc.max(),
+            "mean_unc": per_atom_unc.mean(),
+            "per_atom_unc": per_atom_unc,
         }
+
+
+class CalmModel:
+    """
+    Single-model uncertainty from GRACE's built-in CALM extrapolation grade.
+
+    Needs a UQ-capable model (UQ column of `grace_models list`, or a fine-tuned
+    model saved with its CALM artifact). Per-atom gamma = sigma / threshold:
+    gamma <= 1 inside the training distribution, gamma > 1 extrapolating.
+
+    Uncertainty metrics:
+        max_unc       : max per-atom gamma
+        mean_unc      : mean per-atom gamma
+        per_atom_unc  : (natoms,) array of gamma
+    """
+
+    label = "γ"
+    unit = ""
+    default_threshold = 1.0
+
+    def __init__(self, model_path):
+        print(f"Loading CALM uncertainty model {model_path}...")
+        self.calc = load_calculator(model_path, uq=True)
+        self.calcs = [self.calc]
+        print("CALM uncertainty enabled.\n")
+
+    def evaluate(self, atoms):
+        a = atoms.copy()
+        a.calc = self.calc
+        energy = a.get_potential_energy()
+        gamma = np.asarray(self.calc.results["gamma"], dtype=float)
+        return {
+            "mean_energy": energy,
+            "std_energy": float("nan"),
+            "mean_forces": a.get_forces(),
+            "max_unc": gamma.max(),
+            "mean_unc": gamma.mean(),
+            "per_atom_unc": gamma,
+        }
+
+
+def _unit(estimator):
+    return f" {estimator.unit}" if estimator.unit else ""
 
 
 # ──────────────────────────────────────────────
@@ -108,9 +167,10 @@ class CommitteeModel:
 
 def screen_structures(structures, committee, threshold, output_dir="flagged"):
     """
-    Evaluate uncertainty for each structure in `structures`.
+    Evaluate uncertainty for each structure in `structures` with a CommitteeModel
+    or CalmModel.
 
-    Saves flagged structures (max_force_unc > threshold) to output_dir
+    Saves flagged structures (max_unc > threshold) to output_dir
     and returns a list of result dicts for logging.
     """
     os.makedirs(output_dir, exist_ok=True)
@@ -121,7 +181,7 @@ def screen_structures(structures, committee, threshold, output_dir="flagged"):
         print(f"  Evaluating structure {idx + 1}/{len(structures)}...", end=" ", flush=True)
         metrics = committee.evaluate(atoms)
 
-        flagged = metrics["max_force_unc"] > threshold
+        flagged = metrics["max_unc"] > threshold
         if flagged:
             out_path = os.path.join(output_dir, f"POSCAR_uncertain_{flagged_count:04d}")
             write(out_path, atoms, format="vasp")
@@ -131,8 +191,8 @@ def screen_structures(structures, committee, threshold, output_dir="flagged"):
             "index": idx,
             "mean_energy": metrics["mean_energy"],
             "std_energy": metrics["std_energy"],
-            "max_force_unc": metrics["max_force_unc"],
-            "mean_force_unc": metrics["mean_force_unc"],
+            "max_unc": metrics["max_unc"],
+            "mean_unc": metrics["mean_unc"],
             "flagged": flagged,
         })
 
@@ -140,27 +200,29 @@ def screen_structures(structures, committee, threshold, output_dir="flagged"):
         print(
             f"E={metrics['mean_energy']:10.4f} eV  "
             f"σ_E={metrics['std_energy']:.4f} eV  "
-            f"max_σ_F={metrics['max_force_unc']:.4f} eV/Å  [{status}]"
+            f"max_{committee.label}={metrics['max_unc']:.4f}{_unit(committee)}  [{status}]"
         )
 
-    print(f"\n{flagged_count}/{len(structures)} structures flagged (threshold={threshold} eV/Å).")
+    print(f"\n{flagged_count}/{len(structures)} structures flagged "
+          f"(threshold={threshold}{_unit(committee)}).")
     if flagged_count:
         print(f"Flagged POSCARs written to: {output_dir}/")
 
     return results
 
 
-def write_uncertainty_log(results, filename="uncertainty_log.dat"):
+def write_uncertainty_log(results, filename="uncertainty_log.dat", label="σ_F", unit="eV/Å"):
     """Write per-structure uncertainty metrics to a plain-text file."""
+    u = f"({unit})" if unit else ""
     with open(filename, "w") as f:
         f.write(
             f"{'#idx':>6}  {'mean_E(eV)':>14}  {'std_E(eV)':>12}  "
-            f"{'max_σ_F(eV/Å)':>14}  {'mean_σ_F(eV/Å)':>15}  {'flagged':>8}\n"
+            f"{'max_' + label + u:>14}  {'mean_' + label + u:>15}  {'flagged':>8}\n"
         )
         for r in results:
             f.write(
                 f"{r['index']:6d}  {r['mean_energy']:14.6f}  {r['std_energy']:12.6f}  "
-                f"{r['max_force_unc']:14.6f}  {r['mean_force_unc']:15.6f}  "
+                f"{r['max_unc']:14.6f}  {r['mean_unc']:15.6f}  "
                 f"{'YES' if r['flagged'] else 'no':>8}\n"
             )
     print(f"Uncertainty log written to: {filename}")
@@ -170,7 +232,8 @@ def write_uncertainty_log(results, filename="uncertainty_log.dat"):
 # Per-atom uncertainty map (grain boundary analysis)
 # ──────────────────────────────────────────────
 
-def write_per_atom_uncertainty(atoms, per_atom_unc, filename="per_atom_uncertainty.dat"):
+def write_per_atom_uncertainty(atoms, per_atom_unc, filename="per_atom_uncertainty.dat",
+                               label="σ_F(eV/Å)"):
     """
     Write per-atom force uncertainty alongside fractional coordinates.
     Useful for identifying which atoms (e.g. at a grain boundary interface)
@@ -180,7 +243,7 @@ def write_per_atom_uncertainty(atoms, per_atom_unc, filename="per_atom_uncertain
     symbols = atoms.get_chemical_symbols()
 
     with open(filename, "w") as f:
-        f.write(f"# {'atom':>5}  {'elem':>4}  {'sx':>10}  {'sy':>10}  {'sz':>10}  {'σ_F(eV/Å)':>12}\n")
+        f.write(f"# {'atom':>5}  {'elem':>4}  {'sx':>10}  {'sy':>10}  {'sz':>10}  {label:>12}\n")
         for i, (sym, pos, unc) in enumerate(zip(symbols, scaled, per_atom_unc)):
             f.write(f"{i:6d}  {sym:>4}  {pos[0]:10.6f}  {pos[1]:10.6f}  {pos[2]:10.6f}  {unc:12.6f}\n")
     print(f"Per-atom uncertainty written to: {filename}")
@@ -193,7 +256,7 @@ def write_per_atom_uncertainty(atoms, per_atom_unc, filename="per_atom_uncertain
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Committee-based uncertainty quantification for GRACE MLIP. "
+            "Uncertainty quantification for GRACE MLIP (CALM or committee). "
             "Flags high-uncertainty structures for DFT labelling."
         )
     )
@@ -202,13 +265,19 @@ def main():
     src.add_argument("--xdatcar", help="XDATCAR trajectory to screen.")
     src.add_argument("--poscar_dir", help="Directory of POSCAR files to screen.")
 
-    parser.add_argument(
-        "--models", nargs="+", required=True,
+    uq = parser.add_mutually_exclusive_group(required=True)
+    uq.add_argument(
+        "--calm", metavar="MODEL",
+        help="One UQ-capable GRACE model; uses its built-in CALM gamma."
+    )
+    uq.add_argument(
+        "--models", nargs="+",
         help="Paths to GRACE model files (≥2 required for committee UQ)."
     )
     parser.add_argument(
-        "--threshold", type=float, default=0.1,
-        help="Max per-atom force uncertainty threshold in eV/Å (default: 0.1)."
+        "--threshold", type=float, default=None,
+        help="Flag structures above this uncertainty: max gamma for --calm (default: 1.0), "
+             "max per-atom force std in eV/Å for --models (default: 0.1)."
     )
     parser.add_argument(
         "--stride", type=int, default=1,
@@ -255,21 +324,24 @@ def main():
         structures = [read(p, format="vasp") for p in poscar_files]
         print(f"Loaded {len(structures)} structures from {args.poscar_dir}/")
 
-    # Build committee
-    committee = CommitteeModel(args.models)
+    # Build the uncertainty estimator
+    estimator = CalmModel(args.calm) if args.calm else CommitteeModel(args.models)
+    threshold = args.threshold if args.threshold is not None else estimator.default_threshold
 
     # Screen
-    print(f"Screening {len(structures)} structure(s) — threshold = {args.threshold} eV/Å\n")
-    results = screen_structures(structures, committee, args.threshold, args.output_dir)
-    write_uncertainty_log(results, args.log)
+    print(f"Screening {len(structures)} structure(s) — "
+          f"threshold = {threshold}{_unit(estimator)}\n")
+    results = screen_structures(structures, estimator, threshold, args.output_dir)
+    write_uncertainty_log(results, args.log, label=estimator.label, unit=estimator.unit)
 
     # Optional per-atom map for the first structure
     if args.per_atom:
-        metrics = committee.evaluate(structures[0])
+        metrics = estimator.evaluate(structures[0])
         write_per_atom_uncertainty(
             structures[0],
-            metrics["per_atom_force_unc"],
+            metrics["per_atom_unc"],
             filename="per_atom_uncertainty.dat",
+            label=estimator.label + (f"({estimator.unit})" if estimator.unit else ""),
         )
 
 

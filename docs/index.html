@@ -149,6 +149,33 @@ th { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; let
 tr:last-child td { border-bottom: 0; }
 td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space: nowrap; color: var(--teal); }
 
+/* Model family */
+.anatomy { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: stretch; }
+.seg { display: grid; gap: 0.45rem; align-content: start; padding: 0.7rem 0.85rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper-2); min-width: 0; flex: 1 1 8.5rem; }
+.seg code { background: none; padding: 0; font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+.seg span { font-size: 0.82rem; color: var(--ink-2); line-height: 1.4; }
+.seg.key { border-color: var(--teal); }
+.seg.key code { color: var(--teal); }
+.model-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 2.5rem; }
+.model-notes > div { display: grid; gap: 0.5rem; align-content: start; min-width: 0; }
+.calm { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 2rem; align-items: start; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+.calm .stack { display: grid; gap: 0.6rem; min-width: 0; }
+.gamma { margin: 0; display: grid; gap: 0.7rem; min-width: 0; }
+.gamma figcaption { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-2); }
+.gamma-plot { padding-left: 7.5rem; padding-right: 3rem; padding-top: 1.4rem; }
+.g-area { position: relative; display: grid; gap: 0.55rem; }
+.g-row { position: relative; display: block; height: 1.3rem; }
+.g-label { position: absolute; right: 100%; margin-right: 0.75rem; top: 0; white-space: nowrap; font-size: 0.85rem; color: var(--ink-2); line-height: 1.3rem; }
+.g-track { position: absolute; inset: 0; background: var(--paper-2); border-radius: 3px; }
+.g-bar { height: 100%; background: var(--teal); border-radius: 3px; }
+.g-bar.hot { background: var(--amber); }
+.g-row b { position: absolute; left: 100%; margin-left: 0.6rem; top: 0; line-height: 1.3rem; font-family: var(--font-mono); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.threshold { position: absolute; top: -1.4rem; bottom: 1.2rem; border-left: 2px dashed var(--ink-2); transform: translateX(-1px); }
+.threshold span { position: absolute; top: 0; left: 0.35rem; font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-2); white-space: nowrap; }
+.g-axis { position: relative; height: 1rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-2); }
+.g-axis span { position: absolute; top: 0; transform: translateX(-50%); }
+.g-note { font-size: 0.9rem; color: var(--ink-2); }
+
 /* Modules */
 .families { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 2.5rem; }
 .family { display: grid; gap: 1rem; align-content: start; min-width: 0; }
@@ -205,12 +232,13 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
 @media (max-width: 960px) {
   .hero .wrap, .try { grid-template-columns: minmax(0, 1fr); }
   .families, .roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dropin { grid-template-columns: minmax(0, 1fr); }
+  .dropin, .calm { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 680px) {
   .io { grid-template-columns: minmax(0, 1fr); }
   .arrow { transform: rotate(90deg); }
-  .families, .pipes, .scope, .roadmap { grid-template-columns: minmax(0, 1fr); }
+  .families, .pipes, .scope, .roadmap, .model-notes { grid-template-columns: minmax(0, 1fr); }
+  .gamma-plot { padding-left: 6.5rem; }
   .numbers { grid-template-columns: minmax(0, 1fr); }
   .numbers div { border-right: 0; border-bottom: 1px solid var(--rule); }
   .nav { gap: 0.8rem; font-size: 0.9rem; }
@@ -225,6 +253,7 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
     <a class="brand" href="#top">vasp<span>-</span>grace</a>
     <nav class="nav" aria-label="Sections">
       <a href="#inputs">Inputs</a>
+      <a href="#models">Models</a>
       <a href="#modules">Modules</a>
       <a href="#pipelines">Pipelines</a>
       <a href="#scope">Scope</a>
@@ -239,7 +268,7 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
   <div class="hero">
     <div class="wrap">
       <div>
-        <p class="eyebrow">GRACE potentials · ASE · VASP file formats</p>
+        <p class="eyebrow">GRACE-1L · 2L · 3L foundation models · ASE · VASP file formats</p>
         <h1 style="margin-top:0.7rem">Your VASP inputs, run on a <em>machine-learning potential</em>.</h1>
         <p class="lede">vasp-grace reads <code>POSCAR</code> and <code>INCAR</code>, computes energies, forces and stresses with a GRACE model, and writes <code>OUTCAR</code>, <code>OSZICAR</code>, <code>CONTCAR</code> and <code>XDATCAR</code> the way VASP does. Ten command-line tools then take those results into defects, ion transport and topological phonons.</p>
         <div class="hero-actions">
@@ -279,7 +308,7 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
       <div class="io">
         <div class="file">
           <div class="file-name"><span>INCAR</span><span>phonons + elastic tensor</span></div>
-<pre><span class="hl">GRACE_MODEL</span> = GRACE-2L-OAM  <span class="c"># or a path</span>
+<pre><span class="hl">GRACE_MODEL</span> = GRACE-2L-OAM  <span class="c"># any GRACE model, or a path</span>
 <span class="k">IBRION</span> = 6       <span class="c"># finite displacements</span>
 <span class="k">ISIF</span>   = 3       <span class="c"># also fit Cij</span>
 <span class="k">NSW</span>    = 1
@@ -309,9 +338,57 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
             <tr><td>ISIF</td><td>Relaxation: <code>3</code> positions and cell, <code>4</code> cell shape at fixed volume. MD: <code>≥3</code> switches to NPT (MTK barostat). Phonons: <code>≥3</code> also fits the elastic tensor with jochym/Elastic.</td></tr>
             <tr><td>MDALGO</td><td><code>0</code> NVE · <code>1</code> Andersen · <code>2</code> Berendsen · <code>3</code> Langevin, at <code>TEBEG</code> with time step <code>POTIM</code></td></tr>
             <tr><td>EDIFFG</td><td>Negative values set the force criterion in eV/Å</td></tr>
-            <tr><td>GRACE_MODEL</td><td>Foundation-model name such as <code>GRACE-2L-OAM</code>, or a path to your fine-tuned model</td></tr>
+            <tr><td>GRACE_MODEL</td><td>Any GRACE foundation-model name (default <code>GRACE-2L-OAM</code>), or a path to your fine-tuned model</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="models">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">GRACE model family</p>
+        <h2>Any GRACE model, one flag</h2>
+        <p class="lede">Every command takes <code>--model</code>, and <code>vasp-grace</code> reads <code>GRACE_MODEL</code>. Pass any foundation model your <code>tensorpotential</code> installation knows, or a path to your own fine-tuned model. Run <code>grace_models list</code> to see them all.</p>
+      </div>
+
+      <div class="anatomy" aria-label="How a GRACE model name is built">
+        <div class="seg"><code>GRACE</code><span>family</span></div>
+        <div class="seg key"><code>2L</code><span>architecture<br>FS · 1L · 2L · 3L</span></div>
+        <div class="seg"><code>OMAT</code><span>training data<br>OAM · OMAT · SMAX</span></div>
+        <div class="seg"><code>large</code><span>size<br>medium · large</span></div>
+        <div class="seg"><code>ft-AM</code><span>variant<br>base · ft-E · ft-AM</span></div>
+        <div class="seg"><code>fp64</code><span>precision<br>optional suffix</span></div>
+      </div>
+
+      <div class="model-notes">
+        <div>
+          <h3>Start with the 2L family</h3>
+          <p><code>GRACE-2L-OAM</code> is the default and lines up with Materials Project–style PBE data. <code>GRACE-2L-OMAT</code> is fitted on OMat24 alone. The newer <code>GRACE-2L-OMAT-medium/large</code> and <code>GRACE-2L-SMAX</code> models add built-in uncertainty.</p>
+        </div>
+        <div>
+          <h3>Trade accuracy for speed</h3>
+          <p>Two-layer models are semi-local and more accurate. Single-layer <code>1L</code> and <code>FS</code> models are faster for long MD on large cells. Use the <code>-fp64</code> variants for phonons and elastic constants, where finite differences amplify numerical noise.</p>
+        </div>
+      </div>
+
+      <div class="calm">
+        <div class="stack">
+          <h3>Uncertainty from a single model</h3>
+          <p>UQ-capable models report CALM uncertainty: a per-atom extrapolation grade γ from the Mahalanobis distance of each atom's descriptor to the training-set clusters. γ above 1 means the model is extrapolating. <code>grace-active-learning --calm</code> and <code>grace-mc --calm</code> use it to flag structures for DFT, with no committee needed.</p>
+        </div>
+        <figure class="gamma" aria-label="Maximum gamma for three structures">
+          <figcaption>max γ, 108-atom argyrodite cell, GRACE-2L-OMAT-medium-base</figcaption>
+          <div class="gamma-plot"><div class="g-area">
+            <div class="threshold" style="left:25%"><span>γ = 1</span></div>
+            <div class="g-row"><span class="g-label">relaxed</span><div class="g-track"><div class="g-bar" style="width:21.3%"></div></div><b>0.85</b></div>
+            <div class="g-row"><span class="g-label">rattled 0.3 Å</span><div class="g-track"><div class="g-bar hot" style="width:37.5%"></div></div><b>1.50</b></div>
+            <div class="g-row"><span class="g-label">rattled 0.6 Å</span><div class="g-track"><div class="g-bar hot" style="width:87.7%"></div></div><b>3.51</b></div>
+            <div class="g-axis"><span style="left:0">0</span><span style="left:25%">1</span><span style="left:50%">2</span><span style="left:75%">3</span><span style="left:100%">4</span></div>
+          </div></div>
+          <p class="g-note">Only the two distorted cells are flagged for DFT.</p>
+        </figure>
       </div>
     </div>
   </section>
@@ -344,12 +421,12 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
           <h3>Structure and uncertainty</h3>
           <div class="mod">
             <span class="name">grace-active-learning</span>
-            <p>Runs a committee of GRACE models, measures how much they disagree on energies and forces, and flags structures that need a DFT label.</p>
+            <p>Scores structures by CALM uncertainty from one UQ-capable model, or by how much a committee of models disagrees, and flags those that need a DFT label.</p>
             <span class="out">uncertainty_log.dat · flagged/POSCAR_*</span>
           </div>
           <div class="mod">
             <span class="name">grace-mc</span>
-            <p>Metropolis Monte Carlo with displacement and species-swap moves, for site disorder such as Cl/S in argyrodites. Flags uncertain snapshots on the fly.</p>
+            <p>Metropolis Monte Carlo with displacement and species-swap moves, for site disorder such as Cl/S in argyrodites. Flags extrapolated snapshots on the fly with CALM or a committee.</p>
             <span class="out">MC_energies.dat · XDATCAR_MC</span>
           </div>
           <div class="mod">
@@ -420,7 +497,7 @@ td:first-child { font-family: var(--font-mono); font-size: 0.86rem; white-space:
           <h3>Fine-tuning by active learning</h3>
           <ol>
             <li><span>Sample configurations with MD (<code>IBRION = 0</code>) or <code>grace-mc</code></span></li>
-            <li><span>Score them with a model committee: <code>grace-active-learning --xdatcar XDATCAR --models m1 m2 m3</code></span></li>
+            <li><span>Score them with CALM uncertainty: <code>grace-active-learning --xdatcar XDATCAR --calm GRACE-2L-OMAT-medium-ft-AM</code></span></li>
             <li><span>Label <code>flagged/POSCAR_*</code> with DFT and fine-tune GRACE on them</span></li>
           </ol>
         </article>

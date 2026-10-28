@@ -29,6 +29,7 @@ SCRIPT_DIR  = os.path.normpath(
 )
 PYTHON      = sys.executable
 GRACE_MODEL = "GRACE-2L-OAM"
+GRACE_UQ_MODEL = "GRACE-2L-OMAT-medium-base"   # ships CALM uncertainty
 
 PASS = "PASS"
 FAIL = "FAIL"
@@ -350,6 +351,22 @@ else:
         record("active_learning -- committee of 2, 1 structure",
                "pass" if rc == 0 and os.path.exists(os.path.join(tmp, "uncertainty_log.dat")) else "fail",
                out[-400:] if rc else "")
+
+        # CALM UQ needs a UQ-capable model; only run when one is already cached
+        if not os.path.isdir(os.path.expanduser(f"~/.cache/grace/{GRACE_UQ_MODEL}")):
+            record("active_learning -- CALM gamma, 1 structure", "skip",
+                   f"{GRACE_UQ_MODEL} not downloaded (grace_models download {GRACE_UQ_MODEL})")
+        else:
+            rc, out = run(
+                [PYTHON, os.path.join(SCRIPT_DIR, "active_learning.py"),
+                 "--poscar", poscar, "--calm", GRACE_UQ_MODEL,
+                 "--log", "calm_log.dat"],
+                cwd=tmp, timeout=240
+            )
+            record("active_learning -- CALM gamma, 1 structure",
+                   "pass" if rc == 0 and "max_γ" in out
+                   and os.path.exists(os.path.join(tmp, "calm_log.dat")) else "fail",
+                   out[-400:] if rc else "")
 
         rc, out = run(
             [PYTHON, os.path.join(SCRIPT_DIR, "montecarlo.py"),
