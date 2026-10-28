@@ -592,6 +592,35 @@ else:
                "pass" if ok else "fail", out[-400:] if not ok else "")
 
 
+# Symmetrized force constants: periodic gauge, and nodes map onto nodes under symmetry
+rc_pp, _ = run([PYTHON, "-c", "import phonopy"])
+if not HAS_TP or rc_pp != 0:
+    record("phonopy force constants -- CoSi symmetry", "skip",
+           "tensorpotential or phonopy not installed")
+else:
+    phonopy_check = textwrap.dedent(f"""
+        import numpy as np, spglib
+        from ase.spacegroup import crystal
+        from scipy.optimize import minimize
+        from vasp_grace.calculator import load_calculator
+        from vasp_grace.condmat.phonon_tools import phonopy_phonons, eigensystem
+        a = crystal(["Co", "Si"], [(0.143,)*3, (0.844,)*3], spacegroup=198, cellpar=[4.443]*3 + [90]*3)
+        pp = phonopy_phonons(a, load_calculator("{GRACE_MODEL}", verbose=False), (2, 2, 2), 0.01, save=None)
+        q, G = np.array([0.137, 0.291, 0.418]), np.array([1, -1, 2])
+        assert np.abs(pp.dynamical_matrix(q + G) - pp.dynamical_matrix(q)).max() < 1e-10
+        gap = lambda x: (lambda nu: nu[4] - nu[3])(eigensystem(pp, x)[0])
+        q0 = minimize(gap, [0.26, 0.16, 0.15], method="Nelder-Mead",
+                      options={{"xatol": 1e-9, "fatol": 1e-10, "maxiter": 3000}}).x
+        ds = spglib.get_symmetry_dataset((a.cell.array, a.get_scaled_positions(), a.numbers), symprec=1e-3)
+        worst = max(gap(t * np.linalg.inv(W).T @ q0) for W in ds.rotations for t in (1, -1))
+        assert gap(q0) < 1e-6 and worst < 1e-6, (gap(q0), worst)
+        print("OK", worst)
+    """)
+    rc, out = run([PYTHON, "-c", phonopy_check], timeout=900)
+    record("phonopy force constants -- CoSi: periodic gauge, symmetry images of a node are nodes",
+           "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Summary
 # ──────────────────────────────────────────────────────────────────────────────

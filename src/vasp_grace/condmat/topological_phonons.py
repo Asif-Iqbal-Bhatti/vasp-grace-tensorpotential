@@ -71,11 +71,13 @@ from ase.phonons import Phonons
 
 try:
     from ..calculator import load_calculator
-    from .phonon_tools import bands_and_vectors, eigensystem, chern_on_sphere, find_nodes
+    from .phonon_tools import (bands_and_vectors, eigensystem, chern_on_sphere, find_nodes,
+                               have_phonopy, phonopy_phonons)
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
     from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
-                                                 chern_on_sphere, find_nodes)
+                                                 chern_on_sphere, find_nodes,
+                                                 have_phonopy, phonopy_phonons)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -564,6 +566,9 @@ def main():
                         metavar=("Nx","Ny","Nz"), help="Phonon supercell (default: 3 3 3).")
     parser.add_argument("--delta",   type=float, default=0.015,
                         help="Displacement amplitude in Å (default: 0.015).")
+    parser.add_argument("--fc", choices=["phonopy", "ase"], default=None,
+                        help="Force constants: phonopy (space-group symmetrized, the default when "
+                             "phonopy is installed) or ase (finite displacements, cached in phonon/).")
     parser.add_argument("--tol",     type=float, default=0.1,
                         help="Crossing detection threshold in THz (default: 0.1).")
     parser.add_argument("--berry",   action="store_true",
@@ -596,7 +601,12 @@ def main():
     atoms = read(args.poscar, format="vasp")
     calc  = load_calculator(args.model)
 
-    ph = build_phonon_object(atoms, calc, tuple(args.supercell), args.delta)
+    fc = args.fc or ("phonopy" if have_phonopy() else "ase")
+    if fc == "phonopy":
+        ph = phonopy_phonons(atoms, calc, tuple(args.supercell), args.delta)
+    else:
+        ph = build_phonon_object(atoms, calc, tuple(args.supercell), args.delta)
+    print(f"Force constants: {fc}")
 
     q_pts, omega_kn, u_kn, x_coords, special_x = get_bands_and_modes(
         ph, atoms, args.path, args.nkpts

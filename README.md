@@ -12,108 +12,35 @@
 [![Version](https://img.shields.io/badge/version-2.0.0-blue)](pyproject.toml)
 [![Website](https://img.shields.io/badge/docs-website-0b7285)](https://asif-iqbal-bhatti.github.io/vasp-grace-tensorpotential/)
 
-> **GRACE machine-learning potentials as a drop-in VASP replacement, plus a toolkit for defects, ion transport and topological phonons.**
-> Reads standard `POSCAR`/`INCAR` files, routes the calculation through the GRACE `tensorpotential` ASE calculator (TensorFlow, GPU accelerated), and writes `OUTCAR`, `OSZICAR`, `CONTCAR` and `XDATCAR` the way VASP does.
+**Run your VASP inputs on a GRACE machine-learning potential, then study defects, ion transport and topological phonons with the same model.**
+
+vasp-grace reads `POSCAR` and `INCAR`, computes energies, forces and stresses with a [GRACE](https://doi.org/10.1103/PhysRevX.14.021036) model (TensorFlow, GPU accelerated), and writes `OUTCAR`, `OSZICAR`, `CONTCAR` and `XDATCAR` the way VASP does. Eleven command-line tools build on it.
 
 **Website:** <https://asif-iqbal-bhatti.github.io/vasp-grace-tensorpotential/>
 
 ---
 
-## Why vasp-grace
+## What do you want to do?
 
-- **Keep your VASP workflow.** Same input files, same tags, same output files. Existing scripts that parse `OUTCAR` or `XDATCAR` keep working.
-- **DFT-quality forces at MD cost.** The GRACE foundation-model family (`GRACE-1L-*`, `GRACE-2L-*`, `GRACE-3L-*`) covers most of the periodic table; you can also load your own fine-tuned model.
-- **Physics on top, not just a wrapper.** Eleven command-line tools cover uncertainty-driven active learning, Monte Carlo, dislocations, Li-ion hopping, thermal conductivity, persistent homology, phonon topology, moiré bilayers and symmetry-enforced gaplessness.
+| I want to… | Command | More |
+|---|---|---|
+| Run my VASP inputs (relax, MD, phonons, elastic constants) on a potential | `vasp-grace` | [VASP drop-in](#vasp-drop-in) |
+| Find structures the model has not seen, to label with DFT | `grace-active-learning` | [Uncertainty](#uncertainty-when-to-trust-the-model) |
+| Sample site disorder or swaps with Monte Carlo | `grace-mc` | [Uncertainty](#uncertainty-when-to-trust-the-model) |
+| Build an edge, screw or mixed dislocation | `grace-dislocation` | [Dislocations](#dislocations) |
+| Find ion hops and an activation energy from MD | `grace-lihopping` | `--help` |
+| Compute lattice thermal conductivity | `grace-kappa` | `--help` |
+| Know whether a crystal can be a band insulator, and whether that survives soft phonons and temperature | `grace-symmetry` | [Symmetry and chirality](#band-insulator-verdict-and-chirality) |
+| Find phonon Weyl points and their topological charges | `grace-topo-phonons` | [Phonon Weyl points](#phonon-weyl-points) |
+| Compute phonon Zak phases and Berry curvature | `grace-phonon-berry` | [Phonon Weyl points](#phonon-weyl-points) |
+| Fingerprint a structure without using symmetry (grain boundaries, amorphous regions) | `grace-topology` | `--help` |
+| Build a twisted bilayer at a commensurate angle | `grace-moire` | `--help` |
 
----
-
-## Workflow
-
-```
-POSCAR / INCAR
-      │
-      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     vasp-grace  (VASP drop-in)                  │
-│  IBRION=1/2 → geometry opt │ IBRION=0 → MD │ IBRION=5/6 → phonon│
-│  ISIF=3 → cell relax       │ ISIF≥3 + IBRION=5/6 → elastic Cij   │
-└────────────┬────────────────────────────────────────────────────┘
-             │ OUTCAR · CONTCAR · OSZICAR · XDATCAR · phonon.*.json
-             │
-    ┌────────┴────────────────────────────────────────────┐
-    │               Analysis & Advanced Modules            │
-    └──────────────────────────────┬──────────────────────┘
-                                   │
-    ┌──────────────────────────────┼──────────────────────────────┐
-    │                              │                              │
-    ▼                              ▼                              ▼
-┌───────────────┐        ┌─────────────────┐         ┌───────────────────┐
-│ Structure /   │        │  Ion dynamics   │         │  Condensed matter │
-│ Uncertainty   │        │  & transport    │         │  (condmat/)       │
-├───────────────┤        ├─────────────────┤         ├───────────────────┤
-│active_learning│        │  lihopping      │         │topological_phonons│
-│montecarlo     │        │  thermal_cond.  │         │phonon_berry       │
-│dislocation    │        │                 │         │topology (TDA)     │
-│               │        │                 │         │moire              │
-│               │        │                 │         │symmetry           │
-└───────────────┘        └─────────────────┘         └───────────────────┘
-```
+Every command takes `--model` (any GRACE model, see [Choosing a model](#choosing-a-grace-model)) and `--help`.
 
 ---
 
-## Modules at a glance
-
-| Command | Module | What it does | Key outputs |
-|---------|--------|--------------|-------------|
-| `vasp-grace` | `main.py` | VASP drop-in: single point · relaxation · MD · phonons · elastic tensor | `OUTCAR`, `CONTCAR`, `XDATCAR`, `phonon_band.png`, `ELASTIC_Cij_GPa.dat` |
-| `grace-active-learning` | `active_learning.py` | Single-model CALM uncertainty (γ) or committee disagreement; flags structures that need DFT | `uncertainty_log.dat`, `flagged/POSCAR_*` |
-| `grace-mc` | `montecarlo.py` | Metropolis MC with displacement and swap moves, live CALM or committee uncertainty | `MC_energies.dat`, `XDATCAR_MC` |
-| `grace-dislocation` | `dislocation.py` | Edge, screw and mixed dislocations (isotropic Volterra or anisotropic Stroh) | `POSCAR_dislocation`, `dislocation_info.txt` |
-| `grace-lihopping` | `lihopping.py` | Sojourn-filtered ion hop detection, hop networks, Arrhenius Eₐ | `hop_events.dat`, `arrhenius.png` |
-| `grace-kappa` | `thermal_conductivity.py` | Müller-Plathe reverse NEMD lattice thermal conductivity κ | `kappa_summary.txt`, `temperature_profile.png` |
-| `grace-topology` | `condmat/topology.py` | Persistent homology (β₀ β₁ β₂): symmetry-free structural fingerprint | `betti_curves.dat`, `betti_curves.png` |
-| `grace-topo-phonons` | `condmat/topological_phonons.py` | Phonon Weyl, double-Weyl, spin-1 and fourfold nodes with their Chern numbers on a sphere; zone-wide node search with charge balance | `phonon_nodes.dat`, `phonon_crossings.dat`, `phonon_topo_bands.png` |
-| `grace-phonon-berry` | `condmat/phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k) and plane Chern numbers (lattice plaquette method) | `phonon_zak.dat`, `phonon_chern.png` |
-| `grace-moire` | `condmat/moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
-| `grace-symmetry` | `condmat/symmetry_stability.py` | Band-insulator verdict (filling rule, via [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint)) tested against relaxation, soft phonons and temperature; structural chirality; VASP + SOC inputs | `symmetry_report.txt`, `soft_modes.dat`, `dft_handoff/` |
-
-Every command accepts `--model` as any GRACE foundation-model name or a path to your own fitted model; see [Choosing a GRACE model](#choosing-a-grace-model). In `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
-
----
-
-## Choosing a GRACE model
-
-`--model` (or `GRACE_MODEL` in the `INCAR`) accepts every foundation model your `tensorpotential` installation knows about, or a path to your own fitted or fine-tuned model. The default is `GRACE-2L-OAM`; nothing in vasp-grace is tied to it. Run `grace_models list` to see all names and which ones are already downloaded.
-
-Names follow `GRACE-<architecture>-<training data>[-<size>][-<variant>][-fp64]`:
-
-| Part | Options | Meaning |
-|------|---------|---------|
-| Architecture | `FS`, `1L`, `2L`, `3L` | `FS` (Finnis–Sinclair-like) and `1L` are local single-layer models and the fastest. `2L` adds a second message-passing layer (semi-local) for higher accuracy. `3L` is the three-layer generation. |
-| Training data | `OAM`, `OMAT`, `SMAX`, `SMAX-OMAT` | `OAM`: pre-fitted on OMat24, fine-tuned on sAlex + MPtraj. `OMAT`: OMat24 only. `SMAX` and `SMAX-OMAT`: newer training sets, see `grace_models info <name>`. |
-| Size | `medium`, `large` | Larger models are more accurate and slower. |
-| Variant | `base`, `ft-E`, `ft-AM` | The base model and its fine-tuned variants. |
-| Precision | `-fp64` suffix | Full double precision; the bare name is fp32. |
-
-The `GRACE-2L` family is the recommended starting point, for example:
-
-| Model | Notes |
-|-------|-------|
-| `GRACE-2L-OAM` | Default. Fine-tuned on sAlex + MPtraj, so energies line up with Materials Project–style PBE data |
-| `GRACE-2L-OMAT` | Fitted on OMat24 only |
-| `GRACE-2L-OMAT-medium-*`, `GRACE-2L-OMAT-large-*` | Newer generation in two sizes, with `base`, `ft-E` and `ft-AM` variants and built-in per-atom uncertainty |
-| `GRACE-2L-SMAX-*`, `GRACE-2L-SMAX-OMAT-*` | Newer generation trained on the SMAX data sets, with built-in per-atom uncertainty |
-
-Practical guidance:
-
-- **Long MD on large cells:** a `1L` or `FS` model is faster than `2L`.
-- **Phonons, elastic constants and phonon topology** come from finite differences of forces; consider the `-fp64` variant to keep numerical noise out of small frequencies.
-- **Uncertainty:** models with built-in UQ (the newer `-medium`, `-large`, `SMAX` and `3L` models; see the UQ column of `grace_models list`) work with `--calm`. Older models such as `GRACE-2L-OAM` can still be used through a committee (`--models`).
-- **License:** the foundation models are released under the Academic Software License; check that it fits your use.
-
----
-
-## Installation
+## Install
 
 ```bash
 git clone https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential
@@ -121,242 +48,317 @@ cd vasp-grace-tensorpotential
 pip install -e .
 ```
 
-**Dependencies:** `ase`, `numpy`, `scipy`, `matplotlib`, `tensorflow`, `tensorpotential`, [`elastic`](https://github.com/jochym/Elastic) (elastic constants in `vasp-grace`).
+Optional extras, installed the same way (`pip install -e ".[condmat]"`):
 
-**Optional extras**
+| Extra | Adds | Needed for |
+|---|---|---|
+| `condmat` | [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint), [phonopy](https://phonopy.github.io/phonopy/) | band-insulator verdicts in `grace-symmetry` (Python ≥ 3.10); symmetrized force constants in the phonon topology tools |
+| `tda` | gudhi | full β₁/β₂ persistent homology in `grace-topology` |
+| `examples` | marimo | the interactive notebook |
+| `dev` | pytest, black, pylint | development |
 
-| Extra | Install | Adds |
-|-------|---------|------|
-| `tda` | `pip install -e ".[tda]"` | `gudhi`, for full β₁/β₂ persistent homology in `grace-topology` |
-| `examples` | `pip install -e ".[examples]"` | `marimo`, for the interactive example notebook |
-| `condmat` | `pip install -e ".[condmat]"` | [`symlint`](https://github.com/Asif-Iqbal-Bhatti/symlint), for band-insulator verdicts in `grace-symmetry` (Python ≥ 3.10) |
-| `dev` | `pip install -e ".[dev]"` | `pytest`, `black`, `pylint` |
-
-The first call to a foundation model downloads it to `~/.cache/grace/`.
+The first use of a GRACE foundation model downloads it to `~/.cache/grace/`.
 
 ---
 
-## Quick usage
+## Quick start
 
-```bash
-# VASP drop-in
-vasp-grace --poscar POSCAR --incar INCAR
+**1. Run a VASP-style calculation.** Use your usual `POSCAR` and an `INCAR` with one extra tag:
 
-# Active learning: flag uncertain structures
-grace-active-learning --xdatcar XDATCAR --calm GRACE-2L-OMAT-medium-ft-AM --stride 10   # one UQ model
-grace-active-learning --poscar_dir ./structs --models m1.pb m2.pb m3.pb                 # committee
-
-# Metropolis MC + swap moves (Cl ↔ S disorder), flagging extrapolated snapshots
-grace-mc --poscar POSCAR --model GRACE-2L-OMAT-medium-ft-AM --calm \
-         --swap Cl S --temperature 800 --steps 50000
-
-# Dislocation (isotropic edge)
-grace-dislocation --poscar POSCAR --type edge --burgers 2.8 --poisson 0.28
-
-# Li-ion hop detection + Arrhenius Ea
-grace-lihopping --traj XDATCAR --ref POSCAR --species Li --timestep 2.0
-grace-lihopping --arrhenius --temps 600 800 1000 \
-                --trajs traj_600K traj_800K traj_1000K --ref POSCAR --species Li
-
-# Lattice thermal conductivity (rNEMD)
-grace-kappa --poscar POSCAR --model GRACE-2L-OAM --temperature 300 --steps 200000
-
-# Topological Data Analysis (crystal vs grain boundary)
-grace-topology --poscar POSCAR_bulk --compare POSCAR_gb --rmax 8.0
-
-# Phonon Weyl points: charges of the nodes at Γ and R, then search the whole zone
-grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5
-grace-topo-phonons --poscar POSCAR --search 10 --bands 3 8
-
-# Phonon Zak phases + Berry curvature
-grace-phonon-berry --poscar POSCAR --model GRACE-2L-OAM --curvature
-
-# Moiré superlattice (scan commensurate angles, then build)
-grace-moire --poscar POSCAR --scan --m_max 10
-grace-moire --poscar POSCAR --m 5 --n 6 --relax --model GRACE-2L-OAM
-
-# Can it be a band insulator, and does that survive soft modes and 300 K?
-grace-symmetry --poscar POSCAR --md 300 --handoff
+```
+GRACE_MODEL = GRACE-2L-OAM
+IBRION = 2        # relax with FIRE
+ISIF   = 3        # positions and cell
+NSW    = 200
+EDIFFG = -0.01
 ```
 
-Run any command with `--help` for the full option list.
+```bash
+vasp-grace --poscar POSCAR --incar INCAR
+```
 
----
+You get `OUTCAR`, `OSZICAR` and `CONTCAR` as from VASP, so existing scripts keep working.
 
-## `vasp-grace` INCAR reference
+**2. Analyse the result with a tool:**
 
-`vasp-grace` reads the tags below and ignores everything else, so an existing VASP `INCAR` can be used unchanged.
+```bash
+grace-symmetry     --poscar CONTCAR                 # band-insulator verdict, soft modes, chirality
+grace-topo-phonons --poscar CONTCAR --node 0 0 0    # charges of the phonon nodes at Γ
+```
 
-| Tag | Default | Effect in vasp-grace |
-|-----|---------|----------------------|
-| `GRACE_MODEL` | `GRACE-2L-OAM` | Foundation-model name or path to a fitted model |
-| `IBRION` | `-1` | `-1` single point · `0` MD · `1` LBFGS · `2` FIRE · `5`/`6` finite-displacement phonons · `7`/`8` not supported (DFPT) |
-| `NSW` | `0` | Ionic / MD steps; `0` gives a single point |
-| `ISIF` | `3` | Relaxation: `3` positions + cell, `4` positions + cell shape at fixed volume, otherwise positions only. MD: `≥3` switches to NPT. Phonons: `≥3` also computes the elastic tensor |
-| `EDIFFG` | `-0.01` | Negative value is the force criterion (eV/Å); positive values fall back to 0.05 eV/Å |
-| `POTIM` | `1.0` fs | MD time step |
-| `TEBEG` | `300` | MD temperature (K) |
-| `MDALGO` | `0` | `0` NVE (Velocity Verlet) · `1` Andersen · `2` Berendsen · `3` Langevin. NPT (`ISIF≥3`) uses the MTK barostat at 1 bar |
-| `NFREE` | `2` | Central differences (other values fall back to ±δ) |
-| `LPHON_DISPERSION` | `.FALSE.` | Write the phonon band structure (`phonon_band.png`) |
-| `PHON_DOS` | `0` | `>0` writes the phonon DOS (`phonon_dos.dat`, `phonon_dos.png`); mesh from `QPOINTS`/`KPOINTS` if present |
-| `PHON_NEDOS`, `PHON_SIGMA` | `1000`, `0.001` | DOS grid points and smearing |
-
-Phonons use the `POSCAR` you supply as the displaced cell, so give a supercell `POSCAR` for a supercell phonon calculation. Elastic constants are fitted with [jochym/Elastic](https://github.com/jochym/Elastic) and written to `ELASTIC_Cij_GPa.dat`, `ELASTIC_Bij_GPa.dat` and `ELASTIC_fit_info.txt`.
-
----
-
-## Uncertainty: CALM or committee
-
-`grace-active-learning` and `grace-mc` flag structures that the model has not seen before, so you can send them to DFT and fine-tune. Two estimators are available:
-
-| | CALM (`--calm`) | Committee (`--models`) |
-|---|---|---|
-| Models needed | One UQ-capable GRACE model | Two or more models |
-| Signal | Per-atom extrapolation grade γ = σ / threshold, from the Mahalanobis distance of each atom's descriptor to the training-set clusters | Spread of predicted forces across the committee (eV/Å) |
-| Default threshold | γ > 1 (outside the training distribution) | σ_F > 0.1 eV/Å |
-| Cost | One evaluation | One evaluation per member |
-
-Both write the same `uncertainty_log.dat`, `per_atom_uncertainty.dat` (with `--per_atom`) and `flagged/POSCAR_*`. In Python, `load_calculator(name, uq=True)` from `vasp_grace.calculator` returns a calculator whose `calc.results["gamma"]` holds per-atom γ.
-
-As a check on the 108-atom argyrodite cell in `tests/POSCAR` (Li₄₈BP₈H₄S₄₀Cl₇) with `GRACE-2L-OMAT-medium-base`, max γ is 0.85 for the relaxed cell, 1.50 after random displacements of 0.3 Å and 3.51 after 0.6 Å, so only the distorted cells are flagged.
-
----
-
-## Interactive example
+**3. Or explore interactively:**
 
 ```bash
 pip install -e ".[examples]"
 marimo edit examples/quickstart.py
 ```
 
-The notebook loads a GRACE model, runs a single point, fits an equation of state, relaxes the cell, compares topological fingerprints of an ordered and a rattled crystal, and scans commensurate moiré angles, all with live controls. For fcc Cu with `GRACE-2L-OAM` it gives V₀ = 11.84 Å³ and B₀ ≈ 142 GPa.
+The notebook relaxes a crystal, fits its equation of state and tries the analysis tools with live controls. For fcc Cu with `GRACE-2L-OAM` it gives V₀ = 11.84 Å³ and B₀ ≈ 142 GPa.
 
 ---
 
-## Dislocation physics
+## How it fits together
 
-`dislocation.py` supports two formulations:
+```
+POSCAR + INCAR ──► vasp-grace ──► OUTCAR · CONTCAR · XDATCAR · ELASTIC_Cij_GPa.dat
+                       │
+      ┌────────────────┼──────────────────────────┐
+      ▼                ▼                          ▼
+ Structure and     Ion dynamics            Condensed matter (condmat/)
+ uncertainty       and transport           ─────────────────────────────
+ ───────────────   ──────────────          grace-symmetry      verdict, chirality
+ active-learning   lihopping               grace-topo-phonons  Weyl points, charges
+ mc                kappa                   grace-phonon-berry  Zak phase, curvature
+ dislocation                               grace-topology      persistent homology
+                                           grace-moire         twisted bilayers
+```
+
+Outputs feed each other. For example, `vasp-grace` with `IBRION = 6, ISIF = 3` writes the elastic tensor that `grace-dislocation --method anisotropic` reads.
+
+---
+
+## Choosing a GRACE model
+
+`--model` (or `GRACE_MODEL` in the `INCAR`) accepts any GRACE foundation model or a path to your own fine-tuned model. The default is `GRACE-2L-OAM`. Run `grace_models list` to see all models and which are downloaded.
+
+| Model | When to use it |
+|---|---|
+| `GRACE-2L-OAM` | Default. Energies line up with Materials Project–style PBE data |
+| `GRACE-2L-OMAT` | Fitted on OMat24 alone |
+| `GRACE-2L-OMAT-medium-*`, `-large-*`, `GRACE-2L-SMAX-*` | Newer models with built-in per-atom uncertainty (`--calm`) |
+| `GRACE-1L-*`, `GRACE-FS-*` | Faster, for long MD on large cells |
+| any `…-fp64` | Double precision, for phonons and elastic constants where finite differences amplify noise |
+
+<details>
+<summary>How GRACE model names are built</summary>
+
+Names follow `GRACE-<architecture>-<training data>[-<size>][-<variant>][-fp64]`:
+
+| Part | Options | Meaning |
+|---|---|---|
+| Architecture | `FS`, `1L`, `2L`, `3L` | `FS` (Finnis–Sinclair-like) and `1L` are local single-layer models. `2L` adds a second message-passing layer (semi-local). `3L` is the three-layer generation. |
+| Training data | `OAM`, `OMAT`, `SMAX`, `SMAX-OMAT` | `OAM`: pre-fitted on OMat24, fine-tuned on sAlex + MPtraj. `OMAT`: OMat24 only. `SMAX`, `SMAX-OMAT`: newer training sets (`grace_models info <name>`). |
+| Size | `medium`, `large` | Larger is more accurate and slower. |
+| Variant | `base`, `ft-E`, `ft-AM` | The base model and its fine-tuned variants. |
+| Precision | `-fp64` | Full double precision; the bare name is fp32. |
+
+The foundation models are released under the Academic Software License.
+
+</details>
+
+---
+
+## Uncertainty: when to trust the model
+
+`grace-active-learning` and `grace-mc` flag structures the model has not seen, so you can label them with DFT and fine-tune.
+
+| | CALM (`--calm MODEL`) | Committee (`--models m1 m2 …`) |
+|---|---|---|
+| Needs | One model with built-in uncertainty | Two or more models |
+| Signal | Per-atom extrapolation grade γ; γ > 1 means outside the training data | Spread of predicted forces (eV/Å) |
+| Default threshold | γ > 1 | σ_F > 0.1 eV/Å |
+| Cost | One evaluation | One per model |
+
+```bash
+grace-active-learning --xdatcar XDATCAR --calm GRACE-2L-OMAT-medium-ft-AM --stride 10
+grace-mc --poscar POSCAR --model GRACE-2L-OMAT-medium-ft-AM --calm --swap Cl S --temperature 800
+```
+
+Both write `uncertainty_log.dat` and `flagged/POSCAR_*`. Example: on the 108-atom argyrodite cell in `tests/POSCAR` with `GRACE-2L-OMAT-medium-base`, max γ is 0.85 for the relaxed cell and 1.50 and 3.51 after random displacements of 0.3 and 0.6 Å, so only the distorted cells are flagged. In Python, `load_calculator(name, uq=True)` from `vasp_grace.calculator` gives per-atom γ in `calc.results["gamma"]`.
+
+---
+
+## VASP drop-in
+
+`vasp-grace` reads the tags below and ignores the rest, so an existing `INCAR` works unchanged.
+
+| To run | Set |
+|---|---|
+| Single point | `NSW = 0` (or `IBRION = -1`) |
+| Relaxation | `IBRION = 1` (LBFGS) or `2` (FIRE); `ISIF = 3` relaxes the cell too |
+| Molecular dynamics | `IBRION = 0`, `MDALGO`, `TEBEG`, `POTIM`; `ISIF ≥ 3` gives NPT |
+| Phonons | `IBRION = 5` or `6`, `LPHON_DISPERSION = .TRUE.`, `PHON_DOS = 1` |
+| Elastic constants | `IBRION = 6` with `ISIF = 3` |
+
+<details>
+<summary>Full INCAR reference</summary>
+
+| Tag | Default | Effect |
+|---|---|---|
+| `GRACE_MODEL` | `GRACE-2L-OAM` | Model name or path |
+| `IBRION` | `-1` | `-1` single point · `0` MD · `1` LBFGS · `2` FIRE · `5`/`6` finite-displacement phonons · `7`/`8` not supported (DFPT) |
+| `NSW` | `0` | Ionic or MD steps; `0` gives a single point |
+| `ISIF` | `3` | Relaxation: `3` positions + cell, `4` cell shape at fixed volume, otherwise positions only. MD: `≥3` switches to NPT. Phonons: `≥3` also computes the elastic tensor |
+| `EDIFFG` | `-0.01` | Negative: force criterion in eV/Å; positive values fall back to 0.05 eV/Å |
+| `POTIM` | `1.0` fs | MD time step |
+| `TEBEG` | `300` | MD temperature (K) |
+| `MDALGO` | `0` | `0` NVE · `1` Andersen · `2` Berendsen · `3` Langevin. NPT uses the MTK barostat at 1 bar |
+| `NFREE` | `2` | Central differences |
+| `LPHON_DISPERSION` | `.FALSE.` | Write the phonon band structure (`phonon_band.png`) |
+| `PHON_DOS` | `0` | `> 0` writes the phonon DOS; mesh from `QPOINTS`/`KPOINTS` if present |
+| `PHON_NEDOS`, `PHON_SIGMA` | `1000`, `0.001` | DOS grid points and smearing |
+
+Phonons displace the `POSCAR` you give, so provide a supercell for a supercell phonon calculation. Elastic constants are fitted with [jochym/Elastic](https://github.com/jochym/Elastic) and written to `ELASTIC_Cij_GPa.dat`, `ELASTIC_Bij_GPa.dat` and `ELASTIC_fit_info.txt`.
+
+</details>
+
+---
+
+## Dislocations
+
+```bash
+grace-dislocation --poscar POSCAR --type screw --burgers 2.8 --relax                     # isotropic
+grace-dislocation --poscar POSCAR --type edge  --burgers 2.8 --method anisotropic \
+                  --elastic ELASTIC_Cij_GPa.dat                                          # Stroh
+```
+
+<details>
+<summary>Method</summary>
 
 | Method | Input | Displacement field |
-|--------|-------|--------------------|
+|---|---|---|
 | Isotropic Volterra | Poisson ratio ν | Screw: `u_z = b/2π·arctan2(y,x)` · Edge: Hirth & Lothe |
-| Anisotropic Stroh | `ELASTIC_Cij_GPa.dat` | 6×6 Stroh eigenvalue problem |
+| Anisotropic Stroh | `ELASTIC_Cij_GPa.dat` (from `vasp-grace`, any crystal class) | 6×6 Stroh eigenvalue problem |
 
-Dipoles (±b at ±Lx/4, the default) keep full 3D periodicity; use `--single` for an isolated dislocation. The anisotropic route reads the elastic tensor that `vasp-grace` writes, so `IBRION=6, ISIF=3` followed by `grace-dislocation --method anisotropic --elastic ELASTIC_Cij_GPa.dat` is a complete GRACE-only pipeline.
+Dipoles (±b at ±Lx/4, the default) keep 3D periodicity; `--single` builds an isolated dislocation. Inspired by [atomsk](https://atomsk.univ-lille.fr), [atomman](https://github.com/usnistgov/atomman) and [E. Clouet's tools](https://emmanuel.clouet.free.fr).
 
-Inspired by: [atomsk](https://atomsk.univ-lille.fr) · [atomman](https://github.com/usnistgov/atomman) · [E. Clouet's tools](https://emmanuel.clouet.free.fr)
+</details>
 
 ---
 
-## Condensed matter: symmetry-enforced gaplessness and chirality
+## Condensed matter
 
-`grace-symmetry` (`src/vasp_grace/condmat/symmetry_stability.py`) asks whether a crystal can be a band insulator, and whether that answer survives the lattice dynamics.
+The tools in `src/vasp_grace/condmat/` study what the lattice alone can tell you about electronic and phononic topology.
 
-For a nonmagnetic crystal with space group G and ν electrons per primitive cell, Watanabe, Po, Zaletel and Vishwanath [PRL 117, 096404 (2016)] showed that a band insulator needs ν in an allowed set S_G. Otherwise the crystal is forced to be gapless (`odd_filling` or `symmetry_enforced`). [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint) applies that rule to a fixed structure. The verdict is only as good as the space group, and GRACE can test the space group cheaply:
+### Band-insulator verdict and chirality
 
-1. **Relaxation** with the space group held fixed (`FixSymmetry`), then the verdict for the relaxed primitive cell.
-2. **Soft phonons** at Γ and at the zone-boundary points commensurate with an n×n×n supercell. Each imaginary mode is followed into its distorted supercell and the rule is applied again. Displacements are true phonon eigen-displacements (checked against F = −mω²u). For a degenerate mode every basis vector and their sum are tried, and the highest-symmetry result is used for the verdict, since generic directions in the order-parameter space give P1, where every even ν is allowed. Zone-boundary modes multiply the cell and change ν, which is the Peierls / CDW route to opening a gap.
-3. **Temperature** (`--md T`): NVT MD and the space group of the time-averaged structure. The symmetry tolerance is set above the statistical noise of the average (block averaging), and the tool declines to give a space group when the average is too noisy or atoms diffuse.
-4. **Chirality**: Sohncke-group test and the enantiomer's space group (e.g. Te P3₁21 ↔ P3₂21; CoSi P2₁3 keeps its group).
-5. **CALM γ** for UQ-capable models, on the relaxed cell, every distorted structure and the MD snapshots.
-6. **DFT hand-off** (`--handoff`): VASP + SOC inputs and an IrRep script that reads `NELECT` from the SCF `OUTCAR` and extends the band window past the Fermi level.
+```bash
+grace-symmetry --poscar POSCAR                    # relax, phonons, verdict, chirality
+grace-symmetry --poscar POSCAR --md 300 --handoff # add 300 K MD and VASP + SOC inputs
+```
 
-Checks with `GRACE-2L-OAM` (2×2×2 phonon supercell):
+A nonmagnetic crystal can be a band insulator only if its electron count per primitive cell fits its space group (Watanabe, Po, Zaletel and Vishwanath, PRL 117, 096404 (2016)); [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint) applies that rule. The verdict is only as good as the space group, and `grace-symmetry` tests the space group with GRACE: after relaxation, along every soft phonon mode, and in the time-averaged structure at temperature. It also reports structural chirality and writes VASP + SOC inputs with an IrRep script for the DFT check.
 
-| Structure | Result |
-|-----------|--------|
-| Si, Fd-3m | ν = 28 allowed; 300 K average structure stays Fd-3m |
+<details>
+<summary>Method and checks</summary>
+
+1. **Relaxation** with the space group held fixed, then the verdict for the relaxed primitive cell.
+2. **Soft phonons** at Γ and at the zone-boundary points of an n×n×n supercell. Each imaginary mode is followed into its distorted supercell (true phonon eigen-displacements, checked against F = −mω²u) and the rule is applied again. For degenerate modes the highest-symmetry direction is used. Zone-boundary modes multiply the cell and change the electron count: the Peierls / CDW route to opening a gap.
+3. **Temperature** (`--md T`): the space group of the time-averaged structure, with a tolerance above its statistical noise. No space group is given when the average is too noisy or atoms diffuse.
+4. **Chirality**: Sohncke-group test and the enantiomer's space group.
+5. **CALM γ** on every structure for models with built-in uncertainty.
+6. **DFT hand-off** (`--handoff`): the IrRep script reads `NELECT` from the SCF `OUTCAR` and extends the band window past the Fermi level.
+
+| Structure (GRACE-2L-OAM) | Result |
+|---|---|
+| Si, Fd-3m | ν = 28 allowed; still Fd-3m on average at 300 K |
 | Te, P3₁21 | ν = 156 allowed; chiral, enantiomer P3₂21 |
-| SrIrO₃, Pnma | ν = 556 symmetry-enforced; no soft modes at the checked q-points, so nothing there removes the protection |
-| SrTiO₃, cubic Pm-3m | finds the ferroelectric Γ mode (−3.6 THz → Cm) and the octahedral-rotation R mode (−2.1 THz → R-3c, cell doubles, ν 84 → 168) |
-| Na, simple cubic (ν = 11, odd) | soft X and M modes double the cell to P2₁/m and P4/nmm, where ν = 22 is still forbidden |
+| SrIrO₃, Pnma | ν = 556 symmetry-enforced gapless; no soft modes at the checked q-points |
+| SrTiO₃, cubic | ferroelectric Γ mode (−3.6 THz → Cm) and octahedral-rotation R mode (−2.1 THz → R-3c, cell doubles) |
+| Na, simple cubic (ν = 11) | soft X and M modes double the cell to P2₁/m and P4/nmm, where ν = 22 is still forbidden |
 
-Limits: degenerate soft modes are sampled by their basis vectors and sum, so the highest-symmetry isotropy subgroup can be missed (for cubic SrTiO₃ the R mode gives R-3c rather than I4/mcm). Only commensurate q-points of the chosen supercell are checked. Electronic topology itself needs the DFT step.
+Limits: for degenerate soft modes the highest-symmetry subgroup can be missed (cubic SrTiO₃'s R mode gives R-3c rather than I4/mcm), and only q-points commensurate with the chosen supercell are checked.
 
-### Phonon Weyl points and their charges
+</details>
 
-`grace-topo-phonons` classifies a phonon band crossing by its topological charge: the Chern number of the bands below it on a small sphere around the node, computed with the gauge-invariant lattice method of Fukui, Hatsugai and Suzuki [J. Phys. Soc. Jpn. 74, 1674 (2005)].
+### Phonon Weyl points
 
-- `--node qx qy qz` analyses every degeneracy at a q-point; `--chern` does the same for crossings found on the band path.
-- `--search N` scans the whole zone on an N³ mesh, refines each crossing, computes its charge and adds its symmetry-equivalent copies (space-group rotations and time reversal). The charges in each gap must sum to zero over the zone (Nielsen–Ninomiya); the summary reports, per gap, the total and the number of unresolved crossings.
-- A node's charge is read from every gap inside its multiplet, and counts only when it is the same integer on spheres of radius r and r/2. This accepts slowly splitting Weyl points and rejects spheres that cut a nodal line or surface or enclose a second node; those crossings are reported as unresolved, never as Weyl points. Bands that stay paired along lines through a node (screw axes) are handled: the charge is read from the gaps between the pairs.
-- Eigenvectors come from the mass-weighted dynamical matrix, so they are orthonormal and frequencies are in THz.
+```bash
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5   # charges at Γ and R
+grace-topo-phonons --poscar POSCAR --search 10 --bands 3 8           # search the whole zone
+grace-phonon-berry --poscar POSCAR --curvature                       # Berry curvature on a plane
+```
 
-Checks: analytic models give exactly +1/−1 (Weyl), ±2 (double Weyl), (+2, 0, −2) (spin-1), and a two-node lattice model is found complete with charges summing to zero. For CoSi (P2₁3, GRACE-2L-OAM, a = 4.436 Å vs 4.443 Å measured) the threefold nodes at Γ carry |C| = 2 (spin-1) and the fourfold nodes at R carry charge 2 between their band pairs. These are the double-Weyl phonons reported by Zhang et al., Phys. Rev. Lett. 120, 016401 (2018) and observed by Miao et al., Phys. Rev. Lett. 121, 035302 (2018). The search also finds generic Weyl points (C = ±1) in symmetry-related sets, with charges stable between r = 0.002 and 0.01 Å⁻¹.
+`grace-topo-phonons` gives each phonon band crossing its topological charge, the Chern number on a small sphere around it: ±1 for a Weyl point, ±2 for a double-Weyl or spin-1 node, 0 for a crossing that is not a monopole. Results go to `phonon_nodes.dat`. For CoSi it finds the spin-1 nodes at Γ (|C| = 2) and the charge-2 fourfold nodes at R, the double-Weyl phonons reported by Zhang et al., PRL 120, 016401 (2018) and observed by Miao et al., PRL 121, 035302 (2018).
 
-The zone-wide balance is not yet reliable for CoSi. With a 10³ search, gap 3|4 and several others sum to zero exactly, but most optical gaps do not, and the result changes with the mesh (gap 3|4 alone: 0 at 10³ and 16³, +20 at 12³). Two causes are known:
-- **Force constants not exactly symmetric:** finite-displacement force constants are not exactly space-group symmetric, so symmetry partners of a node sit 0.005–0.01 Å⁻¹ apart. That is comparable to the sphere radius, so merging found nodes with their symmetry copies is ambiguous.
-- **Nodal surfaces:** P2₁3 pairs the bands across the zone faces, so the gaps inside each pair close on whole planes. The balance there need not close from point nodes alone.
+<details>
+<summary>Method, checks and limits</summary>
 
-Treat `--search` as exploratory. Charges of individual nodes from `--node` and `--chern` are reliable when they are stable at both radii. Symmetrising the force constants (e.g. through phonopy) would remove the first cause.
+- **Force constants** come from [phonopy](https://phonopy.github.io/phonopy/) when installed (`--fc phonopy`, the default then): symmetry-reduced displacements, projected onto the space group, and every dynamical matrix from phonopy's `get_dynamical_matrix_at_q`. Symmetry-related nodes are then exactly equivalent (for CoSi the gap at all 24 images of a Weyl node is 10⁻¹⁰ THz, against 0.03 THz with ASE finite differences). `--fc ase` uses ASE instead.
+- **Chern numbers** use the gauge-invariant lattice method of Fukui, Hatsugai and Suzuki, J. Phys. Soc. Jpn. 74, 1674 (2005). A charge counts only when it is the same integer on spheres of radius r and r/2; otherwise the crossing is reported as unresolved (a nodal line or surface, or two nodes very close together), never as a Weyl point. For nodes where bands stay paired along lines (screw axes), the charge is read from the gaps between the pairs.
+- **Search** (`--search N`): an N³ scan of the zone, refined with Nelder–Mead, plus the symmetry copies of every node (space-group rotations and time reversal). The charges in each gap must sum to zero over the zone (Nielsen–Ninomiya); the summary reports this per gap.
+- **Checks:** analytic models give exactly ±1 (Weyl), ±2 (double Weyl), (+2, 0, −2) (spin-1), and a two-node lattice model is found complete with charges summing to zero. CoSi (a = 4.436 Å with GRACE-2L-OAM, 4.443 Å measured) gives |C| = 2 at Γ and charge 2 at R; generic Weyl points (±1) appear in symmetry-related sets with charges stable from r = 0.002 to 0.01 Å⁻¹. `grace-phonon-berry` gives exactly 0 for all 24 CoSi bands on the k_z = 0 plane, as time reversal requires.
+- **Zone-wide balance:** with phonopy force constants, the symmetry copies of a node coincide with nodes found independently, so the balance is a real completeness check. For CoSi, gap 3|4 sums to zero with a 16³ search; a 10³ search misses one 12-member orbit and reports +12. If a gap does not close, search on a denser mesh. In space groups with nodal surfaces (P2₁3 pairs bands across the zone faces) the gaps inside those pairs need not balance from point nodes alone. With `--fc ase` the copies sit 0.005–0.01 Å⁻¹ apart and the balance is unreliable.
+- **Sign convention:** Bloch waves exp(+iq·R) (phonopy's), Berry connection A = i⟨u|∇u⟩, outward normal; the lower band of H = k·σ has C = +1. Both `--fc` backends use it.
 
-`grace-phonon-berry --curvature` computes Berry curvature and Chern numbers on a k_z plane with the same lattice method. With time-reversal symmetry these vanish on planes through Γ (CoSi gives exactly 0 for all 24 bands); a difference between two parallel planes counts the Weyl charge between them.
+</details>
 
 ---
 
-## Scope: what a machine-learning potential can and cannot give you
+## What a potential can and cannot tell you
 
-GRACE predicts the Born–Oppenheimer energy surface: energies, forces and stresses. Everything that follows from the lattice is in reach (structures, phonons, elastic constants, diffusion, thermal transport, lattice topology). Quantities that need electrons are not: band structures, electronic Berry phases or Z₂/Chern invariants, electron–phonon coupling, superconducting gaps and magnetism. For those, use vasp-grace to prepare and pre-relax structures, then hand them to DFT, Wannier90 or EPW.
+GRACE models the energy surface of the nuclei: energies, forces and stresses.
 
-Foundation models are accurate to a few meV/atom on typical structures. For subtle energy differences (charge-density-wave distortions, competing polymorphs) check against DFT and fine-tune with structures flagged by `grace-active-learning`.
+| In reach | Needs DFT |
+|---|---|
+| Structures, relaxations, equations of state | Electronic band structures and their topology (Z₂, Chern) |
+| Phonons, elastic constants, lattice instabilities | Electron–phonon coupling and superconducting T<sub>c</sub> |
+| Diffusion, ion hopping, thermal conductivity | Magnetism |
+| Defects, dislocations, grain boundaries, twisted bilayers | Energy differences below a few meV/atom without fine-tuning |
+| Phonon topology and structural chirality | |
+
+Use vasp-grace to screen and pre-relax structures, then hand them to VASP, Wannier90 or EPW (`grace-symmetry --handoff` writes the inputs).
+
+---
+
+## Further reading
+
+New to topology in condensed matter? These cover the ideas behind the condensed-matter tools: Berry phases, Chern numbers, Weyl points and symmetry-protected band crossings.
+
+- **[Topology in condensed matter: tying quantum knots](https://topocondmat.org/)**: a free online course with lecture notes, videos and interactive code.
+- **B. A. Bernevig with T. L. Hughes, *Topological Insulators and Topological Superconductors*** (Princeton University Press, 2013): a graduate textbook.
+- **S. M. Girvin and K. Yang, *[Modern Condensed Matter Physics](https://www.cambridge.org/highereducation/books/modern-condensed-matter-physics/F0A27AC5DEA8A40EA6EA5D727ED8B14E)*** (Cambridge University Press, 2019): a graduate textbook covering lattice dynamics and phonons, band theory, Berry phases and topological phases.
 
 ---
 
 ## Roadmap
 
-Planned additions, focused on condensed-matter use cases:
+- **Phonon topology at finite temperature**: temperature-renormalized force constants fitted from GRACE MD with phonopy (symfc), and Weyl-node trajectories and annihilation versus temperature. In progress.
+- **Uncertainty on topological charges**: node charges across a committee of GRACE models.
+- **Topological phase diagrams under strain and pressure**, with automatic tracking of node creation and annihilation.
+- **Phonon surface states** from surface Green's functions.
+- **Chiral phonons**: phonon angular momentum and circular polarisation.
+- **Allen–Dynes T<sub>c</sub> helper** combining DFT α²F(ω) or λ with GRACE phonons.
 
-- **Anharmonic phonons at finite temperature** (TDEP-style fit from GRACE MD), for dynamically stabilised phases such as superconducting hydrides.
-- **Soft-mode / CDW finder**: follow imaginary phonon modes into the distorted ground state and report the energy gain and space group.
-- **Phonon surface states** from surface Green's functions, the surface signature of Weyl and nodal-line phonons.
-- **Chiral phonons**: phonon angular momentum and circular polarisation at valley points of 2D materials.
-- **Allen–Dynes Tc helper** that combines DFT α²F(ω) or λ with GRACE phonon frequencies.
-- **phonopy backend** for symmetry-reduced displacements, irreducible representations and LO–TO splitting.
-
-Suggestions and pull requests are welcome via the [issue tracker](https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential/issues).
+Suggestions and pull requests are welcome in the [issue tracker](https://github.com/Asif-Iqbal-Bhatti/vasp-grace-tensorpotential/issues).
 
 ---
 
-## Project structure
+## Project layout and tests
+
+<details>
+<summary>Repository layout</summary>
 
 ```
 vasp-grace-tensorpotential/
-├── src/
-│   └── vasp_grace/          # all modules (importable package)
-│       ├── calculator.py    # shared GRACE model loader
-│       ├── main.py
-│       ├── active_learning.py
-│       ├── montecarlo.py
-│       ├── dislocation.py
-│       ├── lihopping.py
-│       ├── thermal_conductivity.py
-│       └── condmat/         # condensed-matter physics and topology
-│           ├── symmetry_stability.py
-│           ├── chirality.py
-│           ├── topological_phonons.py
-│           ├── phonon_berry.py
-│           ├── topology.py
-│           └── moire.py
-├── examples/
-│   └── quickstart.py        # interactive marimo notebook
-├── docs/
-│   └── index.html           # project website (GitHub Pages)
-├── tests/
-│   ├── test_modules.py      # integration test suite
-│   └── (POSCAR, INCAR_*, OUTCAR, ...)
-├── README.md
-├── pyproject.toml
-└── LICENSE
+├── src/vasp_grace/
+│   ├── calculator.py           shared GRACE model loader, CALM uncertainty
+│   ├── main.py                 vasp-grace (VASP drop-in)
+│   ├── active_learning.py      grace-active-learning
+│   ├── montecarlo.py           grace-mc
+│   ├── dislocation.py          grace-dislocation
+│   ├── lihopping.py            grace-lihopping
+│   ├── thermal_conductivity.py grace-kappa
+│   └── condmat/
+│       ├── symmetry_stability.py   grace-symmetry
+│       ├── chirality.py
+│       ├── topological_phonons.py  grace-topo-phonons
+│       ├── phonon_berry.py         grace-phonon-berry
+│       ├── phonon_tools.py         eigen-solver, Chern numbers, node search, phonopy backend
+│       ├── topology.py             grace-topology
+│       └── moire.py                grace-moire
+├── examples/quickstart.py      interactive marimo notebook
+├── docs/                       website (GitHub Pages) and logo
+└── tests/test_modules.py       test suite
 ```
 
-### Running tests
+</details>
 
 ```bash
 python tests/test_modules.py
 ```
 
-The suite covers syntax, CLI help, structure-only modules (topology, dislocation, moiré, Li hopping) and, when `tensorpotential` is installed, end-to-end GRACE runs including phonon topology.
+The suite checks every module's syntax and `--help`, runs the structure-only tools, and with `tensorpotential` installed runs GRACE end to end, including analytic Chern-number models and CoSi phonon topology.
 
 ---
 
@@ -372,14 +374,20 @@ The suite covers syntax, CLI help, structure-only modules (topology, dislocation
 }
 ```
 
-Please also cite the methods you use:
+<details>
+<summary>Please also cite the methods you use</summary>
 
-- Bochkarev, A., Lysogorskiy, Y. & Drautz, R. "Graph atomic cluster expansion for semilocal interactions beyond equivariant message passing." *Phys. Rev. X* **14**, 021036 (2024). https://doi.org/10.1103/PhysRevX.14.021036
-- Bochkarev, A. *et al.* "Efficient parametrization of the atomic cluster expansion." *Phys. Rev. Mater.* **6**, 013804 (2022). https://doi.org/10.1103/PhysRevMaterials.6.013804
-- Larsen, A. H. *et al.* "The atomic simulation environment." *J. Phys.: Condens. Matter* **29**, 273002 (2017). https://doi.org/10.1088/1361-648X/aa680e
-- Müller-Plathe, F. "A simple nonequilibrium molecular dynamics method for calculating the thermal conductivity." *J. Chem. Phys.* **106**, 6082 (1997). https://doi.org/10.1063/1.473271 (for `grace-kappa`)
+- Bochkarev, A., Lysogorskiy, Y. & Drautz, R. Graph atomic cluster expansion for semilocal interactions beyond equivariant message passing. *Phys. Rev. X* **14**, 021036 (2024). https://doi.org/10.1103/PhysRevX.14.021036
+- Bochkarev, A. *et al.* Efficient parametrization of the atomic cluster expansion. *Phys. Rev. Mater.* **6**, 013804 (2022). https://doi.org/10.1103/PhysRevMaterials.6.013804
+- Larsen, A. H. *et al.* The atomic simulation environment. *J. Phys.: Condens. Matter* **29**, 273002 (2017). https://doi.org/10.1088/1361-648X/aa680e
+- Togo, A., Chaput, L., Tadano, T. & Tanaka, I. Implementation strategies in phonopy and phono3py. *J. Phys.: Condens. Matter* **35**, 353001 (2023). https://doi.org/10.1088/1361-648X/acd831 (phonon topology tools)
+- Fukui, T., Hatsugai, Y. & Suzuki, H. Chern numbers in discretized Brillouin zone. *J. Phys. Soc. Jpn.* **74**, 1674 (2005). https://doi.org/10.1143/JPSJ.74.1674 (Chern numbers)
+- Watanabe, H., Po, H. C., Zaletel, M. P. & Vishwanath, A. Filling-enforced gaplessness in band structures of the 230 space groups. *Phys. Rev. Lett.* **117**, 096404 (2016). https://doi.org/10.1103/PhysRevLett.117.096404 (`grace-symmetry`)
+- Müller-Plathe, F. A simple nonequilibrium molecular dynamics method for calculating the thermal conductivity. *J. Chem. Phys.* **106**, 6082 (1997). https://doi.org/10.1063/1.473271 (`grace-kappa`)
 
-> If this work is useful to you, a star on the repo and a citation mean a lot. Thank you.
+</details>
+
+If this work is useful to you, a star and a citation are much appreciated.
 
 ---
 

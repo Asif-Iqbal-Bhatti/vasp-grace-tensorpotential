@@ -12,6 +12,9 @@ import os
 
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+# Take GPU memory as needed instead of reserving almost all of it at start-up,
+# so several runs (or other GPU programs) can share the card.
+os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="tensorflow")

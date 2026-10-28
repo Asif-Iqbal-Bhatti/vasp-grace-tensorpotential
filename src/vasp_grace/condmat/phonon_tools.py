@@ -38,6 +38,74 @@ _SQRT_TO_EV = units._hbar * 1e10 / np.sqrt(units._e * units._amu)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Force constants with space-group symmetry (phonopy)
+# ──────────────────────────────────────────────────────────────────────────────
+
+class PhonopyPhonons:
+    """
+    Force constants from phonopy, symmetrized over the space group, behind the
+    interface eigensystem() uses.
+
+    Finite-displacement force constants from ASE are not exactly space-group
+    symmetric, so symmetry-related phonon nodes come out slightly displaced from
+    one another. phonopy builds the force constants from symmetry-reduced
+    displacements and projects them onto the space group, which removes that.
+
+    phonopy puts atomic positions into the Fourier phase, so its D(q) is not
+    periodic in q. dynamical_matrix() returns U† D U with U = diag(exp(-2πi q·r)),
+    the lattice-periodic gauge that ASE uses (D(q+G) = D(q)), so meshes can wrap
+    around the zone. The change of gauge is a diagonal phase; it leaves the
+    frequencies untouched and does not change Chern numbers on closed surfaces.
+
+    Every D(q) comes from phonopy's own get_dynamical_matrix_at_q().
+    """
+
+    def __init__(self, phonon):
+        self.phonon = phonon
+        self._pos = np.repeat(phonon.primitive.scaled_positions, 3, axis=0)
+
+    def dynamical_matrix(self, q_red):
+        q = np.asarray(q_red, dtype=float)
+        D = self.phonon.get_dynamical_matrix_at_q(q)
+        u = np.exp(-2j * np.pi * (self._pos @ q))
+        return (u.conj()[:, None] * D) * u[None, :]
+
+
+def have_phonopy():
+    import importlib.util
+    return importlib.util.find_spec("phonopy") is not None
+
+
+def phonopy_phonons(atoms, calc, supercell=(3, 3, 3), delta=0.01, save="phonopy_params.yaml"):
+    """
+    Space-group-symmetrized force constants for `atoms` (the primitive cell)
+    with forces from `calc`. Writes phonopy_params.yaml for reuse in phonopy.
+    """
+    from ase import Atoms
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import PhonopyAtoms
+
+    unit = PhonopyAtoms(symbols=atoms.get_chemical_symbols(), cell=atoms.cell.array,
+                        scaled_positions=atoms.get_scaled_positions())
+    phonon = Phonopy(unit, supercell_matrix=np.diag(supercell))
+    phonon.generate_displacements(distance=delta)
+    forces = []
+    for sc in phonon.supercells_with_displacements:
+        a = Atoms(sc.symbols, cell=sc.cell, scaled_positions=sc.scaled_positions, pbc=True)
+        a.calc = calc
+        forces.append(a.get_forces())
+    print(f"phonopy: {len(forces)} symmetry-reduced displacements in a "
+          f"{'×'.join(map(str, supercell))} supercell")
+    phonon.forces = np.array(forces)
+    phonon.produce_force_constants()
+    phonon.symmetrize_force_constants(show_drift=False)
+    phonon.symmetrize_force_constants_by_space_group(show_drift=False)
+    if save:
+        phonon.save(save)
+    return PhonopyPhonons(phonon)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Eigen-solver
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -45,9 +113,15 @@ def eigensystem(ph, q_red):
     """
     Frequencies (THz, ascending; negative = imaginary) and orthonormal
     eigenvectors (columns, shape (3N, 3N)) of the dynamical matrix at reduced q.
-    `ph` is an ASE Phonons object after ph.read().
+    `ph` is an ASE Phonons object after ph.read(), or a PhonopyPhonons.
     """
-    D = ph.compute_dynamical_matrix(np.asarray(q_red, dtype=float), ph.D_N)
+    if hasattr(ph, "dynamical_matrix"):
+        D = ph.dynamical_matrix(q_red)
+    else:
+        # ASE's D(q) corresponds to Bloch waves exp(-iq·R); conjugate it to the
+        # standard exp(+iq·R) convention phonopy uses, so both backends give the
+        # same sign of Berry curvature and Chern numbers.
+        D = ph.compute_dynamical_matrix(np.asarray(q_red, dtype=float), ph.D_N).conj()
     D = 0.5 * (D + D.conj().T)
     w2, vecs = np.linalg.eigh(D)
     nu = np.sign(w2) * np.sqrt(np.abs(w2)) * _SQRT_TO_EV * THZ_PER_EV

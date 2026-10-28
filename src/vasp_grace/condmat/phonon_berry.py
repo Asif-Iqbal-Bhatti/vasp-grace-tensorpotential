@@ -69,11 +69,13 @@ from ase.phonons import Phonons
 
 try:
     from ..calculator import load_calculator
-    from .phonon_tools import bands_and_vectors, eigensystem, plaquette_flux_map
+    from .phonon_tools import (bands_and_vectors, eigensystem, plaquette_flux_map,
+                               have_phonopy, phonopy_phonons)
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
     from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
-                                                 plaquette_flux_map)
+                                                 plaquette_flux_map, have_phonopy,
+                                                 phonopy_phonons)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -368,6 +370,9 @@ def main():
                         help="Phonon supercell (default: 3 3 3).")
     parser.add_argument("--delta",     type=float, default=0.015,
                         help="Displacement amplitude in Å (default: 0.015).")
+    parser.add_argument("--fc", choices=["phonopy", "ase"], default=None,
+                        help="Force constants: phonopy (space-group symmetrized, the default when "
+                             "phonopy is installed) or ase (finite displacements, cached in phonon/).")
     parser.add_argument("--curvature", action="store_true",
                         help="Compute Berry curvature Ω(k) on a 2D kx-ky mesh.")
     parser.add_argument("--nkx",       type=int, default=20,
@@ -383,7 +388,12 @@ def main():
 
     atoms = read(args.poscar, format="vasp")
     calc  = load_calculator(args.model)
-    ph    = build_phonon_object(atoms, calc, tuple(args.supercell), args.delta)
+    fc = args.fc or ("phonopy" if have_phonopy() else "ase")
+    if fc == "phonopy":
+        ph = phonopy_phonons(atoms, calc, tuple(args.supercell), args.delta)
+    else:
+        ph = build_phonon_object(atoms, calc, tuple(args.supercell), args.delta)
+    print(f"Force constants: {fc}")
 
     # ── Zak phase ──────────────────────────────────────────────────────────────
     q_pts, bandpath = build_bz_path(atoms, args.path, args.nkpts)

@@ -41,7 +41,7 @@ dependencies = [
 tda      = ["gudhi"]
 examples = ["marimo"]
 # symlint (filling-enforced gaplessness) needs Python >= 3.10 and is installed from GitHub
-condmat  = ["symlint @ git+https://github.com/Asif-Iqbal-Bhatti/symlint.git"]
+condmat  = ["symlint @ git+https://github.com/Asif-Iqbal-Bhatti/symlint.git", "phonopy>=2.20"]
 dev      = ["pytest>=7.0", "black", "pylint"]
 
 [project.urls]
