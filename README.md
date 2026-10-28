@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo.svg" alt="vasp-grace logo: a 3×3 lattice with one bonded path" width="96">
+  </picture>
+</p>
+
 # vasp-grace-tensorpotential
 
 [![Python](https://img.shields.io/badge/python-3.9%2B-3776AB)](https://www.python.org/)
