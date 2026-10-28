@@ -20,22 +20,34 @@ Open work, in the order to pick it up.
 
 ### Open
 
-1. **Statistical noise.** With 60 snapshots, half-run spreads are 0.03–0.24 THz, about as large as the temperature shifts (≈0.3 THz at R by 600 K).
-   - A rerun with 150 snapshots per T was running when this was written: scratch directory `tdep_GR2`, command below. Record whether the spreads drop clearly below the shifts.
-   - If they don't: more snapshots, a check of snapshot decorrelation (velocity autocorrelation of the slowest optical mode), several independent seeds, and symfc cutoff options.
-2. **Γ high-frequency modes at 100 K sit up to 0.4 THz below harmonic.** Classical MD that close to 0 K should nearly reproduce the harmonic force constants. Candidates to check:
+1. **Statistical noise: mostly solved with 150 snapshots.**
+   - With 60 snapshots, half-run spreads were 0.03–0.24 THz, as large as the temperature shifts.
+   - With 150 snapshots per T (200 fs apart) they are mostly 0.001–0.08 THz, and several nodes now soften with temperature well beyond their error bars, e.g. (THz, 0 / 100 / 300 / 600 K):
+
+     | Node | 0 K | 100 K | 300 K | 600 K |
+     |---|---|---|---|---|
+     | Γ triplet, bands 9–11 | 6.926 | 6.837 ± 0.021 | 6.764 ± 0.007 | 6.632 ± 0.040 |
+     | R, bands 8–11 | 7.249 | 7.159 ± 0.019 | 7.091 ± 0.036 | 6.944 ± 0.036 |
+     | R, bands 12–15 | 7.738 | 7.709 ± 0.008 | 7.611 ± 0.012 | 7.472 ± 0.027 |
+
+   - Some spreads remain larger: up to 0.21 THz for the Γ triplet at bands 12–14 at 600 K. Use 150+ snapshots as the default.
+   - All Γ and R charges are unchanged up to 600 K, as their symmetry requires. Full output: `weyl_trajectories.dat` from the run below (about 1 hour alone on the GPU).
+2. **Γ anomaly: confirmed, not noise.** The top Γ triplet (bands 21–23) is at 12.258 THz harmonic and 11.809 ± 0.005 THz at 100 K, then rises to 12.072 at 300 K and falls to 11.915 at 600 K. A 0.45 THz drop at 100 K with a 0.005 THz error bar is a systematic Γ-specific bias, not physics: classical MD near 0 K should approach the harmonic force constants. It also likely explains the lower Γ triplet (bands 6–8, item 3). Candidates to check, cheapest first:
+   - the rigid-translation removal (`U -= U.mean(...)`) and the acoustic sum rule in the symfc fit (Γ optical modes are where an imperfect sum rule shows up)
+   - the reference structure (mean residual force 0.037 eV/Å at 100 K)
    - fp32 force noise (try a `-fp64` model)
-   - the reference structure (mean residual force was 0.06 eV/Å at 100 K)
-   - the fit residual (12 % at 100 K)
    - a phonopy random-displacement fit at a small amplitude, as a control
-3. **Re-validate pinned-node tracking.** The multiplicity/nearest-frequency matching was added after the first run, which falsely reported the Γ triplet (bands 6–8) as vanished at 100 K because of band reordering. The 150-snapshot rerun is the first test of the fix.
-4. **Weyl-point tracking has not been run yet.** Plan: a zone search of CoSi gap 3|4 at 16³, tracking at 100/300/600 K, then the new-node search at 600 K. Expect a few hours. Run it alone on the GPU.
+3. **Bug: node matching is not one-to-one.** Pinned nodes are matched to the nearest multiplet of the same size by frequency alone, so two nodes can claim the same multiplet:
+   - At 100 K, node 1 (Γ triplet, bands 6–8, 6.42 THz) was matched to bands 9–11, which already belonged to node 2.
+   - At 600 K, node 7 (R, bands 0–3) was matched to bands 4–7, which belonged to node 8, and was reported as "charges changed". No charge actually changed.
+   - Fix: a one-to-one assignment (Hungarian algorithm on frequency difference), preferably using eigenvector overlap with the previous temperature's multiplet, and flag a node as lost when no unclaimed multiplet is close.
+4. **Weyl-point tracking has not been run yet.** Plan: a zone search of CoSi gap 3|4 at 16³, tracking at 100/300/600 K with 150 snapshots, then the new-node search at 600 K. Expect several hours. Run it alone on the GPU, after items 2 and 3.
 5. **Before calling it done:**
    - README section for `--temperature`, with method, limits (classical MD, no zero-point motion) and TDEP/symfc citations taken from their own documentation
    - a test for `effective_phonons` (short MD, check space group kept and frequencies close to harmonic)
    - remove "experimental" from the help text
 
-Command for the running check (Γ and R nodes only, about 1 hour):
+Command for the Γ and R check (about 1 hour alone on the GPU):
 
 ```bash
 grace-topo-phonons --poscar POSCAR --path GXMGRX --nkpts 40 \
