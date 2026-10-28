@@ -72,12 +72,13 @@ from ase.phonons import Phonons
 try:
     from ..calculator import load_calculator
     from .phonon_tools import (bands_and_vectors, eigensystem, chern_on_sphere, find_nodes,
-                               have_phonopy, phonopy_phonons)
+                               have_phonopy, phonopy_phonons, effective_phonons)
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
     from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
                                                  chern_on_sphere, find_nodes,
-                                                 have_phonopy, phonopy_phonons)
+                                                 have_phonopy, phonopy_phonons,
+                                                 effective_phonons)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -551,6 +552,192 @@ def write_summary(crossings, n_modes, n_imaginary, filename="phonon_topo_summary
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Phonon topology versus temperature
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _multiplet_spread(ph, q, lo, hi):
+    """Frequency spread of bands lo..hi at q: zero exactly at the node."""
+    nu = eigensystem(ph, q)[0]
+    return float(nu[hi] - nu[lo])
+
+
+def follow_node(ph, q0, lo, hi, fixed=False):
+    """
+    Re-converge a node from its previous position with new force constants.
+    Nodes pinned by symmetry (e.g. at Γ or R, given with --node) stay where they
+    are. Returns (q, spread in THz); spread above a tolerance means the node is gone.
+    """
+    from scipy.optimize import minimize
+    q0 = np.asarray(q0, float)
+    if fixed:
+        return q0, _multiplet_spread(ph, q0, lo, hi)
+    res = minimize(lambda q: _multiplet_spread(ph, q, lo, hi), q0, method="Nelder-Mead",
+                   options={"xatol": 1e-7, "fatol": 1e-8, "maxiter": 600,
+                            "initial_simplex": q0 + np.vstack([np.zeros(3), np.eye(3) * 0.01])})
+    return np.mod(res.x, 1.0), float(res.fun)
+
+
+def _min_image_distance(qa, qb, rec):
+    d = (np.asarray(qa) - np.asarray(qb) + 0.5) % 1.0 - 0.5
+    return float(np.linalg.norm(d @ rec))
+
+
+def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, node_tol=0.02):
+    """
+    Follow every node from the harmonic (0 K) result through increasing T.
+
+    At each T the effective force constants are fitted from GRACE MD; each node
+    is re-converged from its previous position, and its charge recomputed. The
+    two half-fits give error bars on the node position and frequency. A node
+    whose bands no longer meet has vanished; two vanishing nodes of opposite
+    charge in the same gap that were close together have annihilated.
+    """
+    rec0 = np.asarray(prim.cell.reciprocal())
+    tracked = [{"id": i, "bands": n["bands"], "q": np.asarray(n["q"], float),
+                "charges": dict(n["charges"]), "fixed": n.get("fixed", False), "alive": True,
+                "freq": n["frequency_THz"], "mult": n["multiplicity"]}
+               for i, n in enumerate(base_nodes) if n["charges"]]
+    rows = [{"T": 0.0, "id": t["id"], "bands": t["bands"], "q": t["q"],
+             "freq": base_nodes[t["id"]]["frequency_THz"], "err_freq": 0.0, "err_q": 0.0,
+             "charges": t["charges"], "status": "harmonic"} for t in tracked]
+    md_info, events, last = [], [], None
+
+    for T in sorted(temperatures):
+        print(f"\nT = {T:g} K: GRACE MD and effective force constants...")
+        eff = effective_phonons(prim, calc, T, tuple(args.supercell), timestep=args.md_timestep,
+                                npt_steps=args.npt_steps, equil_steps=args.md_equil,
+                                n_snapshots=args.md_snapshots, sample_every=args.md_every,
+                                npt=not args.no_npt, seed=args.seed)
+        info = eff["info"]
+        md_info.append(info)
+        print(f"  {info['volume']}: V = {info['volume_per_cell_A3']:.3f} Å³, "
+              f"{info['space_group']}, fit residual {info['fit_residual']:.3f}, "
+              f"mean force {info['mean_force_per_atom_eV_A']:.4f} eV/Å")
+        rec = np.asarray(eff["prim"].cell.reciprocal())
+        ph_a, ph_b = eff["halves"]
+        nodes_T, gone = [], []
+        for t in tracked:
+            if not t["alive"]:
+                continue
+            if t["fixed"]:
+                # a node pinned by symmetry keeps its multiplicity but can change band
+                # index when frequencies reorder: take the nearest multiplet of that size
+                nu_q = eigensystem(eff["ph"], t["q"])[0]
+                same = [(lo_, hi_) for lo_, hi_ in multiplets(nu_q, args.degen_tol)
+                        if hi_ - lo_ + 1 == t["mult"]]
+                if same:
+                    t["bands"] = min(same, key=lambda g: abs(nu_q[g[0]:g[1] + 1].mean() - t["freq"]))
+            lo, hi = t["bands"]
+            q, spread = follow_node(eff["ph"], t["q"], lo, hi, t["fixed"])
+            qa, _ = follow_node(ph_a, t["q"], lo, hi, t["fixed"])
+            qb, _ = follow_node(ph_b, t["q"], lo, hi, t["fixed"])
+            nu, nua, nub = (eigensystem(x, y)[0] for x, y in ((eff["ph"], q), (ph_a, qa), (ph_b, qb)))
+            row = {"T": float(T), "id": t["id"], "bands": t["bands"], "q": q,
+                   "freq": float(nu[lo:hi + 1].mean()),
+                   "err_freq": float(abs(nua[lo:hi + 1].mean() - nub[lo:hi + 1].mean())),
+                   "err_q": _min_image_distance(qa, qb, rec), "charges": {}, "status": ""}
+            if spread > node_tol:
+                t["alive"] = False
+                row["status"] = f"vanished (bands {spread:.3f} THz apart)"
+                gone.append((t, t["q"]))
+            else:
+                node = node_chern(eff["ph"], eff["prim"], q, lo, hi, **chern_args)
+                node["class"] = classify_node(node)
+                node["frequency_THz"] = row["freq"]
+                nodes_T.append(node)
+                row["charges"] = node["charges"]
+                same_charges = sorted(node["charges"].values()) == sorted(t["charges"].values())
+                row["status"] = "tracked" if same_charges else f"charges changed from {t['charges']}"
+                t["q"], t["freq"] = q, row["freq"]
+            rows.append(row)
+        # opposite charges vanishing together close by: pair annihilation
+        for i, (a, qa_) in enumerate(gone):
+            for b, qb_ in gone[i + 1:]:
+                ga, gb = set(a["charges"]), set(b["charges"])
+                common = ga & gb
+                if common and all(a["charges"][g] == -b["charges"][g] for g in common) \
+                        and _min_image_distance(qa_, qb_, rec0) < 0.05:
+                    events.append(f"T = {T:g} K: nodes {a['id']} and {b['id']} "
+                                  f"(gap {sorted(common)}) annihilated")
+        for t, _ in gone:
+            events.append(f"T = {T:g} K: node {t['id']} (bands {t['bands'][0]}-{t['bands'][1]}) vanished")
+        write_nodes(nodes_T, f"phonon_nodes_T{T:g}.dat")
+        last = (T, eff)
+    return rows, md_info, events, last
+
+
+def find_new_nodes(eff, T, rows, gaps, args, chern_args):
+    """Full search at the highest T for nodes the tracking did not start from."""
+    print(f"\nSearching the zone at T = {T:g} K for newly created nodes...")
+    ph, prim = eff["ph"], eff["prim"]
+    rec = np.asarray(prim.cell.reciprocal())
+    known = [r for r in rows if r["T"] == T and r["charges"]]
+    new = []
+    for f in find_nodes(lambda q: eigensystem(ph, q), args.search, gaps, tol_THz=args.tol,
+                        max_nodes=args.max_seeds):
+        if any(_min_image_distance(f["q"], r["q"], rec) < args.sphere_r and
+               r["bands"][0] <= f["band_lo"] <= r["bands"][1] for r in known):
+            continue
+        node = node_chern(ph, prim, f["q"], f["band_lo"], f["band_lo"] + 1, **chern_args)
+        if node["charges"] and not any(same_node(node, m, rec, args.sphere_r) for m in new):
+            node["class"] = classify_node(node)
+            new.append(node)
+    return new
+
+
+def write_trajectories(rows, md_info, events, new_nodes, filename="weyl_trajectories.dat",
+                       summary="phonon_topo_vs_T.txt"):
+    with open(filename, "w") as f:
+        f.write("# Phonon nodes versus temperature (effective force constants from GRACE MD)\n")
+        f.write("# err_freq, err_q: difference between fits to the two halves of the MD run\n")
+        f.write(f"# {'T(K)':>6}  {'id':>4}  {'bands':>7}  {'qx':>8}  {'qy':>8}  {'qz':>8}  "
+                f"{'freq(THz)':>9}  {'err_freq':>8}  {'err_q(1/Å)':>10}  {'charges':>14}  status\n")
+        for r in rows:
+            ch = ",".join(f"{g}:{c:+d}" for g, c in r["charges"].items()) or "-"
+            f.write(f"  {r['T']:6.0f}  {r['id']:4d}  {r['bands'][0]:>3}-{r['bands'][1]:<3}  "
+                    f"{r['q'][0]:8.5f}  {r['q'][1]:8.5f}  {r['q'][2]:8.5f}  {r['freq']:9.4f}  "
+                    f"{r['err_freq']:8.4f}  {r['err_q']:10.5f}  {ch:>14}  {r['status']}\n")
+    with open(summary, "w") as f:
+        f.write("Phonon topology versus temperature\n==================================\n\n")
+        f.write("Effective harmonic force constants at T, fitted by phonopy (symfc) from classical\n"
+                "GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.\n\n")
+        for i in md_info:
+            f.write(f"T = {i['temperature_K']:g} K: {i['volume']}, V = {i['volume_per_cell_A3']:.3f} Å³, "
+                    f"{i['space_group']}{'' if i['space_group_kept'] else ' (SPACE GROUP CHANGED)'}, "
+                    f"{i['n_snapshots']} snapshots every {i['sample_every_fs']:g} fs, "
+                    f"rms displacement {i['rms_displacement_A']:.3f} Å, fit residual "
+                    f"{i['fit_residual']:.3f}, mean force {i['mean_force_per_atom_eV_A']:.4f} eV/Å\n")
+        f.write("\nEvents\n------\n")
+        for e in events or ["none: every node survived"]:
+            f.write(f"- {e}\n")
+        if new_nodes is not None:
+            f.write(f"\nNodes found only at the highest T: {len(new_nodes)}\n")
+            for n in new_nodes:
+                f.write(f"  q = ({n['q'][0]:.4f}, {n['q'][1]:.4f}, {n['q'][2]:.4f})  bands "
+                        f"{n['bands'][0]}-{n['bands'][1]}  charges {n['charges']}\n")
+    print(f"Wrote {filename} and {summary}")
+
+
+def plot_trajectories(rows, filename="weyl_nodes_vs_T.png"):
+    fig, ax = plt.subplots(figsize=(6, 4.5))
+    for nid in sorted({r["id"] for r in rows}):
+        rs = [r for r in rows if r["id"] == nid and (r["charges"] or r["status"] == "harmonic")]
+        if len(rs) < 2:
+            continue
+        sign = next(iter(rs[0]["charges"].values()), 0)
+        ax.errorbar([r["T"] for r in rs], [r["freq"] for r in rs],
+                    yerr=[r["err_freq"] for r in rs], marker="o", ms=3, lw=1, capsize=2,
+                    color="tab:red" if sign > 0 else "tab:blue", alpha=0.7)
+    ax.set_xlabel("Temperature (K)")
+    ax.set_ylabel("Node frequency (THz)")
+    ax.set_title("Phonon nodes versus temperature (red C > 0, blue C < 0)")
+    fig.tight_layout()
+    fig.savefig(filename, dpi=300)
+    plt.close(fig)
+    print(f"Wrote {filename}")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # CLI
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -591,8 +778,26 @@ def main():
                         help="Sphere radius in 1/Å without 2π (default: 0.01).")
     parser.add_argument("--sphere_n", type=int, default=16,
                         help="Polar divisions of the sphere mesh (default: 16).")
-    parser.add_argument("--degen_tol", type=float, default=0.05,
-                        help="Bands within this many THz at a node form one multiplet (default: 0.05).")
+    parser.add_argument("--degen_tol", type=float, default=None,
+                        help="Bands within this many THz at a node form one multiplet (default: 0.001 "
+                             "with phonopy, whose degeneracies are exact; 0.05 with --fc ase).")
+    t_grp = parser.add_argument_group("phonon topology versus temperature (EXPERIMENTAL, see TODO.md; "
+                                      "needs phonopy with symfc)")
+    t_grp.add_argument("--temperature", type=float, nargs="+", metavar="T",
+                       help="Follow the nodes from 0 K through these temperatures (K), using effective "
+                            "force constants fitted from GRACE MD.")
+    t_grp.add_argument("--md_snapshots", type=int, default=60, help="MD snapshots per T (default: 60).")
+    t_grp.add_argument("--md_every", type=int, default=100,
+                       help="MD steps between snapshots (default: 100, i.e. 200 fs).")
+    t_grp.add_argument("--md_equil", type=int, default=2000, help="NVT equilibration steps (default: 2000).")
+    t_grp.add_argument("--npt_steps", type=int, default=3000,
+                       help="NPT steps for the average cell at T (default: 3000).")
+    t_grp.add_argument("--no_npt", action="store_true",
+                       help="Keep the 0 K cell (anharmonic shift at fixed volume only).")
+    t_grp.add_argument("--md_timestep", type=float, default=2.0, help="MD time step in fs (default: 2).")
+    t_grp.add_argument("--no_search_tmax", action="store_true",
+                       help="With --search, skip the extra zone search at the highest T.")
+    t_grp.add_argument("--seed", type=int, default=0, help="Random seed for the MD (default: 0).")
     args = parser.parse_args()
 
     if not os.path.exists(args.poscar):
@@ -602,6 +807,10 @@ def main():
     calc  = load_calculator(args.model)
 
     fc = args.fc or ("phonopy" if have_phonopy() else "ase")
+    if args.temperature and fc != "phonopy":
+        parser.error("--temperature needs phonopy (for the symfc fit); install it or drop --fc ase")
+    if args.degen_tol is None:
+        args.degen_tol = 1e-3 if fc == "phonopy" else 0.05
     if fc == "phonopy":
         ph = phonopy_phonons(atoms, calc, tuple(args.supercell), args.delta)
     else:
@@ -652,7 +861,10 @@ def main():
             if hi > lo and nu0[lo] > 0.1:             # skip the acoustic zero at Γ
                 node = node_chern(ph, atoms, q, lo, hi, **chern_args)
                 node["class"] = classify_node(node)
+                node["fixed"] = True                  # pinned to this q for --temperature
                 point_nodes.append(node)
+    base_nodes = list(point_nodes)
+    gaps = None
     if args.search:
         n_modes_all = omega_kn.shape[1]
         gaps = range(args.bands[0], args.bands[1] + 1) if args.bands else range(3, n_modes_all - 1)
@@ -672,6 +884,7 @@ def main():
             (atoms.cell.array, atoms.get_scaled_positions(), atoms.numbers), symprec=1e-3)
         rotations = ds.rotations if ds is not None else [np.eye(3, dtype=int)]
         computed = unique_nodes(point_nodes + searched, rec, args.sphere_r)
+        base_nodes = computed
         point_nodes = unique_nodes(computed + [img for n in computed
                                                for img in symmetry_images(n, rotations)],
                                    rec, args.sphere_r)
@@ -688,6 +901,17 @@ def main():
     plot_bands_with_crossings(x_coords, omega_kn, crossings, special_x)
     write_crossings(crossings, q_pts)
     write_summary(crossings, n_modes, n_imaginary, nodes=nodes, balance=balance)
+
+    if args.temperature:
+        if not base_nodes:
+            parser.error("--temperature needs nodes to follow: give --node and/or --search")
+        rows, md_info, events, (t_max, eff_max) = track_nodes(
+            base_nodes, args.temperature, atoms, calc, args, chern_args)
+        new_nodes = None
+        if args.search and not args.no_search_tmax:
+            new_nodes = find_new_nodes(eff_max, t_max, rows, gaps, args, chern_args)
+        write_trajectories(rows, md_info, events, new_nodes)
+        plot_trajectories(rows)
 
 
 if __name__ == "__main__":

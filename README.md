@@ -313,7 +313,7 @@ New to topology in condensed matter? These cover the ideas behind the condensed-
 
 ## Roadmap
 
-- **Phonon topology at finite temperature**: temperature-renormalized force constants fitted from GRACE MD with phonopy (symfc), and Weyl-node trajectories and annihilation versus temperature. In progress.
+- **Phonon topology at finite temperature**: temperature-renormalized force constants fitted from GRACE MD with phonopy (symfc), and Weyl-node trajectories and annihilation versus temperature. Available as an experimental option, `grace-topo-phonons --temperature`; open validation work is listed in [TODO.md](TODO.md).
 - **Uncertainty on topological charges**: node charges across a committee of GRACE models.
 - **Topological phase diagrams under strain and pressure**, with automatic tracking of node creation and annihilation.
 - **Phonon surface states** from surface Green's functions.

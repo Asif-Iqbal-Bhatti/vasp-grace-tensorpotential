@@ -106,6 +106,140 @@ def phonopy_phonons(atoms, calc, supercell=(3, 3, 3), delta=0.01, save="phonopy_
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Effective force constants at temperature T (fitted by phonopy + symfc)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _phonopy_for(prim, supercell):
+    from phonopy import Phonopy
+    from phonopy.structure.atoms import PhonopyAtoms
+    unit = PhonopyAtoms(symbols=prim.get_chemical_symbols(), cell=prim.cell.array,
+                        scaled_positions=prim.get_scaled_positions())
+    return Phonopy(unit, supercell_matrix=np.diag(supercell))
+
+
+def _ase_supercell(phonon):
+    from ase import Atoms
+    sc = phonon.supercell
+    return Atoms(sc.symbols, cell=sc.cell, scaled_positions=sc.scaled_positions, pbc=True)
+
+
+def _fit_force_constants(prim_ref, supercell, U, F):
+    """Second-order force constants from displacement-force snapshots with symfc."""
+    phonon = _phonopy_for(prim_ref, supercell)
+    phonon.displacements = U
+    phonon.forces = F
+    phonon.produce_force_constants(fc_calculator="symfc", show_drift=False)
+    phonon.symmetrize_force_constants(show_drift=False)
+    fc = phonon.force_constants
+    predicted = -np.einsum("ijab,sjb->sia", fc, U)
+    residual = float(np.linalg.norm(F - predicted) / np.linalg.norm(F))
+    return PhonopyPhonons(phonon), residual
+
+
+def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0,
+                      npt_steps=3000, equil_steps=2000, n_snapshots=60, sample_every=100,
+                      npt=True, seed=0):
+    """
+    Temperature-dependent effective harmonic force constants (the idea of TDEP,
+    Hellman et al.), fitted by phonopy's symfc backend from GRACE MD snapshots.
+
+    1. NPT MD (MTK barostat, zero pressure) gives the average cell at T; with
+       npt=False the 0 K cell is kept and the volume is labelled as fixed.
+    2. NVT MD (Langevin) in phonopy's supercell of that cell; after equilibration
+       `n_snapshots` displacement-force pairs are taken `sample_every` steps apart.
+    3. The reference structure is the time-averaged structure, folded onto the
+       primitive cell and symmetrized back onto the space group, so Wyckoff
+       parameters can move with T. Displacements are measured from it.
+    4. symfc fits space-group-symmetric second-order force constants. Two more
+       fits from the first and second half of the snapshots give a noise floor.
+
+    The MD is classical: no zero-point motion, so results at low T approach the
+    harmonic force constants rather than the quantum ground state.
+
+    Returns dict(ph, halves=(ph_a, ph_b), prim=reference cell, info=...).
+    """
+    from ase import units
+    from ase.constraints import FixCom
+    from ase.md.langevin import Langevin
+    from ase.md.velocitydistribution import MaxwellBoltzmannDistribution, Stationary
+    from ase.spacegroup.symmetrize import refine_symmetry
+    import spglib
+
+    rng = np.random.default_rng(seed)
+    dt = timestep * units.fs
+    reps = np.asarray(supercell)
+    prim_T = prim.copy()
+    info = {"temperature_K": float(temperature), "volume": "fixed (0 K cell)",
+            "n_snapshots": int(n_snapshots), "sample_every_fs": sample_every * timestep}
+
+    # 1. Average cell at T
+    if npt:
+        from ase.md.nose_hoover_chain import MTKNPT
+        sc = prim.repeat(supercell)
+        sc.calc = calc
+        MaxwellBoltzmannDistribution(sc, temperature_K=temperature, rng=rng)
+        Stationary(sc)
+        dyn = MTKNPT(sc, dt, temperature_K=temperature, pressure_au=0.0,
+                     tdamp=100 * dt, pdamp=1000 * dt)
+        dyn.run(npt_steps // 2)
+        cells = []
+        for _ in range(10):
+            dyn.run(max(1, npt_steps // 20))
+            cells.append(sc.cell.array.copy())
+        prim_T.set_cell(np.mean(cells, axis=0) / reps[:, None], scale_atoms=True)
+        info["volume"] = "NPT average at T (zero pressure)"
+    info["volume_per_cell_A3"] = float(prim_T.get_volume())
+
+    # 2. NVT snapshots in phonopy's supercell ordering
+    phonon0 = _phonopy_for(prim_T, supercell)
+    sc = _ase_supercell(phonon0)
+    sc.calc = calc
+    sc.set_constraint(FixCom())
+    ideal = sc.get_positions().copy()
+    MaxwellBoltzmannDistribution(sc, temperature_K=temperature, rng=rng)
+    Stationary(sc)
+    dyn = Langevin(sc, dt, temperature_K=temperature, friction=0.01 / units.fs,
+                   fixcm=False, rng=rng)
+    dyn.run(equil_steps)
+    positions, forces = [], []
+    for _ in range(n_snapshots):
+        dyn.run(sample_every)
+        positions.append(sc.get_positions().copy())
+        forces.append(sc.get_forces(apply_constraint=False).copy())
+    positions, forces = np.array(positions), np.array(forces)
+
+    # 3. Symmetrized average structure as the reference
+    to_prim = np.array([phonon0.supercell.u2u_map[i] for i in phonon0.supercell.s2u_map])
+    shift = positions.mean(axis=0) - ideal
+    delta = np.array([shift[to_prim == k].mean(axis=0) for k in range(len(prim_T))])
+    prim_ref = prim_T.copy()
+    prim_ref.positions += delta - delta.mean(axis=0)
+    sg_before = spglib.get_symmetry_dataset(
+        (prim.cell.array, prim.get_scaled_positions(), prim.numbers), symprec=1e-3)
+    refine_symmetry(prim_ref, symprec=0.05)
+    sg_after = spglib.get_symmetry_dataset(
+        (prim_ref.cell.array, prim_ref.get_scaled_positions(), prim_ref.numbers), symprec=1e-3)
+    info["space_group"] = f"{sg_after.international} (#{sg_after.number})"
+    info["space_group_kept"] = bool(sg_before.number == sg_after.number)
+
+    ref_sc = _ase_supercell(_phonopy_for(prim_ref, supercell))
+    offset = np.abs(ref_sc.get_positions() - ideal).max()
+    if offset > 0.3:
+        raise RuntimeError(f"Reference supercell does not match the MD ordering ({offset:.2f} Å).")
+    U = positions - ref_sc.get_positions()
+    U -= U.mean(axis=1, keepdims=True)              # remove any rigid translation
+    info["mean_force_per_atom_eV_A"] = float(np.linalg.norm(forces.mean(axis=0), axis=1).mean())
+    info["rms_displacement_A"] = float(np.sqrt((U ** 2).sum(axis=2).mean()))
+
+    # 4. Fits: all snapshots, and the two halves for the noise floor
+    ph, info["fit_residual"] = _fit_force_constants(prim_ref, supercell, U, forces)
+    h = n_snapshots // 2
+    ph_a, _ = _fit_force_constants(prim_ref, supercell, U[:h], forces[:h])
+    ph_b, _ = _fit_force_constants(prim_ref, supercell, U[h:], forces[h:])
+    return {"ph": ph, "halves": (ph_a, ph_b), "prim": prim_ref, "info": info}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Eigen-solver
 # ──────────────────────────────────────────────────────────────────────────────
 
