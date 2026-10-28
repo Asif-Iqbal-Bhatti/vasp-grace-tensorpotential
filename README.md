@@ -42,13 +42,13 @@ POSCAR / INCAR
     ▼                              ▼                              ▼
 ┌───────────────┐        ┌─────────────────┐         ┌───────────────────┐
 │ Structure /   │        │  Ion dynamics   │         │  Condensed matter │
-│ Uncertainty   │        │  & transport    │         │  / Topology       │
+│ Uncertainty   │        │  & transport    │         │  (condmat/)       │
 ├───────────────┤        ├─────────────────┤         ├───────────────────┤
 │active_learning│        │  lihopping      │         │topological_phonons│
 │montecarlo     │        │  thermal_cond.  │         │phonon_berry       │
 │dislocation    │        │                 │         │topology (TDA)     │
 │               │        │                 │         │moire              │
-│               │        │                 │         │condmat/symmetry   │
+│               │        │                 │         │symmetry           │
 └───────────────┘        └─────────────────┘         └───────────────────┘
 ```
 
@@ -64,10 +64,10 @@ POSCAR / INCAR
 | `grace-dislocation` | `dislocation.py` | Edge, screw and mixed dislocations (isotropic Volterra or anisotropic Stroh) | `POSCAR_dislocation`, `dislocation_info.txt` |
 | `grace-lihopping` | `lihopping.py` | Sojourn-filtered ion hop detection, hop networks, Arrhenius Eₐ | `hop_events.dat`, `arrhenius.png` |
 | `grace-kappa` | `thermal_conductivity.py` | Müller-Plathe reverse NEMD lattice thermal conductivity κ | `kappa_summary.txt`, `temperature_profile.png` |
-| `grace-topology` | `topology.py` | Persistent homology (β₀ β₁ β₂): symmetry-free structural fingerprint | `betti_curves.dat`, `betti_curves.png` |
-| `grace-topo-phonons` | `topological_phonons.py` | Weyl/Dirac phonon crossings with local Berry phase | `phonon_crossings.dat`, `phonon_topo_bands.png` |
-| `grace-phonon-berry` | `phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k), Chern numbers | `phonon_zak.dat`, `phonon_chern.png` |
-| `grace-moire` | `moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
+| `grace-topology` | `condmat/topology.py` | Persistent homology (β₀ β₁ β₂): symmetry-free structural fingerprint | `betti_curves.dat`, `betti_curves.png` |
+| `grace-topo-phonons` | `condmat/topological_phonons.py` | Weyl/Dirac phonon crossings with local Berry phase | `phonon_crossings.dat`, `phonon_topo_bands.png` |
+| `grace-phonon-berry` | `condmat/phonon_berry.py` | Phonon Zak phases, Berry curvature Ω(k), Chern numbers | `phonon_zak.dat`, `phonon_chern.png` |
+| `grace-moire` | `condmat/moire.py` | Commensurate twisted-bilayer supercells (CSL), stacking maps | `POSCAR_moire`, `stacking_map.png` |
 | `grace-symmetry` | `condmat/symmetry_stability.py` | Band-insulator verdict (filling rule, via [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint)) tested against relaxation, soft phonons and temperature; structural chirality; VASP + SOC inputs | `symmetry_report.txt`, `soft_modes.dat`, `dft_handoff/` |
 
 Every command accepts `--model` as any GRACE foundation-model name or a path to your own fitted model; see [Choosing a GRACE model](#choosing-a-grace-model). In `vasp-grace` the same value goes in the `INCAR` tag `GRACE_MODEL`.
@@ -243,7 +243,7 @@ Inspired by: [atomsk](https://atomsk.univ-lille.fr) · [atomman](https://github.
 
 ## Condensed matter: symmetry-enforced gaplessness and chirality
 
-`grace-symmetry` (in `src/vasp_grace/condmat/`) asks whether a crystal can be a band insulator, and whether that answer survives the lattice dynamics.
+`grace-symmetry` (`src/vasp_grace/condmat/symmetry_stability.py`) asks whether a crystal can be a band insulator, and whether that answer survives the lattice dynamics.
 
 For a nonmagnetic crystal with space group G and ν electrons per primitive cell, Watanabe, Po, Zaletel and Vishwanath [PRL 117, 096404 (2016)] showed that a band insulator needs ν in an allowed set S_G. Otherwise the crystal is forced to be gapless (`odd_filling` or `symmetry_enforced`). [symlint](https://github.com/Asif-Iqbal-Bhatti/symlint) applies that rule to a fixed structure. The verdict is only as good as the space group, and GRACE can test the space group cheaply:
 
@@ -304,13 +304,13 @@ vasp-grace-tensorpotential/
 │       ├── dislocation.py
 │       ├── lihopping.py
 │       ├── thermal_conductivity.py
-│       ├── topology.py
-│       ├── topological_phonons.py
-│       ├── phonon_berry.py
-│       ├── moire.py
-│       └── condmat/         # condensed-matter physics
+│       └── condmat/         # condensed-matter physics and topology
+│           ├── symmetry_stability.py
 │           ├── chirality.py
-│           └── symmetry_stability.py
+│           ├── topological_phonons.py
+│           ├── phonon_berry.py
+│           ├── topology.py
+│           └── moire.py
 ├── examples/
 │   └── quickstart.py        # interactive marimo notebook
 ├── docs/

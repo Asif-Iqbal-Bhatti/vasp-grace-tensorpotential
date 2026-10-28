@@ -9,7 +9,7 @@ Strategy
 - Modules that need no GRACE model (topology, dislocation, moire, lihopping)
   are run end-to-end with a synthetic FCC-Al POSCAR.
 - GRACE-dependent modules (active_learning, montecarlo, thermal_conductivity,
-  topological_phonons, phonon_berry) are tested end-to-end when
+  condmat/topological_phonons, condmat/phonon_berry) are tested end-to-end when
   tensorpotential is installed, otherwise skipped.
 
 Run:
@@ -27,6 +27,8 @@ import numpy as np
 SCRIPT_DIR  = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "vasp_grace")
 )
+CONDMAT_DIR = os.path.join(SCRIPT_DIR, "condmat")
+SRC_DIR     = os.path.dirname(SCRIPT_DIR)
 PYTHON      = sys.executable
 GRACE_MODEL = "GRACE-2L-OAM"
 GRACE_UQ_MODEL = "GRACE-2L-OMAT-medium-base"   # ships CALM uncertainty
@@ -48,6 +50,8 @@ def run(cmd, cwd=None, timeout=120):
     env["PYTHONIOENCODING"] = "utf-8"
     env["TF_CPP_MIN_LOG_LEVEL"] = "3"
     env["TF_ENABLE_ONEDNN_OPTS"] = "0"
+    # src/ on the path: condmat modules import vasp_grace when run as scripts
+    env["PYTHONPATH"] = SRC_DIR + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     proc = subprocess.run(
         cmd, cwd=cwd, capture_output=True, text=True,
         encoding="utf-8", errors="replace", env=env, timeout=timeout
@@ -173,27 +177,27 @@ with tempfile.TemporaryDirectory() as tmp:
     with open(poscar, "w") as f:
         f.write(FCC_AL_POSCAR)
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "topology.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "topology.py"),
                    "--poscar", poscar, "--rmax", "6.0", "--npoints", "30"], cwd=tmp)
     record("single structure analysis",
            "pass" if rc == 0 and os.path.exists(os.path.join(tmp, "betti_curves.dat")) else "fail",
            out[-300:] if rc else "")
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "topology.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "topology.py"),
                    "--poscar", poscar, "--compare", poscar,
                    "--rmax", "6.0", "--npoints", "30"], cwd=tmp)
     record("compare mode (bulk vs GB)",
            "pass" if rc == 0 and os.path.exists(os.path.join(tmp, "betti_curves_compare.dat")) else "fail",
            out[-300:] if rc else "")
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "topology.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "topology.py"),
                    "--poscar", poscar, "--rmax", "6.0", "--npoints", "20", "--pbc"], cwd=tmp)
     record("PBC distance matrix", "pass" if rc == 0 else "fail", out[-200:] if rc else "")
 
     xdatcar = os.path.join(tmp, "XDATCAR")
     with open(xdatcar, "w") as f:
         f.write(make_xdatcar(FCC_AL_POSCAR, n_frames=5))
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "topology.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "topology.py"),
                    "--xdatcar", xdatcar, "--rmax", "6.0", "--npoints", "20"], cwd=tmp)
     record("XDATCAR trajectory mode", "pass" if rc == 0 else "fail", out[-200:] if rc else "")
 
@@ -249,18 +253,18 @@ with tempfile.TemporaryDirectory() as tmp:
     with open(poscar, "w") as f:
         f.write(HEX_MONO_POSCAR)
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "moire.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "moire.py"),
                    "--poscar", poscar, "--scan", "--m_max", "6"], cwd=tmp)
     record("CSL angle scan (hex)", "pass" if rc == 0 else "fail", out[-200:] if rc else "")
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "moire.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "moire.py"),
                    "--poscar", poscar, "--m", "2", "--n", "3",
                    "--gap", "3.35", "--vacuum", "15.0"], cwd=tmp)
     record("bilayer build (m=2, n=3)",
            "pass" if rc == 0 and os.path.exists(os.path.join(tmp, "POSCAR_moire")) else "fail",
            out[-300:] if rc else "")
 
-    rc, out = run([PYTHON, os.path.join(SCRIPT_DIR, "moire.py"),
+    rc, out = run([PYTHON, os.path.join(CONDMAT_DIR, "moire.py"),
                    "--poscar", poscar, "--scan", "--m_max", "6", "--lattice", "square"], cwd=tmp)
     record("CSL angle scan (square)", "pass" if rc == 0 else "fail", out[-200:] if rc else "")
 
@@ -327,7 +331,7 @@ for script in all_scripts:
 section("7. CLI validation  (--help for all GRACE modules)")
 
 for script in ["active_learning.py", "montecarlo.py", "thermal_conductivity.py",
-               "topological_phonons.py", "phonon_berry.py"]:
+               "condmat/topological_phonons.py", "condmat/phonon_berry.py"]:
     path = os.path.join(SCRIPT_DIR, script)
     rc, out = run([PYTHON, path, "--help"])
     record(f"{script} --help", "pass" if rc == 0 else "fail", out[-100:] if rc else "")
@@ -413,13 +417,12 @@ else:
         # Build force constants once; reuse for both phonon modules
         print("  Building phonon force constants (2x2x2 supercell)...")
         setup_code = f"""\
-import sys, os
-sys.path.insert(0, {repr(SCRIPT_DIR)})
+import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 from ase.io import read
 from ase.phonons import Phonons
-import topological_phonons as tp
+from vasp_grace.condmat import topological_phonons as tp
 atoms = read({repr(poscar)}, format='vasp')
 calc  = tp.load_calculator({repr(GRACE_MODEL)})
 ph    = Phonons(atoms, calc, supercell=(2,2,2), delta=0.015, name='phonon')
@@ -434,7 +437,7 @@ print('phonon force constants built')
             record("phonon force constants (2x2x2)", "pass")
 
             rc, out = run(
-                [PYTHON, os.path.join(SCRIPT_DIR, "topological_phonons.py"),
+                [PYTHON, os.path.join(CONDMAT_DIR, "topological_phonons.py"),
                  "--poscar", poscar, "--model", GRACE_MODEL,
                  "--supercell", "2", "2", "2",
                  "--path", "GX", "--nkpts", "20", "--tol", "2.0"],
@@ -445,7 +448,7 @@ print('phonon force constants built')
                    out[-400:] if rc else "")
 
             rc, out = run(
-                [PYTHON, os.path.join(SCRIPT_DIR, "phonon_berry.py"),
+                [PYTHON, os.path.join(CONDMAT_DIR, "phonon_berry.py"),
                  "--poscar", poscar, "--model", GRACE_MODEL,
                  "--supercell", "2", "2", "2",
                  "--path", "GXG", "--nkpts", "20"],
@@ -462,17 +465,10 @@ print('phonon force constants built')
 
 section("10. Condensed matter  (chirality, grace-symmetry)")
 
-SRC_DIR = os.path.dirname(SCRIPT_DIR)
-
 
 def run_with_src(args, cwd=None, timeout=300):
-    """Run `python <args>` with src/ on the path (condmat uses package imports)."""
-    env_path = os.environ.get("PYTHONPATH", "")
-    os.environ["PYTHONPATH"] = SRC_DIR + (os.pathsep + env_path if env_path else "")
-    try:
-        return run([PYTHON] + args, cwd=cwd, timeout=timeout)
-    finally:
-        os.environ["PYTHONPATH"] = env_path
+    """Run `python <args>`; run() already puts src/ on the path."""
+    return run([PYTHON] + args, cwd=cwd, timeout=timeout)
 
 
 chirality_check = textwrap.dedent("""

@@ -66,9 +66,9 @@ from ase.phonons import Phonons
 from ase import units
 
 try:
-    from .calculator import load_calculator
-except ImportError:  # run as a plain script: python phonon_berry.py
-    from calculator import load_calculator
+    from ..calculator import load_calculator
+except ImportError:  # run as a plain script; needs vasp_grace installed
+    from vasp_grace.calculator import load_calculator
 
 
 # ──────────────────────────────────────────────────────────────────────────────

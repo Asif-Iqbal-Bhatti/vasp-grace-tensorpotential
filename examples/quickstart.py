@@ -37,7 +37,7 @@ def _():
     from ase.units import GPa
 
     from vasp_grace.calculator import DEFAULT_MODEL, available_models, load_calculator
-    from vasp_grace import moire, topology
+    from vasp_grace.condmat import moire, topology
     return (
         DEFAULT_MODEL,
         available_models,
