@@ -4,7 +4,7 @@ Open work, in the order to pick it up.
 
 ## 1. Phonon topology at finite temperature (`grace-topo-phonons --temperature`)
 
-**Status: implemented, experimental.** Not yet documented in the README beyond the roadmap.
+**Status: implemented and documented** (README, "Phonon nodes versus temperature"). Validated for symmetry-pinned nodes and the overall softening; generic Weyl points are not resolved at 300–600 K (item 4).
 
 ### Done
 
@@ -52,9 +52,9 @@ Open work, in the order to pick it up.
    - **Fixed in `track_nodes`: crowded and empty nodes were reported as "tracked" or "charges changed".** The old summary said "every node survived" at 600 K while the charges summed to −18. New `crowded_nodes()`: a node with a neighbour (symmetry copies included) inside the charge sphere is "annihilated" (charge 0 next to an opposite charge), "merged" (re-converged onto another node; dropped) or "unresolved" (charges not reliable). A node with charge 0 and no neighbour inside the sphere has "vanished" (a gap minimum, not a node). All of these, and every charge change, now go into the events. Checked against the 600 K force constants of seeds 0 and 2 (`validation/scripts_h200/replay_track_600K.py`) and by a unit test.
    - Conclusion for the method: with an MLIP and classical MD, follow symmetry-pinned nodes (Γ, R; item 1) and the overall softening with T. Generic Weyl points that sit within ~0.05 Å⁻¹ of each other are not resolved at 300–600 K, and their positions depend on the model by more than on T.
 5. **Before calling it done:**
-   - README section for `--temperature`, with method, limits (classical MD, no zero-point motion) and TDEP/symfc citations taken from their own documentation
+   - ~~README section for `--temperature`~~ done, with method, checks, limits (classical MD, no zero-point motion, generic Weyl points, model dependence) and the citations given by symfc (package metadata) and TDEP (its documentation page)
    - ~~a test for `effective_phonons`~~ done: `tests/test_modules.py`, CoSi 2×2×2 at 100 K, 40 snapshots (33 s on an H200): space group kept, static offset 0.109, optical frequencies within 0.23 THz of harmonic
-   - remove "experimental" from the help text
+   - ~~remove "experimental" from the help text~~ done; the help now points to the README for what the method resolves. Defaults raised to the validated settings: `--md_snapshots 150` (was 60, while item 1 already assumed 150) and `--max_seeds 300` (was 60, which misses CoSi gap-3|4 nodes)
 
 Command for the Γ and R check (about 1 hour alone on the GPU):
 

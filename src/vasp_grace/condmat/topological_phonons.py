@@ -923,8 +923,9 @@ def main():
                         help="Search the whole zone on an N×N×N mesh for nodes and compute their charges.")
     parser.add_argument("--bands",   type=int, nargs=2, metavar=("LO", "HI"),
                         help="Restrict --search to gaps LO..HI (default: all optical gaps).")
-    parser.add_argument("--max_seeds", type=int, default=60,
-                        help="Crossings refined per gap in --search (default: 60).")
+    parser.add_argument("--max_seeds", type=int, default=300,
+                        help="Gap minima refined per gap in --search (default: 300; CoSi gap 3|4 at 16³ "
+                             "needs more than 60).")
     parser.add_argument("--sphere_r", type=float, default=0.01,
                         help="Sphere radius in 1/Å without 2π (default: 0.01).")
     parser.add_argument("--sphere_n", type=int, default=16,
@@ -932,12 +933,12 @@ def main():
     parser.add_argument("--degen_tol", type=float, default=None,
                         help="Bands within this many THz at a node form one multiplet (default: 0.001 "
                              "with phonopy, whose degeneracies are exact; 0.05 with --fc ase).")
-    t_grp = parser.add_argument_group("phonon topology versus temperature (EXPERIMENTAL, see TODO.md; "
-                                      "needs phonopy with symfc)")
+    t_grp = parser.add_argument_group("phonon topology versus temperature (needs phonopy with symfc; "
+                                      "classical MD; see the README for what it resolves)")
     t_grp.add_argument("--temperature", type=float, nargs="+", metavar="T",
                        help="Follow the nodes from 0 K through these temperatures (K), using effective "
                             "force constants fitted from GRACE MD.")
-    t_grp.add_argument("--md_snapshots", type=int, default=60, help="MD snapshots per T (default: 60).")
+    t_grp.add_argument("--md_snapshots", type=int, default=150, help="MD snapshots per T (default: 150).")
     t_grp.add_argument("--md_every", type=int, default=100,
                        help="MD steps between snapshots (default: 100, i.e. 200 fs).")
     t_grp.add_argument("--md_equil", type=int, default=2000, help="NVT equilibration steps (default: 2000).")

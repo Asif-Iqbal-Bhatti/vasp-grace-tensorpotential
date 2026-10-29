@@ -137,7 +137,7 @@ def _fit_force_constants(prim_ref, supercell, U, F):
 
 
 def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0,
-                      npt_steps=3000, equil_steps=2000, n_snapshots=60, sample_every=100,
+                      npt_steps=3000, equil_steps=2000, n_snapshots=150, sample_every=100,
                       npt=True, seed=0):
     """
     Temperature-dependent effective harmonic force constants (the idea of TDEP,

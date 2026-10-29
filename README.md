@@ -33,6 +33,7 @@ vasp-grace reads `POSCAR` and `INCAR`, computes energies, forces and stresses wi
 | Know whether a crystal can be a band insulator, and whether that survives soft phonons and temperature | `grace-symmetry` | [Symmetry and chirality](#band-insulator-verdict-and-chirality) |
 | Find phonon Weyl points and their topological charges | `grace-topo-phonons` | [Phonon Weyl points](#phonon-weyl-points) |
 | Compute phonon Zak phases and Berry curvature | `grace-phonon-berry` | [Phonon Weyl points](#phonon-weyl-points) |
+| Follow phonon nodes and their charges with temperature | `grace-topo-phonons --temperature` | [Phonon nodes versus temperature](#phonon-nodes-versus-temperature) |
 | Fingerprint a structure without using symmetry (grain boundaries, amorphous regions) | `grace-topology` | `--help` |
 | Build a twisted bilayer at a commensurate angle | `grace-moire` | `--help` |
 
@@ -278,8 +279,29 @@ grace-phonon-berry --poscar POSCAR --curvature                       # Berry cur
 - **Chern numbers** use the gauge-invariant lattice method of Fukui, Hatsugai and Suzuki, J. Phys. Soc. Jpn. 74, 1674 (2005). A charge counts only when it is the same integer on spheres of radius r and r/2; otherwise the crossing is reported as unresolved (a nodal line or surface, or two nodes very close together), never as a Weyl point. For nodes where bands stay paired along lines (screw axes), the charge is read from the gaps between the pairs.
 - **Search** (`--search N`): an N³ scan of the zone, refined with Nelder–Mead, plus the symmetry copies of every node (space-group rotations and time reversal). The charges in each gap must sum to zero over the zone (Nielsen–Ninomiya); the summary reports this per gap.
 - **Checks:** analytic models give exactly ±1 (Weyl), ±2 (double Weyl), (+2, 0, −2) (spin-1), and a two-node lattice model is found complete with charges summing to zero. CoSi (a = 4.436 Å with GRACE-2L-OAM, 4.443 Å measured) gives |C| = 2 at Γ and charge 2 at R; generic Weyl points (±1) appear in symmetry-related sets with charges stable from r = 0.002 to 0.01 Å⁻¹. `grace-phonon-berry` gives exactly 0 for all 24 CoSi bands on the k_z = 0 plane, as time reversal requires.
-- **Zone-wide balance:** with phonopy force constants, the symmetry copies of a node coincide with nodes found independently, so the balance is a real completeness check. For CoSi, gap 3|4 sums to zero with a 16³ search; a 10³ search misses one 12-member orbit and reports +12. If a gap does not close, search on a denser mesh. In space groups with nodal surfaces (P2₁3 pairs bands across the zone faces) the gaps inside those pairs need not balance from point nodes alone. With `--fc ase` the copies sit 0.005–0.01 Å⁻¹ apart and the balance is unreliable.
+- **Zone-wide balance:** with phonopy force constants, the symmetry copies of a node coincide with nodes found independently, so the balance is a real completeness check. For CoSi, gap 3|4 sums to zero with a 16³ search; a 10³ search misses one 12-member orbit and reports +12, and capping the refined gap minima at 60 per gap (`--max_seeds 60`, the old default) reports −12. If a gap does not close, search on a denser mesh or raise `--max_seeds`. In space groups with nodal surfaces (P2₁3 pairs bands across the zone faces) the gaps inside those pairs need not balance from point nodes alone. With `--fc ase` the copies sit 0.005–0.01 Å⁻¹ apart and the balance is unreliable.
 - **Sign convention:** Bloch waves exp(+iq·R) (phonopy's), Berry connection A = i⟨u|∇u⟩, outward normal; the lower band of H = k·σ has C = +1. Both `--fc` backends use it.
+
+</details>
+
+### Phonon nodes versus temperature
+
+```bash
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5 \
+    --temperature 100 300 600                            # follow the Γ and R nodes
+grace-topo-phonons --poscar POSCAR --search 16 --bands 3 3 \
+    --temperature 100 300 600                            # follow every Weyl point found
+```
+
+`--temperature` replaces the harmonic force constants by effective ones fitted from GRACE molecular dynamics at each T, the idea of the temperature-dependent effective potential (TDEP) method of Hellman et al., Phys. Rev. B 87, 104111 (2013); the fit is done by phonopy with [symfc](https://github.com/symfc/symfc) (A. Seko and A. Togo, Phys. Rev. B 110, 214302 (2024)). Every node is then followed from 0 K, its charge recomputed, and annihilation, merging and new nodes are reported. Results go to `weyl_trajectories.dat`, `phonon_topo_vs_T.txt`, `phonon_nodes_T<T>.dat` and `weyl_nodes_vs_T.png`. symfc is not installed with vasp-grace: `pip install symfc`.
+
+<details>
+<summary>Method, checks and limits</summary>
+
+- **Effective force constants:** NPT MD (zero pressure) gives the average cell at T; NVT MD in phonopy's supercell of that cell gives `--md_snapshots` displacement–force pairs (default 150, 200 fs apart). The time-averaged structure, symmetrized back onto the space group, is the reference, so Wyckoff parameters can move with T. Displacements and forces are centred over the snapshots before the fit, which removes a static offset between the reference and the true mean (`static_offset` in the output; it should sit at the noise level, about 1/√N for N snapshots). Two more fits, from each half of the snapshots, give the error bars.
+- **Tracking:** nodes pinned by symmetry (`--node`) are matched one-to-one at each T by eigenvector overlap, since bands reorder as frequencies shift. Other nodes are re-converged from their previous position. A node with another node inside its charge sphere is reported as annihilated (charge 0 next to an opposite charge), merged (it landed on another node) or unresolved; a node with charge 0 and nothing inside the sphere has vanished. With `--search`, the zone is searched again at the highest T for new nodes.
+- **Checks (CoSi, 3×3×3, GRACE-2L-OAM):** at 100 K the effective frequencies at Γ, R, X, M and a generic q are within 0.05–0.10 THz of harmonic, a uniform softening that matches the thermal expansion. All Γ and R nodes soften monotonically to 600 K and keep charge 2, with three MD seeds and also with GRACE-2L-OMAT-large-ft-AM-fp64. The half-run error bars match the scatter between MD seeds. Runs and scripts are in [`validation/`](validation/README.md).
+- **Limits:** the MD is classical, so there is no zero-point motion and low-T results approach the harmonic force constants, not the quantum ground state. Effective harmonic force constants describe the average lattice, not phonon lifetimes. Generic Weyl points that lie within a few hundredths of 1/Å of each other are not resolved once they move by as much at higher T: in CoSi the gap-3|4 Weyl points reorganize between 300 and 600 K in a way that changes with the MD seed. Two GRACE models also differ by as much as the whole 0–600 K softening (2–4 %), so compare temperatures within one model, and treat absolute frequencies with the accuracy of the model. TDEP itself is a separate code (F. Knoop et al., J. Open Source Softw. 9, 6150 (2024)); vasp-grace does not use it.
 
 </details>
 
@@ -313,7 +335,6 @@ New to topology in condensed matter? These cover the ideas behind the condensed-
 
 ## Roadmap
 
-- **Phonon topology at finite temperature**: temperature-renormalized force constants fitted from GRACE MD with phonopy (symfc), and Weyl-node trajectories and annihilation versus temperature. Available as an experimental option, `grace-topo-phonons --temperature`; open validation work is listed in [TODO.md](TODO.md).
 - **Uncertainty on topological charges**: node charges across a committee of GRACE models.
 - **Topological phase diagrams under strain and pressure**, with automatic tracking of node creation and annihilation.
 - **Phonon surface states** from surface Green's functions.
