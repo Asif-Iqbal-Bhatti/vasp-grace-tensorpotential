@@ -1,0 +1,231 @@
+GPU 0: NVIDIA H200 (UUID: GPU-69e48873-4f60-d066-bd5e-1530c63003e9)
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793278310.265843      19 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793278310.288818      19 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793278310.469893      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278310.469958      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278310.469966      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278310.469973      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+I0000 00:00:1793278318.625364      19 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 140873 MB memory:  -> device: 0, name: NVIDIA H200, pci bus id: 0000:44:00.0, compute capability: 9.0
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793278320.357126      19 service.cc:152] XLA service 0x125b86e0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793278320.357221      19 service.cc:160]   StreamExecutor device (0): NVIDIA H200, Compute Capability 9.0
+I0000 00:00:1793278320.985248      19 cuda_dnn.cc:529] Loaded cuDNN version 90300
+E0000 00:00:1793278324.269174      19 ptx_compiler_helpers.cc:88] *** WARNING *** Invoking ptxas with version 12.5.82, which corresponds to a CUDA version <=12.6.2. CUDA versions 12.x.y up to and including 12.6.2 miscompile certain edge cases around clamping.
+Please upgrade to CUDA 12.6.3 or newer.
+I0000 00:00:1793278324.912112      19 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+Force constants: phonopy
+Computing phonon eigenvectors at 40 k-points...
+Modes: 24  |  Imaginary: 0
+Detected 112 crossing(s) with threshold 0.1 THz
+
+Searching the zone on a 16³ mesh for nodes in gaps 3..3...
+  82 crossing point(s) found
+  95 distinct nodes computed, 101 after adding symmetry-equivalent copies (12 rotations × time reversal)
+  q = (0.0000, 0.0000, 0.0000)  bands 4-5  ν = 6.078 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 6-8  ν = 6.425 THz  charges {6: 2, 7: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 9-11  ν = 6.926 THz  charges {9: 2, 10: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 12-14  ν = 8.791 THz  charges {12: -2, 13: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 15-16  ν = 8.932 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 17-19  ν = 9.909 THz  charges {17: -2, 18: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 21-23  ν = 12.258 THz  charges {21: -2, 22: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.5000, 0.5000, 0.5000)  bands 0-3  ν = 5.101 THz  charges {1: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 4-7  ν = 5.263 THz  charges {5: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 8-11  ν = 7.249 THz  charges {9: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 12-15  ν = 7.738 THz  charges {13: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 16-19  ν = 9.970 THz  charges {17: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 20-23  ν = 12.513 THz  charges {21: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.4348, 0.4348, 0.4348)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.4348, 0.5652, 0.5652)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.5652, 0.5652, 0.4348)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.4348, 0.5652, 0.4348)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.5652, 0.4348, 0.5652)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.4348, 0.4348, 0.5652)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.5652, 0.4348, 0.4348)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.5652, 0.5652, 0.5652)  bands 3-4  ν = 5.173 THz  charges {3: -1}  → Weyl point
+  q = (0.2637, 0.1539, 0.8510)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.7363, 0.8461, 0.1490)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8510, 0.7363, 0.8461)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8461, 0.8510, 0.7363)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1539, 0.8510, 0.7363)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8461, 0.1490, 0.7363)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1490, 0.2637, 0.8461)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1490, 0.7363, 0.1539)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.7363, 0.1539, 0.8510)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1956, 0.1956, 0.1956)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.2637, 0.8461, 0.8510)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8510, 0.2637, 0.8461)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8461, 0.1490, 0.2637)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1490, 0.7363, 0.8461)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1539, 0.8510, 0.2637)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.2637, 0.8461, 0.1490)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8510, 0.7363, 0.1539)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8510, 0.2637, 0.1539)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.7363, 0.8461, 0.8510)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.7363, 0.1539, 0.1490)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1539, 0.1490, 0.7363)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8461, 0.8510, 0.2637)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.8044, 0.1956, 0.8044)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.1956, 0.8044, 0.8044)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.8044, 0.8044, 0.1956)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.1152, 0.0000, 0.6904)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.3096, 0.1152, 0.0000)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.6904, 0.8848)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.8848, 0.0000, 0.3096)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.3096, 0.1152)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.6904, 0.8848, 0.0000)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.3096, 0.8848)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.6904, 0.1152, 0.0000)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.1152, 0.0000, 0.3096)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.8848, 0.0000, 0.6904)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.6904, 0.1152)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (0.3096, 0.8848, 0.0000)  bands 3-4  ν = 5.253 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.8565, 0.6622)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.6622, 1.0000, 0.1435)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.6622, 1.0000, 0.8565)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (1.0000, 0.8565, 0.3378)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (1.0000, 0.1435, 0.6622)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.1435, 0.3378, 1.0000)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.1435, 0.6622, 1.0000)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.3378, 1.0000, 0.1435)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.3378, 1.0000, 0.8565)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.8565, 0.3378, 1.0000)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (1.0000, 0.1435, 0.3378)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.8565, 0.6622, 1.0000)  bands 3-4  ν = 5.245 THz  charges {3: -1}  → Weyl point
+  q = (0.0000, 0.1818, 0.6990)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.1818, 0.6990, 1.0000)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.1818, 0.3010, 1.0000)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.3010, 0.0000, 0.8182)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.8182, 0.3010, 0.0000)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.8182, 0.3010)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.3010, 0.0000, 0.1818)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.6990, 0.0000, 0.1818)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.1818, 0.3010)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.5840, 1.0000, 0.3335)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.3335, 0.4160)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.4160, 1.0000, 0.6665)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.3335, 0.4160, 1.0000)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.5840, 0.0000, 0.6665)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.6665, 0.4160, 1.0000)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.6665, 0.4160)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.4160, 1.0000, 0.3335)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.6665, 0.5840, 0.0000)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.6665, 0.5840)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.3335, 0.5840, 1.0000)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.3335, 0.5840)  bands 3-4  ν = 5.075 THz  charges {3: 1}  → Weyl point
+  q = (0.8044, 0.8044, 0.8044)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.1956, 0.1956, 0.8044)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.1956, 0.8044, 0.1956)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.8044, 0.1956, 0.1956)  bands 3-4  ν = 5.369 THz  charges {3: 1}  → Weyl point
+  q = (0.2637, 0.1539, 0.1490)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1490, 0.2637, 0.1539)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (0.1539, 0.1490, 0.2637)  bands 3-4  ν = 5.341 THz  charges {3: -1}  → Weyl point
+  q = (1.0000, 0.8182, 0.6990)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.6990, 1.0000, 0.8182)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+  q = (0.8182, 0.6990, 1.0000)  bands 3-4  ν = 5.285 THz  charges {3: 1}  → Weyl point
+Wrote phonon_nodes.dat  (101 nodes)
+Wrote phonon_topo_bands.png
+Wrote phonon_crossings.dat  (112 crossings)
+Wrote phonon_topo_summary.txt
+
+P = 1 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.4294, 4.4294, 4.4294 Å, V = 86.903 Å³, P2_13 (198), max |F| = 6.6e-06 eV/Å
+Wrote phonon_nodes_P1.dat  (93 nodes)
+
+P = 2 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.4227, 4.4227, 4.4227 Å, V = 86.508 Å³, P2_13 (198), max |F| = 1.3e-05 eV/Å
+Wrote phonon_nodes_P2.dat  (93 nodes)
+
+P = 3 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.4161, 4.4161, 4.4161 Å, V = 86.124 Å³, P2_13 (198), max |F| = 7.5e-06 eV/Å
+Wrote phonon_nodes_P3.dat  (64 nodes)
+
+P = 4 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.4097, 4.4097, 4.4097 Å, V = 85.749 Å³, P2_13 (198), max |F| = 2.0e-05 eV/Å
+Wrote phonon_nodes_P4.dat  (64 nodes)
+
+P = 5 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.4034, 4.4034, 4.4034 Å, V = 85.384 Å³, P2_13 (198), max |F| = 4.5e-05 eV/Å
+Wrote phonon_nodes_P5.dat  (64 nodes)
+
+P = 6 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3973, 4.3973, 4.3973 Å, V = 85.029 Å³, P2_13 (198), max |F| = 2.0e-05 eV/Å
+Wrote phonon_nodes_P6.dat  (64 nodes)
+
+P = 7 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3913, 4.3913, 4.3913 Å, V = 84.681 Å³, P2_13 (198), max |F| = 3.2e-05 eV/Å
+Wrote phonon_nodes_P7.dat  (43 nodes)
+
+P = 8 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3854, 4.3854, 4.3854 Å, V = 84.341 Å³, P2_13 (198), max |F| = 4.2e-05 eV/Å
+Wrote phonon_nodes_P8.dat  (43 nodes)
+
+P = 9 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3797, 4.3797, 4.3797 Å, V = 84.010 Å³, P2_13 (198), max |F| = 4.9e-05 eV/Å
+Wrote phonon_nodes_P9.dat  (43 nodes)
+
+P = 10 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3740, 4.3740, 4.3740 Å, V = 83.685 Å³, P2_13 (198), max |F| = 5.4e-05 eV/Å
+Wrote phonon_nodes_P10.dat  (43 nodes)
+
+P = 12.5 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3604, 4.3604, 4.3604 Å, V = 82.905 Å³, P2_13 (198), max |F| = 5.4e-05 eV/Å
+Wrote phonon_nodes_P12.5.dat  (43 nodes)
+
+P = 15 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3474, 4.3474, 4.3474 Å, V = 82.163 Å³, P2_13 (198), max |F| = 4.1e-05 eV/Å
+Wrote phonon_nodes_P15.dat  (43 nodes)
+
+P = 17.5 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3349, 4.3349, 4.3349 Å, V = 81.457 Å³, P2_13 (198), max |F| = 2.9e-05 eV/Å
+Wrote phonon_nodes_P17.5.dat  (19 nodes)
+
+P = 20 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3228, 4.3228, 4.3228 Å, V = 80.781 Å³, P2_13 (198), max |F| = 2.7e-05 eV/Å
+Wrote phonon_nodes_P20.dat  (19 nodes)
+
+P = 25 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.3001, 4.3001, 4.3001 Å, V = 79.512 Å³, P2_13 (198), max |F| = 3.6e-05 eV/Å
+Wrote phonon_nodes_P25.dat  (19 nodes)
+
+P = 30 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.2788, 4.2788, 4.2788 Å, V = 78.338 Å³, P2_13 (198), max |F| = 2.7e-05 eV/Å
+Wrote phonon_nodes_P30.dat  (19 nodes)
+
+P = 35 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.2589, 4.2589, 4.2589 Å, V = 77.247 Å³, P2_13 (198), max |F| = 2.3e-05 eV/Å
+Wrote phonon_nodes_P35.dat  (19 nodes)
+
+P = 40 GPa: relaxing (space group kept) and harmonic force constants...
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+  relaxed: a, b, c = 4.2401, 4.2401, 4.2401 Å, V = 76.231 Å³, P2_13 (198), max |F| = 1.8e-05 eV/Å
+Wrote phonon_nodes_P40.dat  (19 nodes)
+
+Searching the zone at P = 40 GPa for newly created nodes...
+Wrote nodes_vs_P.dat and phonon_topo_vs_P.txt
+Wrote nodes_vs_P.png

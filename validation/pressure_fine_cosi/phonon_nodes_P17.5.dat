@@ -1,0 +1,23 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.00000   0.00000   0.00000     6-8        3      6.9171           6:+2,7:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000     9-11       3      7.7100          9:+2,10:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    12-14       3     10.0468         12:-2,13:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    17-19       3     11.3688         17:-2,18:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    21-23       3     13.7322         21:-2,22:-2           -2,+0,?  threefold (spin-1) node, |C| = 2
+   0.50000   0.50000   0.50000     0-3        4      5.8619                1:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     4-7        4      6.1095                5:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     8-11       4      8.0034                9:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    12-15       4      8.8119               13:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    16-19       4     11.3503               17:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    20-23       4     13.8591               21:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.22990   0.22990   0.22990     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.22990   0.77010   0.77010     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77010   0.77010   0.22990     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.22990   0.77010   0.22990     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77010   0.22990   0.77010     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.22990   0.22990   0.77010     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77010   0.22990   0.22990     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77010   0.77010   0.77010     3-4        2      6.1449                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)

@@ -63,13 +63,25 @@ grace-topo-phonons --poscar POSCAR --path GXMGRX --nkpts 40 \
     --node 0 0 0 --node 0.5 0.5 0.5 --temperature 100 300 600 --md_snapshots 150
 ```
 
-## 2. Uncertainty on topological charges
+## 2. Uncertainty on topological charges: done (`grace-topo-phonons --committee`)
 
-Node charges for every member of a GRACE committee (fine-tuned or seed-varied models): how often each node and charge appears, and the spread of its position and frequency. It can reuse `node_chern` and `follow_node`.
+`--committee M1 M2 ...` relaxes the structure with each model (space group kept), re-converges every node of the reference model (`--model`) from its reference position, recomputes its charge, and writes per node how many models find it with the same charges (partly resolved ones, whose resolved charges agree and the rest are unresolved, listed separately), the mean and spread of its frequency and its largest shift. With `--search`, each model's zone is also searched for nodes the reference lacks. Code: `committee_stage`, `committee_stats` in `topological_phonons.py`; unit test of `committee_stats` and an end-to-end test (the reference model as its own committee: 5/5 Γ nodes, no spread).
 
-## 3. Topological phase diagrams under strain or pressure
+CoSi, reference GRACE-2L-OAM, committee of 6 fp64 models (GRACE-2L-OMAT-large-ft-AM, -medium-ft-AM, 2L-SMAX-OMAT-large, 2L-OMAT-large-base, 1L-OAM, 2L-OMAT), 3×3×3, 8.5 min on an H200 (`validation/committee_cosi/`):
+- Lattice constants 4.429–4.435 Å (reference 4.436, measured 4.443).
+- **Γ and R multifold nodes are robust:** 8 of 11 are found with the same charge by all 6 models, R bands 4–7 and 12–15 by 5/6, Γ bands 12–14 by 4/6 (only the lower gap resolved there: a neighbouring band crosses the sphere). The other models put them 0.10–0.40 THz higher (spread between models 0.13–0.45 THz). GRACE-1L-OAM swaps the order of the two lowest R multiplets (4.90/4.99 THz against 5.10/5.26); the eigenvector matching follows the modes.
+- **Generic Weyl points (gap 3|4) are model-dependent:** of 82 reference nodes, 11 are found by all 6 models, 23 by 5, 9 by 4, 33 by 3 and 6 by 2; positions differ by up to 0.01–0.03 Å⁻¹ and frequencies are 0.15–0.24 THz higher on average. Each model also has 3–30 gap-3|4 nodes the reference lacks. This confirms item 1.4 with a committee: only the symmetry-pinned nodes are a model-independent prediction.
 
-Relax with GRACE along a strain or pressure path and follow nodes with `follow_node`, as the temperature tracking does, flagging creation and annihilation.
+## 3. Nodes under pressure and strain: done (`--pressure`, `--strain`)
+
+`--pressure P ...` (GPa) relaxes cell and positions at each pressure, space group kept; `--strain E ...` along `--strain_axis` holds that axis and relaxes the other two and the positions (uniaxial stress), so the symmetry can drop. At each point the harmonic phonopy force constants are computed and the nodes followed as with `--temperature` (annihilated, merged, vanished, unresolved, partly resolved, lost multiplets; new nodes at the last point with `--search`). Code: `pressure_stage`, `strain_stage`, `relax_under_load` (`phonon_tools.py`); end-to-end tests at 5 GPa (P2₁3 kept, Γ charges kept) and 1 % strain (P2₁2₁2₁, Γ triplets split).
+
+**Steps must be small.** Nodes are re-converged from the previous point: 0 → 5 GPa in one step lost 30 of 82 Weyl points onto neighbours ("merged"). Steps of 1 GPa and of 0.1 % strain cause no merging (3 nodes at −1.8 % only). Runs: `validation/pressure_cosi/`, `strain_z_*_cosi/` (coarse), `*_fine_cosi/` (fine), 9–12 min each on an H200.
+
+CoSi, GRACE-2L-OAM:
+- **Pressure 1–40 GPa** (V 87.3 → 76.2 Å³, P2₁3 kept; B ≈ 225 GPa from the 0–5 GPa compression): all Γ and R multifold nodes keep their charge to 40 GPa and stiffen by 1–3 THz (Γ bands 17–19 partly and R bands 4–7 not resolved at 40 GPa). The gap-3|4 Weyl points rearrange in steps: pairs annihilate at 2 GPa (29 nodes) and 15 GPa (24), 9 nodes change sign at 4 GPa, and 21 vanish at 6 GPa; the −1 nodes on the threefold (111) axes are unresolved at 17.5 GPa and carry −2 from 20 GPa on (a second node joins each on the axis), and 32 new nodes exist at 40 GPa.
+- **Uniaxial strain along z (±0.1 … ±2 %):** the symmetry drops to P2₁2₁2₁ at once and all five Γ threefold nodes split (no threefold multiplets in 222). The R fourfold multiplets stay fourfold but change charge at sharp thresholds: R bands 0–3 +2 → −2 at +0.6 % and −0.9 %, R bands 4–7 −2 → +2 at +0.8 % (unresolved from −1.5 % on). The R charge is the same on spheres of r = 0.0025–0.02 Å⁻¹, and Weyl points between the paired bands inside the multiplet sit nearby (8 at 0.020 Å⁻¹ at +0.5 %, 2 double nodes at 0.035 Å⁻¹ at +1 %; `scripts_h200/strain_R_check.py`), so the change is a transfer of charge into the multiplet's internal gap, not an artefact. The code does not add charges up across the gaps inside a multiplet, so this balance is checked by hand only. Gap-3|4 Weyl pairs annihilate in steps: at +0.1, +0.9, +1.5 and +2 % in tension, at −0.2, −0.6, −0.8 and −1.8 % in compression.
+- Same caveats as the committee shows: the R/Γ results are model-robust, the Weyl rearrangements are not.
 
 ## Practical notes
 

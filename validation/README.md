@@ -17,8 +17,11 @@ script, the log and the standard `grace-topo-phonons` outputs. CoSi (P2₁3), 3�
 | `weyl_vs_T_h200_fixed_seed1/`, `_seed2/` | MD seeds 1 and 2: the 300–600 K events differ from seed 0 (see `TODO.md` item 4) |
 | `weyl_600K_diagnosis_seed2/` | 600 K force constants of seed 2 and the replay of the final code on them |
 | `weyl_vs_T_omat_large_fp64/` | GRACE-2L-OMAT-large-ft-AM-fp64: relaxation, zone search, Γ/R and Weyl nodes at 100/300/600 K with 300 snapshots |
+| `committee_cosi/` | `--committee`: the GRACE-2L-OAM nodes recomputed with 6 fp64 models (each relaxed), Γ/R and the gap-3\|4 Weyl points, and a zone search per model; `v1_before_partly_resolved/` is the first run, before partly resolved charges were told apart from changed ones |
+| `pressure_cosi/`, `strain_z_tension_cosi/`, `strain_z_compression_cosi/` | `--pressure 5 10 20 40` and `--strain ±0.002 … ±0.02` in a few large steps: nodes jump onto neighbours ("merged", 30 of 82 at 0 → 5 GPa). Kept to show why the steps must be small. `strain_z_tension_cosi/` also holds `strain_R_check.py`'s log: the R charge on spheres of four radii and the Weyl points inside the R multiplet at 0.5 % and 1 % strain |
+| `pressure_fine_cosi/`, `strain_z_tension_fine_cosi/`, `strain_z_compression_fine_cosi/` | The same paths in steps of 1–5 GPa and 0.1 % strain: no merging (3 nodes at −1.8 % only); see `TODO.md` item 3 |
 | `tests_h200/` | Test suite (55 passed, 2 skipped: gudhi, symlint), the `effective_phonons` test alone, the Γ/R node-matching smoke test |
-| `scripts_h200/` | `fc_dump.py` (save effective force constants at T), `weyl_600K_diag.py`, `replay_track_600K.py`, `relax_cosi.py` |
+| `scripts_h200/` | `fc_dump.py` (save effective force constants at T), `weyl_600K_diag.py`, `replay_track_600K.py`, `relax_cosi.py`, `strain_R_check.py` |
 
 Command of the Weyl runs (`--seed N` for the other seeds; the OMAT-large run adds `--model`,
 `--node 0 0 0 --node 0.5 0.5 0.5` and `--md_snapshots 300`):

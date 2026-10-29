@@ -1,0 +1,43 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.00000   0.00000   0.00000     5-7        3      7.4380           5:+2,6:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000     9-11       3      8.4514          9:+2,10:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    12-14       3     11.2554         12:-2,13:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    18-20       3     12.8596               18:-2            -2,?,?  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    21-23       3     15.3169         21:-2,22:-2           -2,+0,?  threefold (spin-1) node, |C| = 2
+   0.50000   0.50000   0.50000     0-3        4      6.5790                1:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     4-7        4      6.9318                   -           ?,?,?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.50000   0.50000   0.50000     8-11       4      8.7902                9:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    12-15       4      9.8926               13:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    16-19       4     12.7551               17:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    20-23       4     15.3176               21:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.21883   0.21884   0.21883     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.21883   0.21883   0.78117     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.78117   0.21883   0.21883     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.21883   0.78117   0.21883     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.78117   0.21883   0.78116     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.78117   0.78117   0.78117     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.78117   0.78117   0.21884     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.21883   0.78116   0.78117     3-4        2      6.7120                3:-2             -2,+1  double-Weyl point
+   0.16589   0.00000   0.15713     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   1.00000   1.00000   0.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.00000   1.00000   1.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   1.00000   0.00000   1.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.00000   0.84287   0.16589     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.00000   1.00000   1.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.84287   0.16589   0.00000     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.84287   0.83411   0.00000     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   1.00000   0.00000   1.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.16589   0.00000   0.84287     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.15713   0.16589   0.00000     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.83411   0.00000   0.84287     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.00000   0.15713   0.16589     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.16589   0.00000   0.15713     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   1.00000   1.00000   0.00000     3-4        2      7.0098                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.00000   0.84287   0.83411     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.84287   0.16589   1.00000     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.16589   1.00000   0.84287     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   1.00000   0.84287   0.83411     3-4        2      6.8579                3:+1             +1,-1  Weyl point
+   0.00000   0.84287   0.16589     3-4        2      6.8579                3:+1             +1,-1  Weyl point

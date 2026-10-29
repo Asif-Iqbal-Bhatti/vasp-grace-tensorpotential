@@ -1,0 +1,23 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.00000   0.00000   0.00000     6-8        3      6.9784           6:+2,7:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000     9-11       3      7.8018          9:+2,10:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    12-14       3     10.1981         12:-2,13:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    17-19       3     11.5518         17:-2,18:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    21-23       3     13.9238         21:-2,22:-2           -2,+0,?  threefold (spin-1) node, |C| = 2
+   0.50000   0.50000   0.50000     0-3        4      5.9499                1:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     4-7        4      6.2088                5:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     8-11       4      8.0984                9:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    12-15       4      8.9457               13:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    16-19       4     11.5223               17:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    20-23       4     14.0343               21:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.22131   0.22131   0.22131     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.22131   0.77869   0.77869     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.77869   0.77869   0.22131     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.22131   0.77869   0.22131     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.77869   0.22131   0.77869     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.22131   0.22131   0.77869     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.77869   0.22131   0.22131     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point
+   0.77869   0.77869   0.77869     3-4        2      6.2355                3:-2             -2,+1  double-Weyl point

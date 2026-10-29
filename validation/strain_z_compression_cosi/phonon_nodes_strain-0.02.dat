@@ -1,0 +1,77 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.50000   0.50000   0.50000     0-3        4      5.0910                1:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     4-7        4      5.4069                   -           ?,?,?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.50000   0.50000   0.50000     8-11       4      7.3383                9:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    12-15       4      7.8702               13:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    16-19       4     10.1395               17:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    20-23       4     12.7123               21:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.71543   0.38847   0.21423     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.28457   0.38847   0.21423     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.28457   0.61153   0.21423     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.28457   0.38847   0.78577     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.71543   0.38847   0.78577     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.71543   0.61153   0.21423     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.28457   0.61153   0.78577     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.71543   0.61153   0.78577     3-4        2      5.2198                3:-1             -1,+1  Weyl point
+   0.76138   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.87346   0.23635   0.20333     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   1.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   0.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.87346   0.23635   0.79667     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   1.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   1.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.12654   0.23635   0.79667     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   1.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.12654   0.76365   0.79667     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.87346   0.76365   0.79667     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.12654   0.76365   0.20333     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.87346   0.76365   0.20333     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   1.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   1.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   1.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.00000   0.27507   0.83192     3-4        2      5.2710                3:+1             +1,-1  Weyl point
+   0.23862   1.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   0.00000   0.77188     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.00000   0.27507   0.16808     3-4        2      5.2710                3:+1             +1,-1  Weyl point
+   0.76138   0.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   1.00000   0.72493   0.83192     3-4        2      5.2710                3:+1             +1,-1  Weyl point
+   0.00000   0.72493   0.16808     3-4        2      5.2710                3:+1             +1,-1  Weyl point
+   0.23862   0.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.76138   1.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.23862   1.00000   0.22812     3-4        2      5.3908                3:+0             +0,+0  C = 0: no monopole charge
+   0.17961   0.31292   0.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.82039   0.31292   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   1.00000   0.89142   0.37820     3-4        2      5.1478                3:-1             -1,+1  Weyl point
+   0.82039   0.68708   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   1.00000   0.89142   0.62180     3-4        2      5.1478                3:-1             -1,+1  Weyl point
+   0.00000   0.10858   0.37820     3-4        2      5.1478                3:-1             -1,+1  Weyl point
+   1.00000   0.10858   0.62180     3-4        2      5.1478                3:-1             -1,+1  Weyl point
+   0.17961   0.68708   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.00000   0.24373   0.78025     3-4        2      5.2638                3:-1             -1,+1  Weyl point
+   0.17961   0.31292   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.17961   0.68708   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.12654   0.76365   0.20333     3-4        2      5.3353                3:+0             +0,+0  C = 0: no monopole charge
+   1.00000   0.24373   0.21975     3-4        2      5.2638                3:-1             -1,+1  Weyl point
+   0.82039   0.31292   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.37838   1.00000   0.35290     3-4        2      5.1478                3:+1             +1,-1  Weyl point
+   0.37838   1.00000   0.64710     3-4        2      5.1478                3:+1             +1,-1  Weyl point
+   1.00000   0.39647   0.42619     3-4        2      5.0756                3:+1             +1,-1  Weyl point
+   0.17961   0.31292   0.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   1.00000   0.39647   0.57381     3-4        2      5.0756                3:+1             +1,-1  Weyl point
+   0.00000   0.60353   0.42619     3-4        2      5.0756                3:+1             +1,-1  Weyl point
+   0.17961   0.68708   0.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   1.00000   0.60353   0.57381     3-4        2      5.0756                3:+1             +1,-1  Weyl point
+   0.62162   0.00000   0.35290     3-4        2      5.1478                3:+1             +1,-1  Weyl point
+   0.62162   1.00000   0.64710     3-4        2      5.1478                3:+1             +1,-1  Weyl point
+   0.82039   0.68708   0.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point
+   0.82039   0.31292   1.00000     3-4        2      5.3403                3:+1              +1,?  Weyl point

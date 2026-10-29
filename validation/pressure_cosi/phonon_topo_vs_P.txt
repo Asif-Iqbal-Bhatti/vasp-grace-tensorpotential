@@ -1,0 +1,139 @@
+Phonon topology along hydrostatic pressure
+==========================================
+
+Harmonic phonopy force constants of the structure relaxed at each point (space group kept, or lowered only by the strain). No error bars.
+
+P = 5 GPa: relaxed: a, b, c = 4.4034, 4.4034, 4.4034 Å, V = 85.384 Å³, P2_13 (198), max |F| = 4.5e-05 eV/Å
+P = 10 GPa: relaxed: a, b, c = 4.3740, 4.3740, 4.3740 Å, V = 83.685 Å³, P2_13 (198), max |F| = 5.4e-05 eV/Å
+P = 20 GPa: relaxed: a, b, c = 4.3228, 4.3228, 4.3228 Å, V = 80.781 Å³, P2_13 (198), max |F| = 2.7e-05 eV/Å
+P = 40 GPa: relaxed: a, b, c = 4.2401, 4.2401, 4.2401 Å, V = 76.231 Å³, P2_13 (198), max |F| = 1.8e-05 eV/Å
+
+Events
+------
+- P = 5 GPa: node 21 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 23 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 24 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 25 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 26 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 27 re-converged onto node 91 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 91's
+- P = 5 GPa: node 28 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 29 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 30 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 31 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 32 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 33 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 34 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 35 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 36 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 37 re-converged onto node 91 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 91's
+- P = 5 GPa: node 38 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 39 re-converged onto node 93 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 93's
+- P = 5 GPa: node 40 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 41 re-converged onto node 94 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 94's
+- P = 5 GPa: node 42 re-converged onto node 91 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 91's
+- P = 5 GPa: node 70 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 71 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 72 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 73 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 74 re-converged onto node 58 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 58's
+- P = 5 GPa: node 75 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 76 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 77 re-converged onto node 61 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 61's
+- P = 5 GPa: node 78 re-converged onto node 58 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 58's
+- P = 20 GPa: node 58 re-converged onto node 52 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 52's
+- P = 20 GPa: node 63 re-converged onto node 52 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 52's
+- P = 20 GPa: node 69 re-converged onto node 52 (or a symmetry copy) and is no longer followed; charges {3: 1} are node 52's
+- P = 20 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 43 charges changed from {3: 1} to {}
+- P = 20 GPa: node 44 charges changed from {3: 1} to {}
+- P = 20 GPa: node 45 charges changed from {3: 1} to {}
+- P = 20 GPa: node 47 charges changed from {3: 1} to {}
+- P = 20 GPa: node 50 charges changed from {3: 1} to {}
+- P = 20 GPa: node 56 charges changed from {3: 1} to {}
+- P = 20 GPa: nodes 59 and 83 (gap [3]) annihilated
+- P = 20 GPa: nodes 60 and 87 (gap [3]) annihilated
+- P = 20 GPa: nodes 61 and 85 (gap [3]) annihilated
+- P = 20 GPa: nodes 62 and 84 (gap [3]) annihilated
+- P = 20 GPa: nodes 64 and 90 (gap [3]) annihilated
+- P = 20 GPa: nodes 65 and 86 (gap [3]) annihilated
+- P = 20 GPa: nodes 66 and 89 (gap [3]) annihilated
+- P = 20 GPa: nodes 67 and 82 (gap [3]) annihilated
+- P = 20 GPa: nodes 68 and 79 (gap [3]) annihilated
+- P = 20 GPa: node 59 (bands 3-4) vanished
+- P = 20 GPa: node 60 (bands 3-4) vanished
+- P = 20 GPa: node 61 (bands 3-4) vanished
+- P = 20 GPa: node 62 (bands 3-4) vanished
+- P = 20 GPa: node 64 (bands 3-4) vanished
+- P = 20 GPa: node 65 (bands 3-4) vanished
+- P = 20 GPa: node 66 (bands 3-4) vanished
+- P = 20 GPa: node 67 (bands 3-4) vanished
+- P = 20 GPa: node 68 (bands 3-4) vanished
+- P = 20 GPa: node 79 (bands 3-4) vanished
+- P = 20 GPa: node 80 (bands 3-4) vanished
+- P = 20 GPa: node 81 (bands 3-4) vanished
+- P = 20 GPa: node 82 (bands 3-4) vanished
+- P = 20 GPa: node 83 (bands 3-4) vanished
+- P = 20 GPa: node 84 (bands 3-4) vanished
+- P = 20 GPa: node 85 (bands 3-4) vanished
+- P = 20 GPa: node 86 (bands 3-4) vanished
+- P = 20 GPa: node 87 (bands 3-4) vanished
+- P = 20 GPa: node 88 (bands 3-4) vanished
+- P = 20 GPa: node 89 (bands 3-4) vanished
+- P = 20 GPa: node 90 (bands 3-4) vanished
+- P = 40 GPa: node 5 charges changed from {17: -2, 18: -2} to {18: -2}
+- P = 40 GPa: node 8 charges changed from {5: -2} to {}
+- P = 40 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 43 charges changed from {3: 1} to {}
+- P = 40 GPa: node 44 charges changed from {3: 1} to {}
+- P = 40 GPa: node 45 charges changed from {3: 1} to {}
+- P = 40 GPa: node 47 charges changed from {3: 1} to {}
+- P = 40 GPa: node 50 charges changed from {3: 1} to {}
+- P = 40 GPa: node 56 charges changed from {3: 1} to {}
+
+Nodes found only at P = 40 GPa: 32
+  q = (0.0000, 0.1875, 0.2530)  bands 3-4  charges {3: -1}
+  q = (0.2530, 0.0000, 0.1875)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.8125, 0.2530)  bands 3-4  charges {3: -1}
+  q = (0.7470, 1.0000, 0.8125)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.1875, 0.7470)  bands 3-4  charges {3: -1}
+  q = (0.1875, 0.2530, 0.0000)  bands 3-4  charges {3: -1}
+  q = (0.2530, 1.0000, 0.8125)  bands 3-4  charges {3: -1}
+  q = (0.7470, 1.0000, 0.1875)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.8125, 0.7470)  bands 3-4  charges {3: -1}
+  q = (0.8125, 0.7470, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.8125, 0.2530, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.1875, 0.7470, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.9089, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.9089, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.9089, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.0911, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.0911, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.0911, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.9089, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.0911, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.2826, 0.7633, 0.0000)  bands 3-4  charges {3: -1}
+  q = (0.2367, 1.0000, 0.2826)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.2826, 0.2367)  bands 3-4  charges {3: -1}
+  q = (0.0000, 0.2826, 0.7633)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.7174, 0.7633)  bands 3-4  charges {3: -1}
+  q = (0.7174, 0.2367, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.2367, 1.0000, 0.7174)  bands 3-4  charges {3: -1}
+  q = (0.2826, 0.2367, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.7174, 0.7633, 1.0000)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.7174, 0.2367)  bands 3-4  charges {3: -1}
+  q = (0.7633, 1.0000, 0.2826)  bands 3-4  charges {3: -1}
+  q = (0.7633, 1.0000, 0.7174)  bands 3-4  charges {3: -1}

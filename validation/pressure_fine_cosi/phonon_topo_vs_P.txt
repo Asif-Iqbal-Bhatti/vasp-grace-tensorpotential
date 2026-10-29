@@ -1,0 +1,132 @@
+Phonon topology along hydrostatic pressure
+==========================================
+
+Harmonic phonopy force constants of the structure relaxed at each point (space group kept, or lowered only by the strain). No error bars.
+
+P = 1 GPa: relaxed: a, b, c = 4.4294, 4.4294, 4.4294 Å, V = 86.903 Å³, P2_13 (198), max |F| = 6.6e-06 eV/Å
+P = 2 GPa: relaxed: a, b, c = 4.4227, 4.4227, 4.4227 Å, V = 86.508 Å³, P2_13 (198), max |F| = 1.3e-05 eV/Å
+P = 3 GPa: relaxed: a, b, c = 4.4161, 4.4161, 4.4161 Å, V = 86.124 Å³, P2_13 (198), max |F| = 7.5e-06 eV/Å
+P = 4 GPa: relaxed: a, b, c = 4.4097, 4.4097, 4.4097 Å, V = 85.749 Å³, P2_13 (198), max |F| = 2.0e-05 eV/Å
+P = 5 GPa: relaxed: a, b, c = 4.4034, 4.4034, 4.4034 Å, V = 85.384 Å³, P2_13 (198), max |F| = 4.5e-05 eV/Å
+P = 6 GPa: relaxed: a, b, c = 4.3973, 4.3973, 4.3973 Å, V = 85.029 Å³, P2_13 (198), max |F| = 2.0e-05 eV/Å
+P = 7 GPa: relaxed: a, b, c = 4.3913, 4.3913, 4.3913 Å, V = 84.681 Å³, P2_13 (198), max |F| = 3.2e-05 eV/Å
+P = 8 GPa: relaxed: a, b, c = 4.3854, 4.3854, 4.3854 Å, V = 84.341 Å³, P2_13 (198), max |F| = 4.2e-05 eV/Å
+P = 9 GPa: relaxed: a, b, c = 4.3797, 4.3797, 4.3797 Å, V = 84.010 Å³, P2_13 (198), max |F| = 4.9e-05 eV/Å
+P = 10 GPa: relaxed: a, b, c = 4.3740, 4.3740, 4.3740 Å, V = 83.685 Å³, P2_13 (198), max |F| = 5.4e-05 eV/Å
+P = 12.5 GPa: relaxed: a, b, c = 4.3604, 4.3604, 4.3604 Å, V = 82.905 Å³, P2_13 (198), max |F| = 5.4e-05 eV/Å
+P = 15 GPa: relaxed: a, b, c = 4.3474, 4.3474, 4.3474 Å, V = 82.163 Å³, P2_13 (198), max |F| = 4.1e-05 eV/Å
+P = 17.5 GPa: relaxed: a, b, c = 4.3349, 4.3349, 4.3349 Å, V = 81.457 Å³, P2_13 (198), max |F| = 2.9e-05 eV/Å
+P = 20 GPa: relaxed: a, b, c = 4.3228, 4.3228, 4.3228 Å, V = 80.781 Å³, P2_13 (198), max |F| = 2.7e-05 eV/Å
+P = 25 GPa: relaxed: a, b, c = 4.3001, 4.3001, 4.3001 Å, V = 79.512 Å³, P2_13 (198), max |F| = 3.6e-05 eV/Å
+P = 30 GPa: relaxed: a, b, c = 4.2788, 4.2788, 4.2788 Å, V = 78.338 Å³, P2_13 (198), max |F| = 2.7e-05 eV/Å
+P = 35 GPa: relaxed: a, b, c = 4.2589, 4.2589, 4.2589 Å, V = 77.247 Å³, P2_13 (198), max |F| = 2.3e-05 eV/Å
+P = 40 GPa: relaxed: a, b, c = 4.2401, 4.2401, 4.2401 Å, V = 76.231 Å³, P2_13 (198), max |F| = 1.8e-05 eV/Å
+
+Events
+------
+- P = 2 GPa: 29 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 91, 92, 93, 94]
+- P = 4 GPa: node 70 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 71 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 72 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 73 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 74 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 75 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 76 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 77 charges changed from {3: 1} to {3: -1}
+- P = 4 GPa: node 78 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 70 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 71 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 72 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 73 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 74 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 75 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 76 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 77 charges changed from {3: 1} to {3: -1}
+- P = 5 GPa: node 78 charges changed from {3: 1} to {3: -1}
+- P = 6 GPa: 21 nodes vanished: charge 0 on the sphere and no other node inside it, so the gap minimum they converged to is not a node: ids [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 70, 71, 72, 73, 74, 75, 76, 77, 78]
+- P = 15 GPa: 24 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90]
+- P = 17.5 GPa: node 13 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 14 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 15 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 16 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 17 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 18 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 19 charges changed from {3: -1} to {}
+- P = 17.5 GPa: node 20 charges changed from {3: -1} to {}
+- P = 20 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 20 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 25 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 30 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 5 charges changed from {17: -2, 18: -2} to {18: -2}
+- P = 35 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 35 GPa: node 20 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 5 charges changed from {17: -2, 18: -2} to {18: -2}
+- P = 40 GPa: node 8 charges changed from {5: -2} to {}
+- P = 40 GPa: node 13 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 14 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 15 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 16 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 17 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 18 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 19 charges changed from {3: -1} to {3: -2}
+- P = 40 GPa: node 20 charges changed from {3: -1} to {3: -2}
+
+Nodes found only at P = 40 GPa: 32
+  q = (0.8125, 0.7470, 1.0000)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.8125, 0.2530)  bands 3-4  charges {3: -1}
+  q = (0.2530, 0.0000, 0.1875)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.8125, 0.7470)  bands 3-4  charges {3: -1}
+  q = (0.1875, 0.2530, 0.0000)  bands 3-4  charges {3: -1}
+  q = (0.7470, 1.0000, 0.1875)  bands 3-4  charges {3: -1}
+  q = (0.8125, 0.2530, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.0000, 0.1875, 0.2530)  bands 3-4  charges {3: -1}
+  q = (0.2530, 1.0000, 0.8125)  bands 3-4  charges {3: -1}
+  q = (0.7470, 1.0000, 0.8125)  bands 3-4  charges {3: -1}
+  q = (0.1875, 0.7470, 1.0000)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.1875, 0.7470)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.9089, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.0911, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.0911, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.0911, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.9089, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.0911, 0.9089, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.0911, 0.0911)  bands 3-4  charges {3: -1}
+  q = (0.9089, 0.9089, 0.9089)  bands 3-4  charges {3: -1}
+  q = (0.2826, 0.2367, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.0000, 0.2826, 0.7633)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.7174, 0.2367)  bands 3-4  charges {3: -1}
+  q = (0.7633, 1.0000, 0.7174)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.7174, 0.7633)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.2826, 0.2367)  bands 3-4  charges {3: -1}
+  q = (0.7174, 0.7633, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.2367, 1.0000, 0.2826)  bands 3-4  charges {3: -1}
+  q = (0.2367, 0.0000, 0.7174)  bands 3-4  charges {3: -1}
+  q = (0.7174, 0.2367, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.7633, 0.0000, 0.2826)  bands 3-4  charges {3: -1}
+  q = (0.2826, 0.7633, 0.0000)  bands 3-4  charges {3: -1}

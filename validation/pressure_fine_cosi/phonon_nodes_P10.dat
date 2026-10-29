@@ -1,0 +1,47 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.00000   0.00000   0.00000     6-8        3      6.7209           6:+2,7:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000     9-11       3      7.4093          9:+2,10:+2          +2,+0,-2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    12-14       3      9.5517         12:-2,13:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    17-19       3     10.7835         17:-2,18:-2          -2,+0,+2  threefold (spin-1) node, |C| = 2
+   0.00000   0.00000   0.00000    21-23       3     13.1298         21:-2,22:-2           -2,+0,?  threefold (spin-1) node, |C| = 2
+   0.50000   0.50000   0.50000     0-3        4      5.5725                1:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     4-7        4      5.7817                5:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000     8-11       4      7.7016                9:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    12-15       4      8.3809               13:-2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    16-19       4     10.7987               17:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.50000   0.50000   0.50000    20-23       4     13.3109               21:+2           ?,?,?,?  fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+   0.30712   0.30712   0.30712     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.30712   0.69288   0.69288     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.69288   0.69288   0.30712     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.30712   0.69288   0.30712     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.69288   0.30712   0.69288     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.30712   0.30712   0.69288     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.69288   0.30712   0.30712     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   0.69288   0.69288   0.69288     3-4        2      5.7364                3:-1             -1,+1  Weyl point
+   1.00000   0.77227   0.68610     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.68610   1.00000   0.22773     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.68610   1.00000   0.77227     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.00000   0.77227   0.31390     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   1.00000   0.22773   0.68610     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.22773   0.31390   1.00000     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.22773   0.68610   1.00000     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.31390   1.00000   0.22773     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.31390   0.00000   0.77227     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.77227   0.31390   0.00000     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   1.00000   0.22773   0.31390     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.77227   0.68610   1.00000     3-4        2      5.6874                3:-1             -1,+1  Weyl point
+   0.63062   0.00000   0.35653     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   1.00000   0.35653   0.36938     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.36938   0.00000   0.64347     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.35653   0.36938   1.00000     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.63062   1.00000   0.64347     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.64347   0.36938   0.00000     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.00000   0.64347   0.36938     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.36938   1.00000   0.35653     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.64347   0.63062   1.00000     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   1.00000   0.64347   0.63062     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.35653   0.63062   0.00000     3-4        2      5.6422                3:+1             +1,-1  Weyl point
+   0.00000   0.35653   0.63062     3-4        2      5.6422                3:+1             +1,-1  Weyl point

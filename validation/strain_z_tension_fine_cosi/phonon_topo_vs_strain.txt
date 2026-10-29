@@ -1,0 +1,90 @@
+Phonon topology along uniaxial strain
+=====================================
+
+Harmonic phonopy force constants of the structure relaxed at each point (space group kept, or lowered only by the strain). No error bars.
+
+strain = 0.001: relaxed: a, b, c = 4.4349, 4.4350, 4.4408 Å, V = 87.345 Å³, P2_12_12_1 (19), max |F| = 5.9e-05 eV/Å
+strain = 0.002: relaxed: a, b, c = 4.4336, 4.4336, 4.4452 Å, V = 87.381 Å³, P2_12_12_1 (19), max |F| = 4.3e-05 eV/Å
+strain = 0.003: relaxed: a, b, c = 4.4323, 4.4323, 4.4497 Å, V = 87.417 Å³, P2_12_12_1 (19), max |F| = 6.3e-05 eV/Å
+strain = 0.004: relaxed: a, b, c = 4.4310, 4.4311, 4.4541 Å, V = 87.453 Å³, P2_12_12_1 (19), max |F| = 9.4e-05 eV/Å
+strain = 0.005: relaxed: a, b, c = 4.4297, 4.4298, 4.4586 Å, V = 87.489 Å³, P2_12_12_1 (19), max |F| = 6.8e-05 eV/Å
+strain = 0.006: relaxed: a, b, c = 4.4284, 4.4285, 4.4630 Å, V = 87.525 Å³, P2_12_12_1 (19), max |F| = 5.9e-05 eV/Å
+strain = 0.007: relaxed: a, b, c = 4.4271, 4.4272, 4.4674 Å, V = 87.561 Å³, P2_12_12_1 (19), max |F| = 6.8e-05 eV/Å
+strain = 0.008: relaxed: a, b, c = 4.4258, 4.4260, 4.4719 Å, V = 87.597 Å³, P2_12_12_1 (19), max |F| = 7.4e-05 eV/Å
+strain = 0.009: relaxed: a, b, c = 4.4245, 4.4247, 4.4763 Å, V = 87.633 Å³, P2_12_12_1 (19), max |F| = 3.6e-05 eV/Å
+strain = 0.01: relaxed: a, b, c = 4.4232, 4.4235, 4.4807 Å, V = 87.670 Å³, P2_12_12_1 (19), max |F| = 2.9e-05 eV/Å
+strain = 0.011: relaxed: a, b, c = 4.4219, 4.4222, 4.4852 Å, V = 87.706 Å³, P2_12_12_1 (19), max |F| = 2.1e-05 eV/Å
+strain = 0.012: relaxed: a, b, c = 4.4206, 4.4210, 4.4896 Å, V = 87.743 Å³, P2_12_12_1 (19), max |F| = 5.2e-05 eV/Å
+strain = 0.013: relaxed: a, b, c = 4.4193, 4.4198, 4.4940 Å, V = 87.780 Å³, P2_12_12_1 (19), max |F| = 4.9e-05 eV/Å
+strain = 0.014: relaxed: a, b, c = 4.4180, 4.4186, 4.4985 Å, V = 87.816 Å³, P2_12_12_1 (19), max |F| = 5.4e-05 eV/Å
+strain = 0.015: relaxed: a, b, c = 4.4167, 4.4174, 4.5029 Å, V = 87.853 Å³, P2_12_12_1 (19), max |F| = 6.0e-05 eV/Å
+strain = 0.016: relaxed: a, b, c = 4.4154, 4.4162, 4.5074 Å, V = 87.890 Å³, P2_12_12_1 (19), max |F| = 6.4e-05 eV/Å
+strain = 0.017: relaxed: a, b, c = 4.4142, 4.4150, 4.5118 Å, V = 87.927 Å³, P2_12_12_1 (19), max |F| = 6.7e-05 eV/Å
+strain = 0.018: relaxed: a, b, c = 4.4129, 4.4138, 4.5162 Å, V = 87.964 Å³, P2_12_12_1 (19), max |F| = 6.9e-05 eV/Å
+strain = 0.019: relaxed: a, b, c = 4.4116, 4.4126, 4.5207 Å, V = 88.001 Å³, P2_12_12_1 (19), max |F| = 5.6e-05 eV/Å
+strain = 0.02: relaxed: a, b, c = 4.4103, 4.4114, 4.5251 Å, V = 88.039 Å³, P2_12_12_1 (19), max |F| = 6.2e-05 eV/Å
+
+Events
+------
+- strain = 0.001: node 1 (bands 6-8) lost: no free 3-fold multiplet at its q (split or merged)
+- strain = 0.001: node 2 (bands 9-11) lost: no free 3-fold multiplet at its q (split or merged)
+- strain = 0.001: node 3 (bands 12-14) lost: no free 3-fold multiplet at its q (split or merged)
+- strain = 0.001: node 5 (bands 17-19) lost: no free 3-fold multiplet at its q (split or merged)
+- strain = 0.001: node 6 (bands 21-23) lost: no free 3-fold multiplet at its q (split or merged)
+- strain = 0.001: 7 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [59, 62, 67, 68, 71, 75, 78]
+- strain = 0.006: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.007: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.008: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.008: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.009: 15 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [21, 22, 23, 32, 34, 40, 41, 42, 43, 44, 45, 91, 92, 93, 94]
+- strain = 0.009: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.009: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.01: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.01: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.01: node 49 charges changed from {3: 1} to {}
+- strain = 0.01: node 53 charges changed from {3: 1} to {}
+- strain = 0.01: node 54 charges changed from {3: 1} to {}
+- strain = 0.01: node 56 charges changed from {3: 1} to {}
+- strain = 0.011: 4 nodes vanished: charge 0 on the sphere and no other node inside it, so the gap minimum they converged to is not a node: ids [49, 53, 54, 56]
+- strain = 0.011: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.011: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.012: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.012: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.013: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.013: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.014: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.014: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.014: node 58 charges changed from {3: -1} to {}
+- strain = 0.014: node 60 charges changed from {3: -1} to {}
+- strain = 0.014: node 61 charges changed from {3: -1} to {}
+- strain = 0.014: node 65 charges changed from {3: -1} to {}
+- strain = 0.014: node 83 charges changed from {3: 1} to {}
+- strain = 0.014: node 84 charges changed from {3: 1} to {}
+- strain = 0.014: node 85 charges changed from {3: 1} to {}
+- strain = 0.014: node 86 charges changed from {3: 1} to {}
+- strain = 0.015: 16 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [47, 50, 51, 52, 58, 60, 61, 63, 64, 65, 66, 69, 83, 84, 85, 86]
+- strain = 0.015: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.015: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.016: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.016: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.017: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.017: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.018: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.018: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.019: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.019: node 8 charges changed from {5: -2} to {5: 2}
+- strain = 0.02: node 27 unresolved: node 57 is 0.0095 1/Å away, inside the sphere; charges {3: -1} not reliable
+- strain = 0.02: node 28 unresolved: node 57 is 0.0095 1/Å away, inside the sphere; charges {3: -1} not reliable
+- strain = 0.02: node 33 unresolved: node 57 is 0.0095 1/Å away, inside the sphere; charges {3: -1} not reliable
+- strain = 0.02: 8 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [26, 30, 35, 36, 46, 48, 55, 57]
+- strain = 0.02: node 7 charges changed from {1: 2} to {1: -2}
+- strain = 0.02: node 8 charges changed from {5: -2} to {5: 2}
+
+Nodes found only at strain = 0.02: 7
+  q = (0.7058, 0.0000, 0.8346)  bands 3-4  charges {3: 1}
+  q = (0.1779, 0.0417, 0.2751)  bands 3-4  charges {3: -1}
+  q = (0.1709, 0.2873, 0.0953)  bands 3-4  charges {3: -1}
+  q = (0.8409, 0.3138, 1.0000)  bands 3-4  charges {3: 1}
+  q = (0.1591, 0.6862, 1.0000)  bands 3-4  charges {3: 1}
+  q = (0.0000, 0.8220, 0.6957)  bands 3-4  charges {3: 1}
+  q = (0.8409, 0.6862, 0.0000)  bands 3-4  charges {3: 1}

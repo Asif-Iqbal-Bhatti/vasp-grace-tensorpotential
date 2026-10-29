@@ -1,0 +1,35 @@
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793278218.164337      16 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793278218.191098      16 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793278218.387348      16 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278218.387537      16 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278218.387542      16 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793278218.387547      16 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+
+strain = 0.005 along z: relaxing the rest and harmonic force constants...
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793278227.734865      16 service.cc:152] XLA service 0x12536a20 initialized for platform Host (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793278227.735096      16 service.cc:160]   StreamExecutor device (0): Host, Default Version
+I0000 00:00:1793278231.768460      16 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+phonopy: 12 symmetry-reduced displacements in a 3×3×3 supercell
+strain 0.005: R frequencies [5.066  5.066  5.066  5.066  5.2448 5.2448 5.2448 5.2448]
+  R, bands 0-3, r = 0.0025: charges {}
+  R, bands 0-3, r = 0.005: charges {1: 2}
+  R, bands 0-3, r = 0.01: charges {1: 2}
+  R, bands 0-3, r = 0.02: charges {1: 2}
+  gap-1|2 nodes within 0.1 1/Å of R: 8, (distance 1/Å, charge): (0.0197, -1), (0.0197, -1), (0.0197, -1), (0.0197, -1), (0.0197, -1), (0.0197, -1), (0.0197, -1), (0.0197, -1)
+
+strain = 0.01 along z: relaxing the rest and harmonic force constants...
+phonopy: 12 symmetry-reduced displacements in a 3×3×3 supercell
+strain 0.01: R frequencies [5.0106 5.0106 5.0106 5.0106 5.2376 5.2376 5.2376 5.2376]
+  R, bands 0-3, r = 0.0025: charges {1: -2}
+  R, bands 0-3, r = 0.005: charges {1: -2}
+  R, bands 0-3, r = 0.01: charges {1: -2}
+  R, bands 0-3, r = 0.02: charges {1: -2}
+  gap-1|2 nodes within 0.1 1/Å of R: 2, (distance 1/Å, charge): (0.0346, -2), (0.0346, -2)
