@@ -646,7 +646,8 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
         md_info.append(info)
         print(f"  {info['volume']}: V = {info['volume_per_cell_A3']:.3f} Å³, "
               f"{info['space_group']}, fit residual {info['fit_residual']:.3f}, "
-              f"mean force {info['mean_force_per_atom_eV_A']:.4f} eV/Å")
+              f"mean force {info['mean_force_per_atom_eV_A']:.4f} eV/Å, "
+              f"static offset {info['static_offset']:.3f} of rms")
         rec = np.asarray(eff["prim"].cell.reciprocal())
         ph_a, ph_b = eff["halves"]
         nodes_T, gone = [], []
@@ -758,7 +759,8 @@ def write_trajectories(rows, md_info, events, new_nodes, filename="weyl_trajecto
                     f"{i['space_group']}{'' if i['space_group_kept'] else ' (SPACE GROUP CHANGED)'}, "
                     f"{i['n_snapshots']} snapshots every {i['sample_every_fs']:g} fs, "
                     f"rms displacement {i['rms_displacement_A']:.3f} Å, fit residual "
-                    f"{i['fit_residual']:.3f}, mean force {i['mean_force_per_atom_eV_A']:.4f} eV/Å\n")
+                    f"{i['fit_residual']:.3f}, mean force {i['mean_force_per_atom_eV_A']:.4f} eV/Å, "
+                    f"static offset {i['static_offset']:.3f} of rms\n")
         f.write("\nEvents\n------\n")
         for e in events or ["none: every node survived"]:
             f.write(f"- {e}\n")

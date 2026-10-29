@@ -152,6 +152,12 @@ def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0
        parameters can move with T. Displacements are measured from it.
     4. symfc fits space-group-symmetric second-order force constants. Two more
        fits from the first and second half of the snapshots give a noise floor.
+       Displacements and forces are centred over the snapshots of each fit
+       first (exact for a harmonic crystal, where <F> = -Φ<u>): a static offset
+       between the reference and the true mean otherwise biases the fit, most
+       at low T and for Γ modes, and both half-fits share it, so their spread
+       cannot reveal it. info["static_offset"] reports that offset as a
+       fraction of the thermal rms displacement.
 
     The MD is classical: no zero-point motion, so results at low T approach the
     harmonic force constants rather than the quantum ground state.
@@ -187,6 +193,9 @@ def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0
             dyn.run(max(1, npt_steps // 20))
             cells.append(sc.cell.array.copy())
         prim_T.set_cell(np.mean(cells, axis=0) / reps[:, None], scale_atoms=True)
+        # symmetrize the cell now: the reference built below gets a symmetric cell,
+        # and the MD must run in that same cell, or u carries a static strain
+        refine_symmetry(prim_T, symprec=0.05)
         info["volume"] = "NPT average at T (zero pressure)"
     info["volume_per_cell_A3"] = float(prim_T.get_volume())
 
@@ -222,6 +231,9 @@ def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0
     info["space_group"] = f"{sg_after.international} (#{sg_after.number})"
     info["space_group_kept"] = bool(sg_before.number == sg_after.number)
 
+    strain = np.abs(prim_ref.cell.array - prim_T.cell.array).max()
+    if strain > 1e-6:
+        raise RuntimeError(f"Reference cell differs from the MD cell by {strain:.2e} Å.")
     ref_sc = _ase_supercell(_phonopy_for(prim_ref, supercell))
     offset = np.abs(ref_sc.get_positions() - ideal).max()
     if offset > 0.3:
@@ -229,13 +241,17 @@ def effective_phonons(prim, calc, temperature, supercell=(3, 3, 3), timestep=2.0
     U = positions - ref_sc.get_positions()
     U -= U.mean(axis=1, keepdims=True)              # remove any rigid translation
     info["mean_force_per_atom_eV_A"] = float(np.linalg.norm(forces.mean(axis=0), axis=1).mean())
-    info["rms_displacement_A"] = float(np.sqrt((U ** 2).sum(axis=2).mean()))
+    info["static_offset"] = float(np.sqrt((U.mean(axis=0) ** 2).sum(axis=1).mean() /
+                                          (U ** 2).sum(axis=2).mean()))
+    info["rms_displacement_A"] = float(np.sqrt(((U - U.mean(axis=0)) ** 2).sum(axis=2).mean()))
 
     # 4. Fits: all snapshots, and the two halves for the noise floor
-    ph, info["fit_residual"] = _fit_force_constants(prim_ref, supercell, U, forces)
+    def fit(u, f):
+        return _fit_force_constants(prim_ref, supercell, u - u.mean(axis=0), f - f.mean(axis=0))
+    ph, info["fit_residual"] = fit(U, forces)
     h = n_snapshots // 2
-    ph_a, _ = _fit_force_constants(prim_ref, supercell, U[:h], forces[:h])
-    ph_b, _ = _fit_force_constants(prim_ref, supercell, U[h:], forces[h:])
+    ph_a, _ = fit(U[:h], forces[:h])
+    ph_b, _ = fit(U[h:], forces[h:])
     return {"ph": ph, "halves": (ph_a, ph_b), "prim": prim_ref, "info": info}
 
 
