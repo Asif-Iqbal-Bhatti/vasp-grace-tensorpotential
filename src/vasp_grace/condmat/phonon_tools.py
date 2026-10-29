@@ -105,6 +105,27 @@ def phonopy_phonons(atoms, calc, supercell=(3, 3, 3), delta=0.01, save="phonopy_
     return PhonopyPhonons(phonon)
 
 
+def relax_under_load(atoms, calc, pressure_GPa=0.0, mask=None, fmax=1e-4, steps=500):
+    """
+    Relax cell and positions with `calc`, keeping the space group of `atoms`
+    (ASE FixSymmetry, symprec 1e-3). `pressure_GPa` is a hydrostatic pressure;
+    `mask` (Voigt order xx, yy, zz, yz, xz, xy) selects the cell components
+    that relax, e.g. [1, 1, 0, 0, 0, 0] for a strain held fixed along z with the
+    lateral cell free (uniaxial stress). Returns (relaxed copy, converged).
+    """
+    from ase import units
+    from ase.constraints import FixSymmetry
+    from ase.filters import FrechetCellFilter
+    from ase.optimize import BFGS
+    a = atoms.copy()
+    a.calc = calc
+    a.set_constraint(FixSymmetry(a, symprec=1e-3))
+    opt = BFGS(FrechetCellFilter(a, mask=mask, scalar_pressure=pressure_GPa * units.GPa), logfile=None)
+    converged = opt.run(fmax=fmax, steps=steps)
+    a.set_constraint()
+    return a, bool(converged)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Effective force constants at temperature T (fitted by phonopy + symfc)
 # ──────────────────────────────────────────────────────────────────────────────

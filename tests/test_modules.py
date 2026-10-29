@@ -602,6 +602,62 @@ rc, out = run([PYTHON, "-c", crowding_check], timeout=60)
 record("crowded_nodes -- pair annihilation, merged, unresolved neighbour, symmetry copies",
        "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
 
+committee_check = textwrap.dedent("""
+    import numpy as np
+    from vasp_grace.condmat.topological_phonons import committee_stats
+    row = lambda T, i, q, f, st: {"T": T, "id": i, "bands": (3, 4), "q": np.array(q, float),
+                                  "freq": f, "charges": {3: 1}, "status": st}
+    rows = [row(0, 0, [0.2, 0.3, 0.4], 5.0, "reference"),
+            row(1, 0, [0.2, 0.3, 0.41], 5.1, "tracked"),
+            row(2, 0, [0.2, 0.3, 0.42], 5.3, "tracked"),
+            row(3, 0, [0.2, 0.3, 0.40], 5.2, "charges changed from {3: 1}"),
+            row(4, 0, [0.2, 0.3, 0.40], 5.2, "tracked, unresolved (node 9 0.0050 1/Å away)"),
+            row(5, 0, [0.2, 0.3, 0.40], 5.3, "tracked, partly resolved ({3: 1} of {3: 1, 4: 1})")]
+    st = committee_stats(rows, np.eye(3))[0]
+    assert (st["n_same"], st["n_partial"], st["n_models"]) == (3, 1, 5), st
+    f = np.array([5.1, 5.3, 5.3])
+    assert abs(st["freq_mean"] - f.mean()) < 1e-12 and abs(st["freq_sd"] - f.std(ddof=1)) < 1e-12, st
+    assert abs(st["dq_max"] - 0.02) < 1e-12, st
+    print("OK")
+""")
+rc, out = run([PYTHON, "-c", committee_check], timeout=60)
+record("committee_stats -- found with the same charge, frequency spread, largest shift",
+       "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
+if not HAS_TP or run([PYTHON, "-c", "import phonopy"])[0] != 0:
+    record("grace-topo-phonons -- pressure, strain, committee (CoSi)", "skip",
+           "tensorpotential or phonopy not installed")
+else:
+    with tempfile.TemporaryDirectory() as tmp:
+        from ase.spacegroup import crystal
+        from ase.io import write as ase_write
+        cosi = crystal(["Co", "Si"], [(0.1451,) * 3, (0.8433,) * 3], spacegroup=198,
+                       cellpar=[4.4364] * 3 + [90] * 3)
+        ase_write(os.path.join(tmp, "POSCAR"), cosi, format="vasp", direct=True)
+        base = [PYTHON, os.path.join(CONDMAT_DIR, "topological_phonons.py"), "--poscar", "POSCAR",
+                "--model", GRACE_MODEL, "--supercell", "2", "2", "2", "--path", "GX", "--nkpts", "10",
+                "--node", "0", "0", "0"]
+        statuses = lambda fname: [l.split()[10] for l in open(os.path.join(tmp, fname))
+                                  if l.strip() and not l.startswith("#") and float(l.split()[0]) != 0]
+        # 5 GPa: the cubic cell shrinks, the Γ nodes keep their charges
+        rc, out = run(base + ["--pressure", "5"], cwd=tmp, timeout=900)
+        ok = rc == 0 and "P2_13" in open(os.path.join(tmp, "phonon_topo_vs_P.txt")).read() \
+            and set(statuses("nodes_vs_P.dat")) == {"tracked"}
+        record("grace-topo-phonons --pressure 5 -- CoSi: P2_13 kept, Γ nodes keep their charges",
+               "pass" if ok else "fail", out[-400:] if not ok else "")
+        # 1 % uniaxial strain: P2_13 -> P2_12_12_1, which has no threefold multiplets at Γ
+        rc, out = run(base + ["--strain", "0.01"], cwd=tmp, timeout=900)
+        ok = rc == 0 and "P2_12_12_1" in open(os.path.join(tmp, "phonon_topo_vs_strain.txt")).read() \
+            and set(statuses("nodes_vs_strain.dat")) == {"lost"}
+        record("grace-topo-phonons --strain 0.01 -- CoSi: P2_12_12_1, Γ threefold nodes split (lost)",
+               "pass" if ok else "fail", out[-400:] if not ok else "")
+        # the reference model as its own committee: every node found, no spread
+        rc, out = run(base + ["--committee", GRACE_MODEL], cwd=tmp, timeout=900)
+        txt = open(os.path.join(tmp, "phonon_topo_committee.txt")).read() if rc == 0 else ""
+        ok = rc == 0 and "k = 1: 5" in txt and set(statuses("nodes_committee.dat")) == {"tracked"}
+        record("grace-topo-phonons --committee (reference model alone) -- CoSi: 5/5 Γ nodes found",
+               "pass" if ok else "fail", out[-400:] if not ok else "")
+
 if not HAS_TP:
     record("grace-topo-phonons -- CoSi spin-1 node at Γ", "skip", "tensorpotential not installed")
 else:

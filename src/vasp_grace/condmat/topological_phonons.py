@@ -72,13 +72,13 @@ from ase.phonons import Phonons
 try:
     from ..calculator import load_calculator
     from .phonon_tools import (bands_and_vectors, eigensystem, chern_on_sphere, find_nodes,
-                               have_phonopy, phonopy_phonons, effective_phonons)
+                               have_phonopy, phonopy_phonons, effective_phonons, relax_under_load)
 except ImportError:  # run as a plain script; needs vasp_grace installed
     from vasp_grace.calculator import load_calculator
     from vasp_grace.condmat.phonon_tools import (bands_and_vectors, eigensystem,
                                                  chern_on_sphere, find_nodes,
                                                  have_phonopy, phonopy_phonons,
-                                                 effective_phonons)
+                                                 effective_phonons, relax_under_load)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -652,8 +652,121 @@ def _assign_pinned(nodes, nu, vecs, degen_tol):
     return match
 
 
+# Paths along which track_nodes follows the nodes: label, unit, file tag, title
+PATHS = {
+    "temperature": ("T", "K", "T", "temperature"),
+    "pressure": ("P", "GPa", "P", "hydrostatic pressure"),
+    "strain": ("strain", "", "strain", "uniaxial strain"),
+    "committee": ("model", "", "committee", "a committee of GRACE models"),
+}
+
+
+def _at(path, x):
+    label, unit = PATHS[path][:2]
+    return f"{label} = {x:g}" + (f" {unit}" if unit else "")
+
+
+def temperature_stage(prim, calc, args):
+    """Effective force constants from GRACE MD at T, with half-run error bars."""
+    def stage(T):
+        print(f"\nT = {T:g} K: GRACE MD and effective force constants...")
+        eff = effective_phonons(prim, calc, T, tuple(args.supercell), timestep=args.md_timestep,
+                                npt_steps=args.npt_steps, equil_steps=args.md_equil,
+                                n_snapshots=args.md_snapshots, sample_every=args.md_every,
+                                npt=not args.no_npt, seed=args.seed)
+        i = eff["info"]
+        i["summary"] = (f"{i['volume']}: V = {i['volume_per_cell_A3']:.3f} Å³, {i['space_group']}, "
+                        f"fit residual {i['fit_residual']:.3f}, mean force "
+                        f"{i['mean_force_per_atom_eV_A']:.4f} eV/Å, static offset "
+                        f"{i['static_offset']:.3f} of rms")
+        return eff
+    return stage
+
+
+def _static_stage(atoms, calc, args, what):
+    """Harmonic phonopy force constants of a relaxed structure, as a track_nodes stage
+    (no MD, so no error bars: both "halves" are the same fit)."""
+    import spglib
+    ph = phonopy_phonons(atoms, calc, tuple(args.supercell), args.delta, save=None)
+    sg = spglib.get_spacegroup((atoms.cell.array, atoms.get_scaled_positions(), atoms.numbers),
+                               symprec=1e-3)
+    a, b, c = atoms.cell.lengths()
+    summary = (f"{what}: a, b, c = {a:.4f}, {b:.4f}, {c:.4f} Å, V = {atoms.get_volume():.3f} Å³, "
+               f"{sg}, max |F| = {np.abs(atoms.get_forces()).max():.1e} eV/Å")
+    return {"ph": ph, "halves": (ph, ph), "prim": atoms, "info": {"summary": summary}}
+
+
+def pressure_stage(prim, calc, args):
+    """Cell and positions relaxed at hydrostatic pressure P (GPa), space group kept."""
+    def stage(P):
+        print(f"\nP = {P:g} GPa: relaxing (space group kept) and harmonic force constants...")
+        a, ok = relax_under_load(prim, calc, pressure_GPa=P)
+        return _static_stage(a, calc, args, "relaxed" if ok else "relaxation NOT converged")
+    return stage
+
+
+def strain_stage(prim, calc, args):
+    """
+    Uniaxial strain e along the Cartesian axis args.strain_axis: that component of
+    the cell is held at (1 + e) times its unloaded value while the other two
+    relax to zero stress (uniaxial stress), and the positions relax within the
+    symmetry left by the strain. Strains below about 1e-3 are not seen as lowering
+    the symmetry (symprec 1e-3 Å).
+    """
+    axis = "xyz".index(args.strain_axis)
+    def stage(e):
+        print(f"\nstrain = {e:g} along {args.strain_axis}: relaxing the rest and harmonic "
+              f"force constants...")
+        a = prim.copy()
+        F = np.eye(3)
+        F[axis, axis] += e
+        a.set_cell(prim.cell.array @ F, scale_atoms=True)
+        mask = [1, 1, 1, 0, 0, 0]
+        mask[axis] = 0
+        a, ok = relax_under_load(a, calc, mask=mask)
+        return _static_stage(a, calc, args, "relaxed" if ok else "relaxation NOT converged")
+    return stage
+
+
+def committee_stage(prim, models, args):
+    """Model number k (from 1) of the committee: structure relaxed with it, at zero
+    pressure, then its harmonic force constants."""
+    def stage(k):
+        model = models[int(k) - 1]
+        print(f"\nmodel {k:g} = {model}: relaxing (space group kept) and harmonic force constants...")
+        calc = load_calculator(model, verbose=False)
+        a, ok = relax_under_load(prim, calc)
+        return _static_stage(a, calc, args, f"{model}, " + ("relaxed" if ok else
+                                                           "relaxation NOT converged"))
+    return stage
+
+
+def committee_stats(rows, rec):
+    """
+    Per reference node, over the committee models (rows with T >= 1): the number
+    of models that find it with the same charges ("tracked", not unresolved;
+    `n_partial` of them only partly resolved, with the resolved charges agreeing),
+    the mean and spread of its frequency over those, and the largest distance
+    (1/Å) of its position from the reference. Returns a list of dicts, one per node.
+    """
+    ref = {r["id"]: r for r in rows if r["T"] == 0}
+    out = []
+    for i, r0 in ref.items():
+        rs = [r for r in rows if r["id"] == i and r["T"] >= 1]
+        same = [r for r in rs if r["status"].startswith("tracked") and "unresolved" not in r["status"]]
+        f = np.array([r["freq"] for r in same])
+        out.append({"id": i, "bands": r0["bands"], "q": r0["q"], "charges": r0["charges"],
+                    "freq_ref": r0["freq"], "n_models": len(rs), "n_same": len(same),
+                    "n_partial": sum("partly resolved" in r["status"] for r in same),
+                    "freq_mean": float(f.mean()) if len(f) else float("nan"),
+                    "freq_sd": float(f.std(ddof=1)) if len(f) > 1 else 0.0,
+                    "dq_max": max((_min_image_distance(r["q"], r0["q"], rec) for r in same),
+                                  default=float("nan"))})
+    return out
+
+
 def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, node_tol=0.02,
-                min_overlap=0.5, lost_overlap=0.1):
+                min_overlap=0.5, lost_overlap=0.1, stage=None, path="temperature"):
     """
     Follow every node from the harmonic (0 K) result through increasing T.
 
@@ -670,7 +783,16 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
     eigenvector overlap with the previous T (`ph0` gives the 0 K eigenvectors);
     an overlap below `min_overlap` is reported, as the modes have mixed, and one
     below `lost_overlap` (or no multiplet of the node's size left) loses the node.
+
+    The same tracking runs along other paths (`path`, see PATHS): `stage(x)`
+    returns the force constants at each point x (dict with ph, halves, prim and
+    info["summary"]); the default is the MD at temperature x. Points are followed
+    in the order given (temperatures sorted). For a committee of models every
+    model starts again from the reference nodes. The row key "T" holds x.
+    Returns (rows, info per point, events, [(x, stage result), ...]).
     """
+    stage = stage or temperature_stage(prim, calc, args)
+    tag = PATHS[path][2]
     rec0 = np.asarray(prim.cell.reciprocal())
     tracked = [{"id": i, "bands": n["bands"], "q": np.asarray(n["q"], float),
                 "charges": dict(n["charges"]), "fixed": n.get("fixed", False), "alive": True,
@@ -679,23 +801,23 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
     for t in tracked:
         if t["fixed"]:
             t["vecs"] = eigensystem(ph0, t["q"])[1][:, t["bands"][0]:t["bands"][1] + 1]
+        t["start"] = {k: t.get(k) for k in ("q", "freq", "bands", "vecs", "charges")}
     rows = [{"T": 0.0, "id": t["id"], "bands": t["bands"], "q": t["q"],
              "freq": base_nodes[t["id"]]["frequency_THz"], "err_freq": 0.0, "err_q": 0.0,
-             "charges": t["charges"], "status": "harmonic"} for t in tracked]
-    md_info, events, last = [], [], None
+             "charges": t["charges"], "status": "harmonic" if path == "temperature" else "reference"}
+            for t in tracked]
+    md_info, events, done = [], [], []
 
-    for T in sorted(temperatures):
-        print(f"\nT = {T:g} K: GRACE MD and effective force constants...")
-        eff = effective_phonons(prim, calc, T, tuple(args.supercell), timestep=args.md_timestep,
-                                npt_steps=args.npt_steps, equil_steps=args.md_equil,
-                                n_snapshots=args.md_snapshots, sample_every=args.md_every,
-                                npt=not args.no_npt, seed=args.seed)
+    for T in (sorted(temperatures) if path == "temperature" else temperatures):
+        if path == "committee":                     # each model starts from the reference
+            for t in tracked:
+                t.update(t["start"], alive=True)
+        at = _at(path, T)
+        eff = stage(T)
         info = eff["info"]
+        info["at"] = at
         md_info.append(info)
-        print(f"  {info['volume']}: V = {info['volume_per_cell_A3']:.3f} Å³, "
-              f"{info['space_group']}, fit residual {info['fit_residual']:.3f}, "
-              f"mean force {info['mean_force_per_atom_eV_A']:.4f} eV/Å, "
-              f"static offset {info['static_offset']:.3f} of rms")
+        print(f"  {info['summary']}")
         rec = np.asarray(eff["prim"].cell.reciprocal())
         ph_a, ph_b = eff["halves"]
         nodes_T, gone, found = [], [], {}
@@ -715,12 +837,13 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
                 bands, ov = match[t["id"]] or (None, 0.0)
                 if ov < lost_overlap:
                     t["alive"] = False
-                    why = (f"no free {t['mult']}-fold multiplet at its q" if bands is None else
+                    why = (f"no free {t['mult']}-fold multiplet at its q (split or merged)"
+                           if bands is None else
                            f"best free multiplet {bands[0]}-{bands[1]} has overlap {ov:.2f}")
                     rows.append({"T": float(T), "id": t["id"], "bands": t["bands"], "q": t["q"],
                                  "freq": t["freq"], "err_freq": 0.0, "err_q": 0.0, "charges": {},
                                  "status": f"lost ({why})"})
-                    events.append(f"T = {T:g} K: node {t['id']} (bands {t['bands'][0]}-"
+                    events.append(f"{at}: node {t['id']} (bands {t['bands'][0]}-"
                                   f"{t['bands'][1]}) lost: {why}")
                     continue
                 t["bands"] = bands
@@ -747,9 +870,15 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
                 nodes_T.append(node)
                 found[t["id"]] = (t, row)
                 row["charges"] = node["charges"]
-                same_charges = sorted(node["charges"].values()) == sorted(t["charges"].values())
-                row["status"] = ("tracked" if same_charges
-                                 else f"charges changed from {t['charges']}") + note
+                # compare charge values (band indices shift when frequencies reorder); a node
+                # whose resolved charges are a subset of its own, with the rest unresolved, is
+                # partly resolved rather than changed
+                from collections import Counter
+                new, old = sorted(node["charges"].values()), sorted(t["charges"].values())
+                partial = bool(new) and not Counter(new) - Counter(old)
+                row["status"] = ("tracked" if new == old else
+                                 f"tracked, partly resolved ({node['charges']} of {t['charges']})"
+                                 if partial else f"charges changed from {t['charges']}") + note
                 t["q"], t["freq"] = q, row["freq"]
             rows.append(row)
         # nodes re-converged closer together than the charge sphere resolves
@@ -773,14 +902,14 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
             elif kind == "merged":
                 t["alive"] = False
                 row["status"] = f"merged: re-converged onto node {j}"
-                events.append(f"T = {T:g} K: node {i} re-converged onto node {j} (or a symmetry "
+                events.append(f"{at}: node {i} re-converged onto node {j} (or a symmetry "
                               f"copy) and is no longer followed; charges {row['charges']} are node {j}'s")
             else:
                 row["status"] += f", unresolved (node {j} {d:.4f} 1/Å away)"
-                events.append(f"T = {T:g} K: node {i} unresolved: node {j} is {d:.4f} 1/Å away, "
+                events.append(f"{at}: node {i} unresolved: node {j} is {d:.4f} 1/Å away, "
                               f"inside the sphere; charges {row['charges']} not reliable")
         if gone_pairs:
-            events.append(f"T = {T:g} K: {len(gone_pairs)} nodes annihilated in +/- pairs (charge 0 on "
+            events.append(f"{at}: {len(gone_pairs)} nodes annihilated in +/- pairs (charge 0 on "
                           f"the sphere next to a node of opposite charge): ids {gone_pairs}")
         # charge 0 with no node inside the sphere: the minimum left behind is not a node
         # (its partner annihilated with it and moved off, or it was never a crossing)
@@ -792,12 +921,12 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
             gap = _multiplet_spread(eff["ph"], t["q"], *t["bands"])
             row["status"] = f"vanished (charge 0 on the sphere at a {gap:.4f} THz gap minimum)"
         if empty:
-            events.append(f"T = {T:g} K: {len(empty)} nodes vanished: charge 0 on the sphere and no "
+            events.append(f"{at}: {len(empty)} nodes vanished: charge 0 on the sphere and no "
                           f"other node inside it, so the gap minimum they converged to is not a node: "
                           f"ids {empty}")
         for i, (t, row) in found.items():
             if i not in crowd and i not in empty and row["status"].startswith("charges changed"):
-                events.append(f"T = {T:g} K: node {i} {row['status']} to {row['charges']}")
+                events.append(f"{at}: node {i} {row['status']} to {row['charges']}")
         # opposite charges vanishing together close by: pair annihilation
         for i, (a, qa_) in enumerate(gone):
             for b, qb_ in gone[i + 1:]:
@@ -805,18 +934,18 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
                 common = ga & gb
                 if common and all(a["charges"][g] == -b["charges"][g] for g in common) \
                         and _min_image_distance(qa_, qb_, rec0) < 0.05:
-                    events.append(f"T = {T:g} K: nodes {a['id']} and {b['id']} "
+                    events.append(f"{at}: nodes {a['id']} and {b['id']} "
                                   f"(gap {sorted(common)}) annihilated")
         for t, _ in gone:
-            events.append(f"T = {T:g} K: node {t['id']} (bands {t['bands'][0]}-{t['bands'][1]}) vanished")
-        write_nodes(nodes_T, f"phonon_nodes_T{T:g}.dat")
-        last = (T, eff)
-    return rows, md_info, events, last
+            events.append(f"{at}: node {t['id']} (bands {t['bands'][0]}-{t['bands'][1]}) vanished")
+        write_nodes(nodes_T, f"phonon_nodes_{tag}{T:g}.dat")
+        done.append((T, eff))
+    return rows, md_info, events, done
 
 
-def find_new_nodes(eff, T, rows, gaps, args, chern_args):
-    """Full search at the highest T for nodes the tracking did not start from."""
-    print(f"\nSearching the zone at T = {T:g} K for newly created nodes...")
+def find_new_nodes(eff, T, rows, gaps, args, chern_args, path="temperature"):
+    """Full zone search at one point of the path for nodes the tracking did not start from."""
+    print(f"\nSearching the zone at {_at(path, T)} for newly created nodes...")
     ph, prim = eff["ph"], eff["prim"]
     rec = np.asarray(prim.cell.reciprocal())
     known = [r for r in rows if r["T"] == T and r["charges"]]
@@ -835,53 +964,108 @@ def find_new_nodes(eff, T, rows, gaps, args, chern_args):
     return new
 
 
-def write_trajectories(rows, md_info, events, new_nodes, filename="weyl_trajectories.dat",
-                       summary="phonon_topo_vs_T.txt"):
+def output_names(path):
+    """Trajectory, summary and plot file names for a path (the temperature names are kept)."""
+    if path == "temperature":
+        return "weyl_trajectories.dat", "phonon_topo_vs_T.txt", "weyl_nodes_vs_T.png"
+    tag = PATHS[path][2]
+    if path == "committee":
+        return "nodes_committee.dat", "phonon_topo_committee.txt", "nodes_committee.png"
+    return f"nodes_vs_{tag}.dat", f"phonon_topo_vs_{tag}.txt", f"nodes_vs_{tag}.png"
+
+
+def write_trajectories(rows, md_info, events, new_nodes, path="temperature", models=None, rec=None):
+    """
+    Write the node rows and a summary. `new_nodes` is a list of (x, nodes) from
+    find_new_nodes, or None; with path "committee", `models` names the models and
+    `rec` (reference reciprocal cell) is used for the per-node committee table.
+    """
+    filename, summary, _ = output_names(path)
+    label, unit, _, title = PATHS[path]
+    col = f"{label}({unit})" if unit else label
     with open(filename, "w") as f:
-        f.write("# Phonon nodes versus temperature (effective force constants from GRACE MD)\n")
-        f.write("# err_freq, err_q: difference between fits to the two halves of the MD run\n")
-        f.write(f"# {'T(K)':>6}  {'id':>4}  {'bands':>7}  {'qx':>8}  {'qy':>8}  {'qz':>8}  "
+        f.write(f"# Phonon nodes along {title}\n")
+        if path == "temperature":
+            f.write("# effective force constants from GRACE MD; err_freq, err_q: difference between "
+                    "fits to the two halves of the MD run\n")
+        elif path == "committee":
+            f.write("# model numbers: 0 = reference, " + ", ".join(
+                f"{k} = {m}" for k, m in enumerate(models or [], 1)) + "\n")
+        f.write(f"# {col:>6}  {'id':>4}  {'bands':>7}  {'qx':>8}  {'qy':>8}  {'qz':>8}  "
                 f"{'freq(THz)':>9}  {'err_freq':>8}  {'err_q(1/Å)':>10}  {'charges':>14}  status\n")
         for r in rows:
             ch = ",".join(f"{g}:{c:+d}" for g, c in r["charges"].items()) or "-"
-            f.write(f"  {r['T']:6.0f}  {r['id']:4d}  {r['bands'][0]:>3}-{r['bands'][1]:<3}  "
+            x = f"{r['T']:6.0f}" if path == "temperature" else f"{r['T']:6g}"
+            f.write(f"  {x}  {r['id']:4d}  {r['bands'][0]:>3}-{r['bands'][1]:<3}  "
                     f"{r['q'][0]:8.5f}  {r['q'][1]:8.5f}  {r['q'][2]:8.5f}  {r['freq']:9.4f}  "
                     f"{r['err_freq']:8.4f}  {r['err_q']:10.5f}  {ch:>14}  {r['status']}\n")
     with open(summary, "w") as f:
-        f.write("Phonon topology versus temperature\n==================================\n\n")
-        f.write("Effective harmonic force constants at T, fitted by phonopy (symfc) from classical\n"
-                "GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.\n\n")
+        head = f"Phonon topology along {title}"
+        f.write(f"{head}\n{'=' * len(head)}\n\n")
+        if path == "temperature":
+            f.write("Effective harmonic force constants at T, fitted by phonopy (symfc) from classical\n"
+                    "GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.\n\n")
+        else:
+            f.write("Harmonic phonopy force constants of the structure relaxed at each point "
+                    "(space group kept, or lowered only by the strain). No error bars.\n\n")
         for i in md_info:
-            f.write(f"T = {i['temperature_K']:g} K: {i['volume']}, V = {i['volume_per_cell_A3']:.3f} Å³, "
-                    f"{i['space_group']}{'' if i['space_group_kept'] else ' (SPACE GROUP CHANGED)'}, "
-                    f"{i['n_snapshots']} snapshots every {i['sample_every_fs']:g} fs, "
-                    f"rms displacement {i['rms_displacement_A']:.3f} Å, fit residual "
-                    f"{i['fit_residual']:.3f}, mean force {i['mean_force_per_atom_eV_A']:.4f} eV/Å, "
-                    f"static offset {i['static_offset']:.3f} of rms\n")
+            if "temperature_K" in i:
+                f.write(f"T = {i['temperature_K']:g} K: {i['volume']}, V = {i['volume_per_cell_A3']:.3f} Å³, "
+                        f"{i['space_group']}{'' if i['space_group_kept'] else ' (SPACE GROUP CHANGED)'}, "
+                        f"{i['n_snapshots']} snapshots every {i['sample_every_fs']:g} fs, "
+                        f"rms displacement {i['rms_displacement_A']:.3f} Å, fit residual "
+                        f"{i['fit_residual']:.3f}, mean force {i['mean_force_per_atom_eV_A']:.4f} eV/Å, "
+                        f"static offset {i['static_offset']:.3f} of rms\n")
+            else:
+                f.write(f"{i['at']}: {i['summary']}\n")
+        if path == "committee" and rec is not None:
+            stats = committee_stats(rows, rec)
+            n = max((st["n_models"] for st in stats), default=0)
+            f.write(f"\nNodes of the reference model found by the committee ({n} models, same charges)\n"
+                    "-----------------------------------------------------------------------\n")
+            f.write(f"  {'id':>4}  {'bands':>7}  {'q (reference)':>26}  {'charges':>12}  {'found':>6}  "
+                    f"{'partly':>6}  {'freq ref':>8}  {'mean':>8}  {'sd':>6}  {'max |dq| (1/Å)':>14}\n")
+            for st in stats:
+                ch = ",".join(f"{g}:{c:+d}" for g, c in st["charges"].items())
+                q = st["q"]
+                f.write(f"  {st['id']:4d}  {st['bands'][0]:>3}-{st['bands'][1]:<3}  "
+                        f"({q[0]:.4f}, {q[1]:.4f}, {q[2]:.4f})  {ch:>12}  {st['n_same']:>2}/{st['n_models']:<3}  "
+                        f"{st['n_partial']:>6}  "
+                        f"{st['freq_ref']:8.3f}  {st['freq_mean']:8.3f}  {st['freq_sd']:6.3f}  "
+                        f"{st['dq_max']:14.4f}\n")
+            hist = {}
+            for st in stats:
+                hist[st["n_same"]] = hist.get(st["n_same"], 0) + 1
+            f.write("\n  nodes found by k of the models: " + ", ".join(
+                f"k = {k}: {hist[k]}" for k in sorted(hist, reverse=True)) + "\n")
         f.write("\nEvents\n------\n")
-        for e in events or ["none: every node survived"]:
+        for e in events or ["none: every node kept its charge"]:
             f.write(f"- {e}\n")
-        if new_nodes is not None:
-            f.write(f"\nNodes found only at the highest T: {len(new_nodes)}\n")
-            for n in new_nodes:
+        for x, nodes in new_nodes or []:
+            f.write(f"\nNodes found only at {_at(path, x)}: {len(nodes)}\n")
+            for n in nodes:
                 f.write(f"  q = ({n['q'][0]:.4f}, {n['q'][1]:.4f}, {n['q'][2]:.4f})  bands "
                         f"{n['bands'][0]}-{n['bands'][1]}  charges {n['charges']}\n")
     print(f"Wrote {filename} and {summary}")
 
 
-def plot_trajectories(rows, filename="weyl_nodes_vs_T.png"):
+def plot_trajectories(rows, path="temperature"):
+    filename = output_names(path)[2]
+    label, unit, _, title = PATHS[path]
     fig, ax = plt.subplots(figsize=(6, 4.5))
     for nid in sorted({r["id"] for r in rows}):
-        rs = [r for r in rows if r["id"] == nid and (r["charges"] or r["status"] == "harmonic")]
+        rs = [r for r in rows if r["id"] == nid and (r["charges"] or r["T"] == 0)]
         if len(rs) < 2:
             continue
         sign = next(iter(rs[0]["charges"].values()), 0)
         ax.errorbar([r["T"] for r in rs], [r["freq"] for r in rs],
                     yerr=[r["err_freq"] for r in rs], marker="o", ms=3, lw=1, capsize=2,
-                    color="tab:red" if sign > 0 else "tab:blue", alpha=0.7)
-    ax.set_xlabel("Temperature (K)")
+                    color="tab:red" if sign > 0 else "tab:blue", alpha=0.7,
+                    ls="none" if path == "committee" else "-")
+    ax.set_xlabel({"temperature": "Temperature (K)", "pressure": "Pressure (GPa)",
+                   "strain": "Uniaxial strain", "committee": "Model (0 = reference)"}[path])
     ax.set_ylabel("Node frequency (THz)")
-    ax.set_title("Phonon nodes versus temperature (red C > 0, blue C < 0)")
+    ax.set_title(f"Phonon nodes along {title} (red C > 0, blue C < 0)", fontsize=10)
     fig.tight_layout()
     fig.savefig(filename, dpi=300)
     plt.close(fig)
@@ -948,9 +1132,30 @@ def main():
                        help="Keep the 0 K cell (anharmonic shift at fixed volume only).")
     t_grp.add_argument("--md_timestep", type=float, default=2.0, help="MD time step in fs (default: 2).")
     t_grp.add_argument("--no_search_tmax", action="store_true",
-                       help="With --search, skip the extra zone search at the highest T.")
+                       help="With --search, skip the extra zone search for new nodes at the last "
+                            "point of the path (at every model with --committee).")
     t_grp.add_argument("--seed", type=int, default=0, help="Random seed for the MD (default: 0).")
+    p_grp = parser.add_argument_group(
+        "nodes under pressure or strain, and across a committee of models (need phonopy; "
+        "nodes from --node and/or --search; POSCAR relaxed with --model)")
+    p_grp.add_argument("--pressure", type=float, nargs="+", metavar="P",
+                       help="Follow the nodes through these hydrostatic pressures (GPa), in the order "
+                            "given; the structure is relaxed at each, space group kept.")
+    p_grp.add_argument("--strain", type=float, nargs="+", metavar="E",
+                       help="Follow the nodes through these uniaxial strains along --strain_axis "
+                            "(e.g. 0.005 0.01 0.02), in the order given; the other two axes and the "
+                            "positions relax. Symmetry-pinned multiplets can split: they are then "
+                            "reported as lost, and --search finds the nodes they split into.")
+    p_grp.add_argument("--strain_axis", choices=("x", "y", "z"), default="z",
+                       help="Cartesian axis of --strain (default: z).")
+    p_grp.add_argument("--committee", nargs="+", metavar="MODEL",
+                       help="Recompute every node with each of these GRACE models (structure relaxed "
+                            "with each) and report how many find it with the same charge, and the "
+                            "spread of its frequency and position.")
     args = parser.parse_args()
+    paths = [p for p in ("temperature", "pressure", "strain", "committee") if getattr(args, p)]
+    if len(paths) > 1:
+        parser.error("give only one of --temperature, --pressure, --strain, --committee")
 
     if not os.path.exists(args.poscar):
         print(f"Error: {args.poscar} not found."); sys.exit(1)
@@ -959,8 +1164,8 @@ def main():
     calc  = load_calculator(args.model)
 
     fc = args.fc or ("phonopy" if have_phonopy() else "ase")
-    if args.temperature and fc != "phonopy":
-        parser.error("--temperature needs phonopy (for the symfc fit); install it or drop --fc ase")
+    if paths and fc != "phonopy":
+        parser.error(f"--{paths[0]} needs phonopy; install it or drop --fc ase")
     if args.degen_tol is None:
         args.degen_tol = 1e-3 if fc == "phonopy" else 0.05
     if fc == "phonopy":
@@ -1013,7 +1218,7 @@ def main():
             if hi > lo and nu0[lo] > 0.1:             # skip the acoustic zero at Γ
                 node = node_chern(ph, atoms, q, lo, hi, **chern_args)
                 node["class"] = classify_node(node)
-                node["fixed"] = True                  # pinned to this q for --temperature
+                node["fixed"] = True                  # pinned to this q along a path
                 point_nodes.append(node)
     base_nodes = list(point_nodes)
     gaps = None
@@ -1054,16 +1259,25 @@ def main():
     write_crossings(crossings, q_pts)
     write_summary(crossings, n_modes, n_imaginary, nodes=nodes, balance=balance)
 
-    if args.temperature:
+    if paths:
+        path = paths[0]
         if not base_nodes:
-            parser.error("--temperature needs nodes to follow: give --node and/or --search")
-        rows, md_info, events, (t_max, eff_max) = track_nodes(
-            base_nodes, args.temperature, atoms, calc, args, chern_args, ph)
+            parser.error(f"--{path} needs nodes to follow: give --node and/or --search")
+        values, stage = {
+            "temperature": (args.temperature, None),
+            "pressure": (args.pressure, lambda: pressure_stage(atoms, calc, args)),
+            "strain": (args.strain, lambda: strain_stage(atoms, calc, args)),
+            "committee": (list(range(1, len(args.committee or []) + 1)),
+                          lambda: committee_stage(atoms, args.committee, args)),
+        }[path]
+        rows, md_info, events, done = track_nodes(base_nodes, values, atoms, calc, args, chern_args,
+                                                  ph, stage=stage and stage(), path=path)
         new_nodes = None
         if args.search and not args.no_search_tmax:
-            new_nodes = find_new_nodes(eff_max, t_max, rows, gaps, args, chern_args)
-        write_trajectories(rows, md_info, events, new_nodes)
-        plot_trajectories(rows)
+            new_nodes = [(x, find_new_nodes(eff, x, rows, gaps, args, chern_args, path))
+                         for x, eff in (done if path == "committee" else done[-1:])]
+        write_trajectories(rows, md_info, events, new_nodes, path=path, models=args.committee, rec=rec)
+        plot_trajectories(rows, path)
 
 
 if __name__ == "__main__":

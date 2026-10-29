@@ -34,6 +34,7 @@ vasp-grace reads `POSCAR` and `INCAR`, computes energies, forces and stresses wi
 | Find phonon Weyl points and their topological charges | `grace-topo-phonons` | [Phonon Weyl points](#phonon-weyl-points) |
 | Compute phonon Zak phases and Berry curvature | `grace-phonon-berry` | [Phonon Weyl points](#phonon-weyl-points) |
 | Follow phonon nodes and their charges with temperature | `grace-topo-phonons --temperature` | [Phonon nodes versus temperature](#phonon-nodes-versus-temperature) |
+| Follow phonon nodes under pressure or strain, or check them across GRACE models | `grace-topo-phonons --pressure`, `--strain`, `--committee` | [Pressure, strain, models](#phonon-nodes-under-pressure-strain-and-across-models) |
 | Fingerprint a structure without using symmetry (grain boundaries, amorphous regions) | `grace-topology` | `--help` |
 | Build a twisted bilayer at a commensurate angle | `grace-moire` | `--help` |
 
@@ -305,6 +306,23 @@ grace-topo-phonons --poscar POSCAR --search 16 --bands 3 3 \
 
 </details>
 
+### Phonon nodes under pressure, strain, and across models
+
+```bash
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5 --search 16 --bands 3 3 \
+    --pressure 5 10 20 40                    # GPa, relaxed at each pressure
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5 --search 16 --bands 3 3 \
+    --strain 0.005 0.01 0.02                 # uniaxial along z (--strain_axis)
+grace-topo-phonons --poscar POSCAR --node 0 0 0 --node 0.5 0.5 0.5 --search 16 --bands 3 3 \
+    --committee GRACE-2L-OMAT-large-ft-AM-fp64 GRACE-1L-OAM   # same nodes with other models
+```
+
+The nodes found for `--model` (POSCAR relaxed with it) are followed along a path, with the same tracking as `--temperature`: annihilation, merging, vanishing, charge changes and, with `--search`, new nodes at the last point are reported. `--pressure` relaxes cell and positions at each hydrostatic pressure, space group kept. `--strain` holds one Cartesian axis at the given strain and relaxes the other two and the positions (uniaxial stress); the strain lowers the symmetry, so multiplets pinned by the cubic symmetry can split (reported as lost) or emit Weyl points (found by the new-node search). `--committee` relaxes the structure with each model, re-converges every reference node from its reference position, and tabulates per node how many models find it with the same charge, the spread of its frequency and its largest shift: an uncertainty on the topology that comes from the choice of model. Outputs: `nodes_vs_P.dat`, `nodes_vs_strain.dat`, `nodes_committee.dat` and the matching `phonon_topo_*.txt` summaries and plots.
+
+Force constants along these paths are harmonic (finite displacements of each relaxed structure), so there are no error bars from sampling; the uncertainty is the model's, which `--committee` estimates.
+
+Take small steps along a path. Each node is re-converged from its position at the previous point, so a step that moves nodes by more than the distance to their neighbours makes them land on another node; this is reported as "merged", not as physics. For CoSi, 0 → 5 GPa in one step loses 30 of 82 Weyl points this way; with steps of 1 GPa no node merges up to 40 GPa, and with steps of 0.1 % strain only 3 do (at −1.8 %). A point takes about 30 s on a GPU. Merged nodes are reported, so check the summary before reading a trajectory as physics.
+
 ---
 
 ## What a potential can and cannot tell you
@@ -335,8 +353,6 @@ New to topology in condensed matter? These cover the ideas behind the condensed-
 
 ## Roadmap
 
-- **Uncertainty on topological charges**: node charges across a committee of GRACE models.
-- **Topological phase diagrams under strain and pressure**, with automatic tracking of node creation and annihilation.
 - **Phonon surface states** from surface Green's functions.
 - **Chiral phonons**: phonon angular momentum and circular polarisation.
 - **Allen–Dynes T<sub>c</sub> helper** combining DFT α²F(ω) or λ with GRACE phonons.
