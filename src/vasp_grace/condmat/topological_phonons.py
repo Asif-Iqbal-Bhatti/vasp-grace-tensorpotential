@@ -827,7 +827,9 @@ def find_new_nodes(eff, T, rows, gaps, args, chern_args):
                r["bands"][0] <= f["band_lo"] <= r["bands"][1] for r in known):
             continue
         node = node_chern(ph, prim, f["q"], f["band_lo"], f["band_lo"] + 1, **chern_args)
-        if node["charges"] and not any(same_node(node, m, rec, args.sphere_r) for m in new):
+        # a charge-0 minimum is not a node (see the "vanished" check in track_nodes)
+        if any(node["charges"].values()) and not any(same_node(node, m, rec, args.sphere_r)
+                                                     for m in new):
             node["class"] = classify_node(node)
             new.append(node)
     return new
