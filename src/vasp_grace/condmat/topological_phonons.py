@@ -582,7 +582,34 @@ def _min_image_distance(qa, qb, rec):
     return float(np.linalg.norm(d @ rec))
 
 
-def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, node_tol=0.02):
+def _assign_pinned(nodes, nu, vecs, degen_tol):
+    """
+    One-to-one assignment of symmetry-pinned nodes at one q to the multiplets of
+    the new spectrum there. Bands reorder as frequencies shift with T, so each
+    node is matched by the overlap of its multiplet with the previous one,
+    |V_old† V_new|²/m (1 for the same modes, unchanged by mixing inside the
+    multiplet), frequency difference breaking ties, with the Hungarian algorithm.
+    Returns {node id: ((lo, hi), overlap)}, or None for a node left without a
+    multiplet of its size.
+    """
+    from scipy.optimize import linear_sum_assignment
+    groups = [g for g in multiplets(nu, degen_tol) if g[1] > g[0] and nu[g[0]] > 0.1]
+    overlap = np.zeros((len(nodes), len(groups)))
+    cost = np.full_like(overlap, 1e6)
+    for i, t in enumerate(nodes):
+        for j, (lo, hi) in enumerate(groups):
+            if hi - lo + 1 == t["mult"]:
+                overlap[i, j] = np.linalg.norm(t["vecs"].conj().T @ vecs[:, lo:hi + 1]) ** 2 / t["mult"]
+                cost[i, j] = 1.0 - overlap[i, j] + 0.01 * abs(nu[lo:hi + 1].mean() - t["freq"])
+    match = {t["id"]: None for t in nodes}
+    for i, j in zip(*linear_sum_assignment(cost)):
+        if cost[i, j] < 1e6:
+            match[nodes[i]["id"]] = (groups[j], float(overlap[i, j]))
+    return match
+
+
+def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, node_tol=0.02,
+                min_overlap=0.5, lost_overlap=0.1):
     """
     Follow every node from the harmonic (0 K) result through increasing T.
 
@@ -590,13 +617,20 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, node_tol
     is re-converged from its previous position, and its charge recomputed. The
     two half-fits give error bars on the node position and frequency. A node
     whose bands no longer meet has vanished; two vanishing nodes of opposite
-    charge in the same gap that were close together have annihilated.
+    charge in the same gap that were close together have annihilated. Nodes
+    pinned by symmetry are matched one-to-one to the multiplets at their q by
+    eigenvector overlap with the previous T (`ph0` gives the 0 K eigenvectors);
+    an overlap below `min_overlap` is reported, as the modes have mixed, and one
+    below `lost_overlap` (or no multiplet of the node's size left) loses the node.
     """
     rec0 = np.asarray(prim.cell.reciprocal())
     tracked = [{"id": i, "bands": n["bands"], "q": np.asarray(n["q"], float),
                 "charges": dict(n["charges"]), "fixed": n.get("fixed", False), "alive": True,
                 "freq": n["frequency_THz"], "mult": n["multiplicity"]}
                for i, n in enumerate(base_nodes) if n["charges"]]
+    for t in tracked:
+        if t["fixed"]:
+            t["vecs"] = eigensystem(ph0, t["q"])[1][:, t["bands"][0]:t["bands"][1] + 1]
     rows = [{"T": 0.0, "id": t["id"], "bands": t["bands"], "q": t["q"],
              "freq": base_nodes[t["id"]]["frequency_THz"], "err_freq": 0.0, "err_q": 0.0,
              "charges": t["charges"], "status": "harmonic"} for t in tracked]
@@ -616,17 +650,34 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, node_tol
         rec = np.asarray(eff["prim"].cell.reciprocal())
         ph_a, ph_b = eff["halves"]
         nodes_T, gone = [], []
+        # nodes pinned by symmetry keep their q and multiplicity but can change band
+        # index when frequencies reorder: assign them per q, one node per multiplet
+        match, spectra = {}, {}
+        for qkey in {tuple(np.round(t["q"], 6)) for t in tracked if t["fixed"] and t["alive"]}:
+            at_q = [t for t in tracked if t["fixed"] and t["alive"]
+                    and tuple(np.round(t["q"], 6)) == qkey]
+            spectra[qkey] = eigensystem(eff["ph"], at_q[0]["q"])
+            match.update(_assign_pinned(at_q, *spectra[qkey], args.degen_tol))
         for t in tracked:
             if not t["alive"]:
                 continue
+            note = ""
             if t["fixed"]:
-                # a node pinned by symmetry keeps its multiplicity but can change band
-                # index when frequencies reorder: take the nearest multiplet of that size
-                nu_q = eigensystem(eff["ph"], t["q"])[0]
-                same = [(lo_, hi_) for lo_, hi_ in multiplets(nu_q, args.degen_tol)
-                        if hi_ - lo_ + 1 == t["mult"]]
-                if same:
-                    t["bands"] = min(same, key=lambda g: abs(nu_q[g[0]:g[1] + 1].mean() - t["freq"]))
+                bands, ov = match[t["id"]] or (None, 0.0)
+                if ov < lost_overlap:
+                    t["alive"] = False
+                    why = (f"no free {t['mult']}-fold multiplet at its q" if bands is None else
+                           f"best free multiplet {bands[0]}-{bands[1]} has overlap {ov:.2f}")
+                    rows.append({"T": float(T), "id": t["id"], "bands": t["bands"], "q": t["q"],
+                                 "freq": t["freq"], "err_freq": 0.0, "err_q": 0.0, "charges": {},
+                                 "status": f"lost ({why})"})
+                    events.append(f"T = {T:g} K: node {t['id']} (bands {t['bands'][0]}-"
+                                  f"{t['bands'][1]}) lost: {why}")
+                    continue
+                t["bands"] = bands
+                t["vecs"] = spectra[tuple(np.round(t["q"], 6))][1][:, t["bands"][0]:t["bands"][1] + 1]
+                if ov < min_overlap:
+                    note = f", modes mixed (overlap {ov:.2f})"
             lo, hi = t["bands"]
             q, spread = follow_node(eff["ph"], t["q"], lo, hi, t["fixed"])
             qa, _ = follow_node(ph_a, t["q"], lo, hi, t["fixed"])
@@ -647,7 +698,8 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, node_tol
                 nodes_T.append(node)
                 row["charges"] = node["charges"]
                 same_charges = sorted(node["charges"].values()) == sorted(t["charges"].values())
-                row["status"] = "tracked" if same_charges else f"charges changed from {t['charges']}"
+                row["status"] = ("tracked" if same_charges
+                                 else f"charges changed from {t['charges']}") + note
                 t["q"], t["freq"] = q, row["freq"]
             rows.append(row)
         # opposite charges vanishing together close by: pair annihilation
@@ -906,7 +958,7 @@ def main():
         if not base_nodes:
             parser.error("--temperature needs nodes to follow: give --node and/or --search")
         rows, md_info, events, (t_max, eff_max) = track_nodes(
-            base_nodes, args.temperature, atoms, calc, args, chern_args)
+            base_nodes, args.temperature, atoms, calc, args, chern_args, ph)
         new_nodes = None
         if args.search and not args.no_search_tmax:
             new_nodes = find_new_nodes(eff_max, t_max, rows, gaps, args, chern_args)

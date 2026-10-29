@@ -37,10 +37,7 @@ Open work, in the order to pick it up.
    - the reference structure (mean residual force 0.037 eV/Å at 100 K)
    - fp32 force noise (try a `-fp64` model)
    - a phonopy random-displacement fit at a small amplitude, as a control
-3. **Bug: node matching is not one-to-one.** Pinned nodes are matched to the nearest multiplet of the same size by frequency alone, so two nodes can claim the same multiplet:
-   - At 100 K, node 1 (Γ triplet, bands 6–8, 6.42 THz) was matched to bands 9–11, which already belonged to node 2.
-   - At 600 K, node 7 (R, bands 0–3) was matched to bands 4–7, which belonged to node 8, and was reported as "charges changed". No charge actually changed.
-   - Fix: a one-to-one assignment (Hungarian algorithm on frequency difference), preferably using eigenvector overlap with the previous temperature's multiplet, and flag a node as lost when no unclaimed multiplet is close.
+3. **Fixed: node matching is now one-to-one.** Before, pinned nodes were matched to the nearest multiplet of the same size by frequency alone, so two nodes could claim one multiplet: at 100 K node 1 (Γ, bands 6–8) took bands 9–11 from node 2, and at 600 K node 7 (R, bands 0–3) took bands 4–7 from node 8 and was reported as "charges changed" although no charge changed. Now the pinned nodes at each q are assigned with the Hungarian algorithm on eigenvector-subspace overlap with the previous temperature, |V_old† V_new|²/m, frequency breaking ties. An overlap below 0.5 is reported as "modes mixed", and below 0.1, or with no free multiplet of the node's size left, the node is reported as lost. Checked on the CoSi harmonic spectra: the identity assignment holds, overlap wins over a misleading remembered frequency, and a split multiplet loses its node. Not yet re-run with MD.
 4. **Weyl-point tracking has not been run yet.** Plan: a zone search of CoSi gap 3|4 at 16³, tracking at 100/300/600 K with 150 snapshots, then the new-node search at 600 K. Expect several hours. Run it alone on the GPU, after items 2 and 3.
 5. **Before calling it done:**
    - README section for `--temperature`, with method, limits (classical MD, no zero-point motion) and TDEP/symfc citations taken from their own documentation
