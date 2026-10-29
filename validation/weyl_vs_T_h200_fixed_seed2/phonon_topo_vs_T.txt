@@ -1,0 +1,71 @@
+Phonon topology versus temperature
+==================================
+
+Effective harmonic force constants at T, fitted by phonopy (symfc) from classical
+GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.
+
+T = 100 K: NPT average at T (zero pressure), V = 87.604 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.058 Å, fit residual 0.100, mean force 0.0408 eV/Å, static offset 0.089 of rms
+T = 300 K: NPT average at T (zero pressure), V = 88.336 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.102 Å, fit residual 0.174, mean force 0.0705 eV/Å, static offset 0.088 of rms
+T = 600 K: NPT average at T (zero pressure), V = 89.179 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.148 Å, fit residual 0.247, mean force 0.1003 eV/Å, static offset 0.088 of rms
+
+Events
+------
+- T = 600 K: node 8 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 10 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 11 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 12 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 13 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 14 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 15 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 16 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 17 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 18 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 19 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 20 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 21 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 22 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 23 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 24 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 25 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 26 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 27 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 28 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 29 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 33 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 34 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 35 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 36 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 37 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 38 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 39 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 40 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 41 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 42 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 43 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 44 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 45 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 46 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 47 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 48 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 49 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 50 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 51 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 52 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 53 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 54 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 55 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 56 charges changed from {3: -1} to {3: 0}
+- T = 600 K: node 57 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 58 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 59 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 60 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 61 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 62 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 63 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 64 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 65 charges changed from {3: 1} to {3: -1}
+
+Nodes found only at the highest T: 3
+  q = (0.1741, 0.2754, 0.1240)  bands 3-4  charges {3: 0}
+  q = (0.2754, 0.1240, 0.1741)  bands 3-4  charges {3: 0}
+  q = (0.1240, 0.1741, 0.2754)  bands 3-4  charges {3: 0}

@@ -1,0 +1,22 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793263575.707579   99487 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793263575.711292   99487 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793263575.719148   99487 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793263575.719163   99487 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793263575.719164   99487 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793263575.719165   99487 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+I0000 00:00:1793263577.963895   99487 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 5560 MB memory:  -> device: 0, name: NVIDIA RTX 2000 Ada Generation Laptop GPU, pci bus id: 0000:01:00.0, compute capability: 8.9
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793263579.012952   99487 service.cc:152] XLA service 0x55a513a3a1c0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793263579.012989   99487 service.cc:160]   StreamExecutor device (0): NVIDIA RTX 2000 Ada Generation Laptop GPU, Compute Capability 8.9
+I0000 00:00:1793263579.436541   99487 cuda_dnn.cc:529] Loaded cuDNN version 91002
+I0000 00:00:1793263582.434624   99487 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /home/asifem/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+info {'temperature_K': 100.0, 'volume': 'NPT average at T (zero pressure)', 'n_snapshots': 150, 'sample_every_fs': 200.0, 'volume_per_cell_A3': 87.58472144124491, 'space_group': 'P2_13 (#198)', 'space_group_kept': True, 'mean_force_per_atom_eV_A': 0.037047910502479825, 'static_offset': 0.07925397179504422, 'rms_displacement_A': 0.05832463504803182, 'fit_residual': 0.09943441472239598}
+Γ [ 6.376  6.876  8.736  9.86  12.217]

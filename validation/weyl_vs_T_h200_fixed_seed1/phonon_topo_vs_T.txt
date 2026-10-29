@@ -1,0 +1,91 @@
+Phonon topology versus temperature
+==================================
+
+Effective harmonic force constants at T, fitted by phonopy (symfc) from classical
+GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.
+
+T = 100 K: NPT average at T (zero pressure), V = 87.606 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.058 Å, fit residual 0.100, mean force 0.0415 eV/Å, static offset 0.088 of rms
+T = 300 K: NPT average at T (zero pressure), V = 88.424 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.103 Å, fit residual 0.176, mean force 0.0713 eV/Å, static offset 0.087 of rms
+T = 600 K: NPT average at T (zero pressure), V = 89.135 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.148 Å, fit residual 0.249, mean force 0.1003 eV/Å, static offset 0.087 of rms
+
+Events
+------
+- T = 300 K: nodes 8 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 9 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 10 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 11 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 12 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 13 and 78 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 14 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 15 and 78 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 16 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 17 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 18 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 19 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 20 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 21 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 22 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 23 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 24 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 25 and 78 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 26 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 27 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 28 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 29 and 30 (bands 3-4) annihilated: 0.0087 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 30 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 31 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 32 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 79 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 80 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 300 K: nodes 81 and 13 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 45 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 46 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 47 and 75 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 48 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 49 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 50 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 51 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 52 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 53 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 54 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 55 and 75 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 56 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 66 and 47 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 67 and 47 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 69 and 55 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 70 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 71 and 47 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 72 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 73 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 74 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 76 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: nodes 77 and 53 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0000 THz apart
+- T = 600 K: node 57 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 58 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 60 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 62 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 64 charges changed from {3: 1} to {3: -1}
+- T = 600 K: node 65 charges changed from {3: 1} to {3: -1}
+
+Nodes found only at the highest T: 21
+  q = (0.0000, 0.7713, 0.2648)  bands 3-4  charges {3: -1}
+  q = (0.7713, 0.2648, 0.0000)  bands 3-4  charges {3: -1}
+  q = (0.7352, 1.0000, 0.7713)  bands 3-4  charges {3: -1}
+  q = (0.7713, 0.7352, 1.0000)  bands 3-4  charges {3: -1}
+  q = (0.2648, 0.0000, 0.7713)  bands 3-4  charges {3: -1}
+  q = (1.0000, 0.7713, 0.7352)  bands 3-4  charges {3: -1}
+  q = (0.7997, 0.2003, 0.2003)  bands 3-4  charges {3: -2}
+  q = (0.9476, 0.7746, 0.7375)  bands 3-4  charges {3: 1}
+  q = (0.7375, 0.9476, 0.7746)  bands 3-4  charges {3: 1}
+  q = (0.7746, 0.7375, 0.9476)  bands 3-4  charges {3: 1}
+  q = (0.2003, 0.7997, 0.2003)  bands 3-4  charges {3: -2}
+  q = (0.2003, 0.2003, 0.7997)  bands 3-4  charges {3: -2}
+  q = (0.2625, 0.9476, 0.7746)  bands 3-4  charges {3: 1}
+  q = (0.2254, 0.7375, 0.9476)  bands 3-4  charges {3: 1}
+  q = (0.9476, 0.2254, 0.2625)  bands 3-4  charges {3: 1}
+  q = (0.9476, 0.7746, 0.2625)  bands 3-4  charges {3: 1}
+  q = (0.2254, 0.2625, 0.9476)  bands 3-4  charges {3: 1}
+  q = (0.7746, 0.2625, 0.9476)  bands 3-4  charges {3: 1}
+  q = (0.9476, 0.2254, 0.7375)  bands 3-4  charges {3: 1}
+  q = (0.7375, 0.9476, 0.2254)  bands 3-4  charges {3: 1}
+  q = (0.2625, 0.9476, 0.2254)  bands 3-4  charges {3: 1}

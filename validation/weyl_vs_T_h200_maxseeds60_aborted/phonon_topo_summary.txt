@@ -1,0 +1,65 @@
+Topological phonon analysis summary
+========================================
+Total phonon modes      : 24
+Imaginary modes (< 0)   : 0
+Band crossings detected : 112
+  - by band inversion   : 0
+  - by near-degeneracy  : 112
+Crossings with γ ≈ π    : 0  (nodal line or Weyl; see Chern numbers)
+
+Nodes with Chern numbers: 52 (phonon_nodes.dat)
+  q = (0.4348, 0.5652, 0.5652)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.5652, 0.4348, 0.4348)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.5652, 0.5652, 0.4348)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.5652, 0.5652, 0.5652)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.4348, 0.4348, 0.4348)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.5652, 0.4348, 0.5652)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.4348, 0.4348, 0.5652)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.4348, 0.5652, 0.4348)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.2637, 0.8461, 0.8510)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8510, 0.7363, 0.8461)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1956, 0.1956, 0.1956)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.7363, 0.1539, 0.8510)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8510, 0.2637, 0.1539)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1539, 0.8510, 0.7363)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.7363, 0.8461, 0.1490)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1539, 0.1490, 0.7363)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8510, 0.7363, 0.1539)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8461, 0.8510, 0.2637)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8461, 0.1490, 0.2637)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8461, 0.1490, 0.7363)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.2637, 0.1539, 0.8510)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1539, 0.8510, 0.2637)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1490, 0.7363, 0.8461)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.7363, 0.8461, 0.8510)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8461, 0.8510, 0.7363)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1490, 0.7363, 0.1539)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1490, 0.2637, 0.8461)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8510, 0.2637, 0.8461)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.2637, 0.8461, 0.1490)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.7363, 0.1539, 0.1490)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1956, 0.8044, 0.8044)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.8044, 0.8044, 0.1956)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.8044, 0.1956, 0.8044)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.6904, 0.1152, 0.0000)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.0000, 0.3096, 0.1152)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.1152, 0.0000, 0.6904)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.1152, 0.0000, 0.3096)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.2637, 0.1539, 0.1490)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1490, 0.2637, 0.1539)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.1539, 0.1490, 0.2637)  bands 3-4  charges {3: -1}  Weyl point
+  q = (0.8044, 0.8044, 0.8044)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.1956, 0.1956, 0.8044)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.8044, 0.1956, 0.1956)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.1956, 0.8044, 0.1956)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.3096, 0.8848, 1.0000)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.6904, 0.8848, 1.0000)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.3096, 0.1152, 0.0000)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.0000, 0.6904, 0.1152)  bands 3-4  charges {3: 1}  Weyl point
+  q = (1.0000, 0.3096, 0.8848)  bands 3-4  charges {3: 1}  Weyl point
+  q = (1.0000, 0.6904, 0.8848)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.8848, 1.0000, 0.3096)  bands 3-4  charges {3: 1}  Weyl point
+  q = (0.8848, 1.0000, 0.6904)  bands 3-4  charges {3: 1}  Weyl point
+
+Charge balance over the zone (Nielsen-Ninomiya)
+  gap   3|4    total -12   unresolved crossings   0   open: some point nodes were not found

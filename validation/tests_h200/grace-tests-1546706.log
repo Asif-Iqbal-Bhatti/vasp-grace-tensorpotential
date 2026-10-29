@@ -1,0 +1,110 @@
+
+------------------------------------------------------------
+  1. Dependency check
+------------------------------------------------------------
+  [PASS] ase  -- installed
+  [PASS] numpy  -- installed
+  [PASS] scipy  -- installed
+  [PASS] matplotlib  -- installed
+  [PASS] tensorpotential  -- installed
+  [SKIP] gudhi  -- not installed (dependent tests will be skipped)
+  [SKIP] symlint  -- not installed (dependent tests will be skipped)
+
+------------------------------------------------------------
+  2. topology.py  (persistent homology)
+------------------------------------------------------------
+  [PASS] single structure analysis
+  [PASS] compare mode (bulk vs GB)
+  [PASS] PBC distance matrix
+  [PASS] XDATCAR trajectory mode
+
+------------------------------------------------------------
+  3. dislocation.py  (Volterra / Stroh)
+------------------------------------------------------------
+  [PASS] isotropic Volterra -- screw
+  [PASS] isotropic Volterra -- edge
+  [PASS] edge with Poisson ratio
+  [PASS] Miller index (hkl/uvw) input
+  [PASS] anisotropic Stroh formalism
+
+------------------------------------------------------------
+  4. moire.py  (CSL twisted bilayer)
+------------------------------------------------------------
+  [PASS] CSL angle scan (hex)
+  [PASS] bilayer build (m=2, n=3)
+  [PASS] CSL angle scan (square)
+
+------------------------------------------------------------
+  5. lihopping.py  (ion hop detection)
+------------------------------------------------------------
+  [PASS] hop detection (single trajectory)
+  [PASS] Arrhenius analysis (2 temperatures)
+
+------------------------------------------------------------
+  6. Syntax check  (all modules)
+------------------------------------------------------------
+  [PASS] __init__.py  -- OK
+  [PASS] active_learning.py  -- OK
+  [PASS] calculator.py  -- OK
+  [PASS] condmat/__init__.py  -- OK
+  [PASS] condmat/chirality.py  -- OK
+  [PASS] condmat/moire.py  -- OK
+  [PASS] condmat/phonon_berry.py  -- OK
+  [PASS] condmat/phonon_tools.py  -- OK
+  [PASS] condmat/symmetry_stability.py  -- OK
+  [PASS] condmat/topological_phonons.py  -- OK
+  [PASS] condmat/topology.py  -- OK
+  [PASS] dislocation.py  -- OK
+  [PASS] lihopping.py  -- OK
+  [PASS] main.py  -- OK
+  [PASS] montecarlo.py  -- OK
+  [PASS] thermal_conductivity.py  -- OK
+
+------------------------------------------------------------
+  7. CLI validation  (--help for all GRACE modules)
+------------------------------------------------------------
+  [PASS] active_learning.py --help
+  [PASS] montecarlo.py --help
+  [PASS] thermal_conductivity.py --help
+  [PASS] condmat/topological_phonons.py --help
+  [PASS] condmat/phonon_berry.py --help
+
+------------------------------------------------------------
+  8. GRACE end-to-end  (active_learning, montecarlo, thermal_conductivity)
+------------------------------------------------------------
+  [PASS] active_learning -- committee of 2, 1 structure
+  [PASS] active_learning -- CALM gamma, 1 structure
+  [PASS] montecarlo -- 100 steps at 300 K
+  [PASS] thermal_conductivity -- 500 MD steps
+
+------------------------------------------------------------
+  9. Phonon modules  (topological_phonons, phonon_berry)
+------------------------------------------------------------
+  Building phonon force constants (2x2x2 supercell)...
+  [PASS] phonon force constants (2x2x2)
+  [PASS] topological_phonons -- GX path, 20 k-pts
+  [PASS] phonon_berry -- Zak phases GXG, 20 k-pts
+
+------------------------------------------------------------
+  10. Condensed matter  (chirality, grace-symmetry)
+------------------------------------------------------------
+  [PASS] chirality -- Te P3_121 -> P3_221, CoSi P2_13 self-enantiomorphic
+  [PASS] grace-symmetry --help
+  [PASS] grace-symmetry -- soft-mode displacement is a phonon eigenmode (Si, q=1/3)
+  [PASS] grace-symmetry -- Si end-to-end (symlint not installed: no verdict)
+
+------------------------------------------------------------
+  11. Chern numbers on a sphere  (analytic models, CoSi phonons)
+------------------------------------------------------------
+  [PASS] Chern on sphere -- Weyl ±1, double Weyl ±2, spin-1 (2,0,-2), Weyl pair sums to 0
+  [PASS] crowded_nodes -- pair annihilation, merged, unresolved neighbour, symmetry copies
+  [PASS] grace-topo-phonons -- CoSi spin-1 node at Γ (|C| = 2)
+  [PASS] phonopy force constants -- CoSi: periodic gauge, symmetry images of a node are nodes
+
+============================================================
+  TEST SUMMARY
+============================================================
+  Total : 57   Passed : 55   Failed : 0   Skipped : 2
+
+============================================================
+

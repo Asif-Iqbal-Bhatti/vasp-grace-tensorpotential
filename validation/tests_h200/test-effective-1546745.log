@@ -1,0 +1,10 @@
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+phonopy: 4 symmetry-reduced displacements in a 2×2×2 supercell
+OK 0.231 0.109
+
+
+rc 0, 33 s

@@ -1,0 +1,23 @@
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793270530.669618      17 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793270530.692251      17 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793270530.837643      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793270530.837743      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793270530.837753      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793270530.837763      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+I0000 00:00:1793270538.555628      17 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 140873 MB memory:  -> device: 0, name: NVIDIA H200, pci bus id: 0000:44:00.0, compute capability: 9.0
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793270539.905019      17 service.cc:152] XLA service 0x11aa1b00 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793270539.905138      17 service.cc:160]   StreamExecutor device (0): NVIDIA H200, Compute Capability 9.0
+I0000 00:00:1793270540.533239      17 cuda_dnn.cc:529] Loaded cuDNN version 90300
+E0000 00:00:1793270543.802385      17 ptx_compiler_helpers.cc:88] *** WARNING *** Invoking ptxas with version 12.5.82, which corresponds to a CUDA version <=12.6.2. CUDA versions 12.x.y up to and including 12.6.2 miscompile certain edge cases around clamping.
+Please upgrade to CUDA 12.6.3 or newer.
+I0000 00:00:1793270544.439372      17 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+info {'temperature_K': 600.0, 'volume': 'NPT average at T (zero pressure)', 'n_snapshots': 150, 'sample_every_fs': 200.0, 'volume_per_cell_A3': 89.18743269257637, 'space_group': 'P2_13 (#198)', 'space_group_kept': True, 'mean_force_per_atom_eV_A': 0.09358920676024576, 'static_offset': 0.080131099048073, 'rms_displacement_A': 0.1481182058973593, 'fit_residual': 0.2469562154278821}

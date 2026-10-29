@@ -1,0 +1,16 @@
+
+T = 100 K: GRACE MD and effective force constants...
+  stub: V = 87.314 Å³, stub, fit residual 0.000, mean force 0.0000 eV/Å, static offset 0.000 of rms
+Wrote phonon_nodes_T100.dat  (11 nodes)
+1 (6, 8) 6.425 {6: 2, 7: 2} tracked 
+2 (9, 11) 6.926 {9: 2, 10: 2} tracked 
+3 (12, 14) 8.791 {12: -2, 13: -2} tracked 
+5 (17, 19) 9.909 {17: -2, 18: -2} tracked 
+6 (21, 23) 12.258 {21: -2, 22: -2} tracked 
+7 (0, 3) 5.101 {1: 2} tracked 
+8 (4, 7) 5.263 {5: -2} tracked 
+9 (8, 11) 7.249 {9: -2} tracked 
+10 (12, 15) 7.738 {13: -2} tracked 
+11 (16, 19) 9.97 {17: 2} tracked 
+12 (20, 23) 12.513 {21: 2} tracked 
+PASS

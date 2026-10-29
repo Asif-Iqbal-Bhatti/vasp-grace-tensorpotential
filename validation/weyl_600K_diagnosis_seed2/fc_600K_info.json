@@ -1,0 +1,13 @@
+{
+ "temperature_K": 600.0,
+ "volume": "NPT average at T (zero pressure)",
+ "n_snapshots": 150,
+ "sample_every_fs": 200.0,
+ "volume_per_cell_A3": 89.17946053237324,
+ "space_group": "P2_13 (#198)",
+ "space_group_kept": true,
+ "mean_force_per_atom_eV_A": 0.10025271980064973,
+ "static_offset": 0.08826425462474982,
+ "rms_displacement_A": 0.14774364907945628,
+ "fit_residual": 0.24732562288799018
+}

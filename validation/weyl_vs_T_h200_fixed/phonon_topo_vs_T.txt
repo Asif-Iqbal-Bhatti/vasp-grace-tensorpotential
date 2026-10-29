@@ -1,0 +1,57 @@
+Phonon topology versus temperature
+==================================
+
+Effective harmonic force constants at T, fitted by phonopy (symfc) from classical
+GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.
+
+T = 100 K: NPT average at T (zero pressure), V = 87.585 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.058 Å, fit residual 0.099, mean force 0.0370 eV/Å, static offset 0.079 of rms
+T = 300 K: NPT average at T (zero pressure), V = 88.325 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.103 Å, fit residual 0.173, mean force 0.0649 eV/Å, static offset 0.080 of rms
+T = 600 K: NPT average at T (zero pressure), V = 89.187 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.148 Å, fit residual 0.247, mean force 0.0936 eV/Å, static offset 0.080 of rms
+
+Events
+------
+- T = 600 K: node 33 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 34 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 35 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 36 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 37 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 38 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 39 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 40 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 41 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 42 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 43 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: node 44 unresolved: node 72 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+- T = 600 K: nodes 45 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 46 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 47 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 48 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 49 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 50 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 51 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 52 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 53 and 67 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 54 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 55 and 66 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 56 and 68 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: node 57 re-converged onto node 13 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 13's
+- T = 600 K: node 58 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+- T = 600 K: node 59 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: node 60 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+- T = 600 K: node 61 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: node 62 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: node 63 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: node 64 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: node 65 re-converged onto node 9 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 9's
+- T = 600 K: nodes 66 and 51 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 69 and 51 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 70 and 46 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 71 and 46 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 72 and 46 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 73 and 51 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 74 and 46 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 75 and 51 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 76 and 46 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+- T = 600 K: nodes 77 and 51 (bands 3-4) annihilated: 0.0000 1/Å apart, charge 0 on the sphere, bands 0.0018 THz apart
+
+Nodes found only at the highest T: 0

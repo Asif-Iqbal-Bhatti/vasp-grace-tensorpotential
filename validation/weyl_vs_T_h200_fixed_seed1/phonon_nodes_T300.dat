@@ -1,0 +1,86 @@
+# Phonon nodes with Chern numbers on a small sphere (A = i<u|grad u>, outward normal)
+# charges: node charge in each internal gap g (bands <= g) that is open on the sphere
+# band Chern: per band, '?' where a neighbouring gap closes on the sphere
+#       qx        qy        qz      bands  mult   freq(THz)             charges        band Chern  class
+   0.43026   0.43026   0.43026     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.56974   0.56974   0.56974     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.43026   0.56974   0.56974     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.43026   0.43026   0.56974     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.56974   0.43026   0.56974     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.56974   0.43026   0.43026     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.56974   0.56974   0.43026     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.43026   0.56974   0.43026     3-4        2      5.0310                3:-1             -1,+1  Weyl point
+   0.22973   0.81315   0.82131     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77027   0.18685   0.17869     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.22973   0.18685   0.82131     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.19961   0.19961   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77027   0.18685   0.82131     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.19961   0.80039   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.81315   0.82131   0.77027     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.19961   0.19961   0.80039     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.18685   0.17869   0.77027     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77027   0.81315   0.82131     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.18685   0.82131   0.22973     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.17869   0.77027   0.81315     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.82131   0.77027   0.81315     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.82131   0.77027   0.18685     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.81315   0.17869   0.77027     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.17869   0.77027   0.18685     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.77027   0.81315   0.17869     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.80039   0.19961   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.81315   0.82131   0.22973     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.82131   0.22973   0.81315     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.18685   0.82131   0.77027     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.82131   0.22973   0.18685     3-4        2      5.2485                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.19961   0.80039   0.80039     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.80039   0.19961   0.80039     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.80039   0.80039   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   1.00000   0.31381   0.10008     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.10008   1.00000   0.68619     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.31381   0.10008   0.00000     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.68619   0.10008   1.00000     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   1.00000   0.68619   0.10008     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.10008   0.00000   0.31381     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.89992   1.00000   0.31381     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.68619   0.89992   0.00000     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.00000   0.68619   0.89992     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.31381   0.89992   1.00000     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.89992   0.00000   0.68619     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   1.00000   0.31381   0.89992     3-4        2      5.1231                3:+1             +1,-1  Weyl point
+   0.35763   0.00000   0.83346     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.35763   1.00000   0.16654     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.00000   0.83346   0.35763     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   1.00000   0.16654   0.35763     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   1.00000   0.16654   0.64237     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.64237   1.00000   0.83346     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.83346   0.64237   1.00000     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.64237   1.00000   0.16654     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.16654   0.64237   1.00000     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.83346   0.35763   0.00000     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.16654   0.35763   1.00000     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   1.00000   0.83346   0.64237     3-4        2      5.0614                3:-1             -1,+1  Weyl point
+   0.20783   0.28494   0.00000     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.00000   0.20783   0.28494     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   1.00000   0.79217   0.28494     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   1.00000   0.20783   0.71506     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.79217   0.28494   1.00000     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.28494   0.00000   0.20783     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.28494   1.00000   0.79217     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.71506   1.00000   0.20783     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.20783   0.71506   1.00000     3-4        2      5.1680                3:+1             +1,-1  Weyl point
+   0.66319   0.58348   0.00000     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.66319   0.41652   0.00000     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   1.00000   0.33681   0.41652     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.41652   0.00000   0.66319     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.58348   0.00000   0.33681     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.00000   0.66319   0.58348     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.33681   0.41652   1.00000     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.00000   0.33681   0.58348     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.41652   1.00000   0.33681     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.00000   0.66319   0.41652     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.58348   0.00000   0.66319     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.33681   0.58348   0.00000     3-4        2      4.9521                3:+1             +1,-1  Weyl point
+   0.19961   0.19961   0.80039     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.19961   0.80039   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.80039   0.19961   0.19961     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+   0.80039   0.80039   0.80039     3-4        2      5.2547                   -               ?,?  unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)

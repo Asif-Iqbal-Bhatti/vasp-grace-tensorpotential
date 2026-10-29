@@ -1,0 +1,70 @@
+Phonon topology versus temperature
+==================================
+
+Effective harmonic force constants at T, fitted by phonopy (symfc) from classical
+GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.
+
+T = 100 K: NPT average at T (zero pressure), V = 87.311 Å³, P2_13 (#198), 300 snapshots every 200 fs, rms displacement 0.056 Å, fit residual 0.096, mean force 0.0265 eV/Å, static offset 0.054 of rms
+T = 300 K: NPT average at T (zero pressure), V = 88.253 Å³, P2_13 (#198), 300 snapshots every 200 fs, rms displacement 0.100 Å, fit residual 0.169, mean force 0.0458 eV/Å, static offset 0.054 of rms
+T = 600 K: NPT average at T (zero pressure), V = 88.906 Å³, P2_13 (#198), 300 snapshots every 200 fs, rms displacement 0.144 Å, fit residual 0.240, mean force 0.0652 eV/Å, static offset 0.053 of rms
+
+Events
+------
+- T = 300 K: node 33 re-converged onto node 45 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 45's
+- T = 300 K: node 34 re-converged onto node 45 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 45's
+- T = 300 K: node 36 re-converged onto node 47 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 47's
+- T = 300 K: node 39 re-converged onto node 52 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 52's
+- T = 300 K: node 40 re-converged onto node 47 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 47's
+- T = 300 K: node 41 re-converged onto node 47 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 47's
+- T = 300 K: node 43 re-converged onto node 47 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 47's
+- T = 300 K: node 69 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 70 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 71 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 72 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 73 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 74 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 75 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 76 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 77 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 78 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 79 charges changed from {3: 1} to {3: 0}
+- T = 300 K: node 80 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 3 charges changed from {12: -2} to {}
+- T = 600 K: node 69 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 70 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 71 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 72 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 73 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 74 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 75 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 76 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 77 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 78 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 79 charges changed from {3: 1} to {3: 0}
+- T = 600 K: node 80 charges changed from {3: 1} to {3: 0}
+
+Nodes found only at the highest T: 24
+  q = (0.6037, 0.6459, 0.3007)  bands 3-4  charges {3: 0}
+  q = (0.3963, 0.3541, 0.6993)  bands 3-4  charges {3: 0}
+  q = (0.3541, 0.6993, 0.6037)  bands 3-4  charges {3: 0}
+  q = (0.6459, 0.3007, 0.3963)  bands 3-4  charges {3: 0}
+  q = (0.6993, 0.6037, 0.3541)  bands 3-4  charges {3: 0}
+  q = (0.3007, 0.3963, 0.6459)  bands 3-4  charges {3: 0}
+  q = (0.6037, 0.3541, 0.6993)  bands 3-4  charges {3: 0}
+  q = (0.3963, 0.6459, 0.3007)  bands 3-4  charges {3: 0}
+  q = (0.3541, 0.6993, 0.3963)  bands 3-4  charges {3: 0}
+  q = (0.6459, 0.3007, 0.6037)  bands 3-4  charges {3: 0}
+  q = (0.3007, 0.6037, 0.3541)  bands 3-4  charges {3: 0}
+  q = (0.6993, 0.3963, 0.6459)  bands 3-4  charges {3: 0}
+  q = (0.6993, 0.3963, 0.3541)  bands 3-4  charges {3: 0}
+  q = (0.3007, 0.6037, 0.6459)  bands 3-4  charges {3: 0}
+  q = (0.6459, 0.6993, 0.3963)  bands 3-4  charges {3: 0}
+  q = (0.3541, 0.3007, 0.6037)  bands 3-4  charges {3: 0}
+  q = (0.6037, 0.6459, 0.6993)  bands 3-4  charges {3: 0}
+  q = (0.3963, 0.3541, 0.3007)  bands 3-4  charges {3: 0}
+  q = (0.6459, 0.6993, 0.6037)  bands 3-4  charges {3: 0}
+  q = (0.3541, 0.3007, 0.3963)  bands 3-4  charges {3: 0}
+  q = (0.6993, 0.6037, 0.6459)  bands 3-4  charges {3: 0}
+  q = (0.3007, 0.3963, 0.3541)  bands 3-4  charges {3: 0}
+  q = (0.6037, 0.3541, 0.3007)  bands 3-4  charges {3: 0}
+  q = (0.3963, 0.6459, 0.6993)  bands 3-4  charges {3: 0}

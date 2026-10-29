@@ -1,0 +1,38 @@
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793273496.643868      17 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793273496.665350      17 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793273496.799154      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793273496.799221      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793273496.799228      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793273496.799234      17 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+I0000 00:00:1793273505.563261      17 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 140873 MB memory:  -> device: 0, name: NVIDIA H200, pci bus id: 0000:44:00.0, compute capability: 9.0
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793273507.122594      17 service.cc:152] XLA service 0x11e1d8a0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793273507.123283      17 service.cc:160]   StreamExecutor device (0): NVIDIA H200, Compute Capability 9.0
+I0000 00:00:1793273507.846738      17 cuda_dnn.cc:529] Loaded cuDNN version 90300
+E0000 00:00:1793273511.131683      17 ptx_compiler_helpers.cc:88] *** WARNING *** Invoking ptxas with version 12.5.82, which corresponds to a CUDA version <=12.6.2. CUDA versions 12.x.y up to and including 12.6.2 miscompile certain edge cases around clamping.
+Please upgrade to CUDA 12.6.3 or newer.
+I0000 00:00:1793273511.788532      17 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+info {'temperature_K': 600.0, 'volume': 'NPT average at T (zero pressure)', 'n_snapshots': 150, 'sample_every_fs': 200.0, 'volume_per_cell_A3': 89.17946053237324, 'space_group': 'P2_13 (#198)', 'space_group_kept': True, 'mean_force_per_atom_eV_A': 0.10025271980064973, 'static_offset': 0.08826425462474982, 'rms_displacement_A': 0.14774364907945628, 'fit_residual': 0.24732562288799018}
+
+T = 600 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 89.179 Å³, P2_13 (#198), fit residual 0.247, mean force 0.1003 eV/Å, static offset 0.088 of rms
+Wrote phonon_nodes_T600.dat  (82 nodes)
+Counter({'vanished': 45, 'tracked': 28, 'charges': 9})
+T = 600 K: 45 nodes vanished: charge 0 on the sphere and no other node inside it, so the gap minimum they converged to is not a node: ids [8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56]
+T = 600 K: node 57 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 58 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 59 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 60 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 61 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 62 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 63 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 64 charges changed from {3: 1} to {3: -1}
+T = 600 K: node 65 charges changed from {3: 1} to {3: -1}

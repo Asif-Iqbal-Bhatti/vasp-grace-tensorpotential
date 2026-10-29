@@ -1,0 +1,164 @@
+GPU 0: NVIDIA H200 (UUID: GPU-7f2e6552-8a8b-8701-3a48-8c66998d4db2)
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793272364.685141      19 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793272364.706833      19 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793272364.835425      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272364.835495      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272364.835502      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272364.835509      19 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OMAT-large-ft-AM-fp64
+Model license: Academic Software License
+I0000 00:00:1793272372.336632      19 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 140873 MB memory:  -> device: 0, name: NVIDIA H200, pci bus id: 0000:a3:00.0, compute capability: 9.0
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793272377.426009      19 service.cc:152] XLA service 0x2c3cbf00 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793272377.429602      19 service.cc:160]   StreamExecutor device (0): NVIDIA H200, Compute Capability 9.0
+I0000 00:00:1793272378.231120      19 cuda_dnn.cc:529] Loaded cuDNN version 90300
+E0000 00:00:1793272381.299286      19 ptx_compiler_helpers.cc:88] *** WARNING *** Invoking ptxas with version 12.5.82, which corresponds to a CUDA version <=12.6.2. CUDA versions 12.x.y up to and including 12.6.2 miscompile certain edge cases around clamping.
+Please upgrade to CUDA 12.6.3 or newer.
+I0000 00:00:1793272382.113437      19 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+GRACE-2L-OMAT-large-ft-AM-fp64: a = 4.43162 Å, V = 87.034 Å³ per cell, P2_13 (198), max |F| = 7.1e-06 eV/Å, max |stress| = 1.2e-06 eV/Å³, x(Co) = 0.14539, x(Si) = 0.84320
+216 atoms: 19.8 ms per force call
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793272392.608377     185 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793272392.631826     185 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793272392.765406     185 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272392.765475     185 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272392.765482     185 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793272392.769163     185 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OMAT-large-ft-AM-fp64
+Using cached GRACE model from /user/sofia/vsc11295/.cache/grace/GRACE-2L-OMAT-large-ft-AM-fp64
+Model license: Academic Software License
+I0000 00:00:1793272399.676912     185 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 140873 MB memory:  -> device: 0, name: NVIDIA H200, pci bus id: 0000:a3:00.0, compute capability: 9.0
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793272405.134742     185 service.cc:152] XLA service 0x2bca8e60 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793272405.135671     185 service.cc:160]   StreamExecutor device (0): NVIDIA H200, Compute Capability 9.0
+I0000 00:00:1793272405.807225     185 cuda_dnn.cc:529] Loaded cuDNN version 90300
+E0000 00:00:1793272409.621357     185 ptx_compiler_helpers.cc:88] *** WARNING *** Invoking ptxas with version 12.5.82, which corresponds to a CUDA version <=12.6.2. CUDA versions 12.x.y up to and including 12.6.2 miscompile certain edge cases around clamping.
+Please upgrade to CUDA 12.6.3 or newer.
+I0000 00:00:1793272410.494737     185 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+Force constants: phonopy
+Computing phonon eigenvectors at 40 k-points...
+Modes: 24  |  Imaginary: 6
+Detected 113 crossing(s) with threshold 0.1 THz
+
+Searching the zone on a 16³ mesh for nodes in gaps 3..3...
+  88 crossing point(s) found
+  89 distinct nodes computed, 89 after adding symmetry-equivalent copies (12 rotations × time reversal)
+  q = (0.0000, 0.0000, 0.0000)  bands 4-5  ν = 6.184 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 6-8  ν = 6.573 THz  charges {6: 2, 7: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 9-11  ν = 7.169 THz  charges {9: 2, 10: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 12-14  ν = 9.110 THz  charges {12: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 15-16  ν = 9.315 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 17-19  ν = 10.279 THz  charges {17: -2, 18: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 21-23  ν = 12.520 THz  charges {21: -2, 22: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.5000, 0.5000, 0.5000)  bands 0-3  ν = 5.291 THz  charges {1: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 4-7  ν = 5.521 THz  charges {5: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 8-11  ν = 7.656 THz  charges {9: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 12-15  ν = 7.939 THz  charges {13: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 16-19  ν = 10.155 THz  charges {17: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 20-23  ν = 12.713 THz  charges {21: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.4156, 0.4156, 0.4156)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.4156, 0.4156, 0.5844)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.5844, 0.5844, 0.5844)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.4156, 0.5844, 0.4156)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.5844, 0.4156, 0.5844)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.5844, 0.5844, 0.4156)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.4156, 0.5844, 0.5844)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (0.5844, 0.4156, 0.4156)  bands 3-4  ν = 5.384 THz  charges {3: -1}  → Weyl point
+  q = (1.0000, 0.8203, 0.6355)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.8203, 0.3645)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.6355, 1.0000, 0.8203)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.8203, 0.3645, 1.0000)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.3645, 1.0000, 0.1797)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.1797, 0.3645)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.8203, 0.6355, 1.0000)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.1797, 0.6355)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.1797, 0.3645, 1.0000)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.3645, 1.0000, 0.8203)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.6355, 1.0000, 0.1797)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (0.1797, 0.6355, 1.0000)  bands 3-4  ν = 5.276 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.8272, 0.6965)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.6965, 1.0000, 0.8272)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.8642, 0.3212)  bands 3-4  ν = 5.426 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.3035, 0.0000, 0.1728)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.3212, 1.0000, 0.8642)  bands 3-4  ν = 5.426 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.1358, 0.6788)  bands 3-4  ν = 5.426 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.1728, 0.3035, 1.0000)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.6965, 0.0000, 0.1728)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.1728, 0.6965, 0.0000)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.8642, 0.6788, 1.0000)  bands 3-4  ν = 5.426 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.1728, 0.3035)  bands 3-4  ν = 5.446 THz  charges {3: 1}  → Weyl point
+  q = (0.8642, 0.3212, 1.0000)  bands 3-4  ν = 5.426 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.8240, 0.7179, 0.9113)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.8240, 0.7179, 0.0887)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.1760, 0.2821, 0.0887)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.1760, 0.7179, 0.0887)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.1760, 0.2821, 0.9113)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.7179, 0.9113, 0.1760)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.9113, 0.8240, 0.7179)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.8240, 0.2821, 0.9113)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.9113, 0.8240, 0.2821)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.1760, 0.7179, 0.9113)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.0887, 0.1760, 0.2821)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.2821, 0.0887, 0.8240)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.0887, 0.1760, 0.7179)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.9113, 0.1760, 0.7179)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.8240, 0.2821, 0.0887)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.7179, 0.0887, 0.1760)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.2821, 0.9113, 0.8240)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.2821, 0.0887, 0.1760)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.0887, 0.8240, 0.7179)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.7179, 0.0887, 0.8240)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.2821, 0.9113, 0.1760)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.0887, 0.8240, 0.2821)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.7179, 0.9113, 0.8240)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.9113, 0.1760, 0.2821)  bands 3-4  ν = 5.461 THz  charges {3: -1}  → Weyl point
+  q = (0.3968, 0.0000, 0.3739)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.6261, 0.6032, 0.0000)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.6261, 0.6032)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.6032, 1.0000, 0.3739)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.6261, 0.3968)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.6032, 0.0000, 0.6261)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.3739, 0.6032, 1.0000)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (1.0000, 0.3739, 0.6032)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.3968, 0.0000, 0.6261)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.3739, 0.3968, 0.0000)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.6261, 0.3968, 0.0000)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.0000, 0.3739, 0.3968)  bands 3-4  ν = 5.194 THz  charges {3: 1}  → Weyl point
+  q = (0.1967, 0.1967, 0.8033)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.8033, 0.8033, 0.8033)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.1967, 0.8033, 0.1967)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.1967, 0.8033, 0.8033)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.8033, 0.8033, 0.1967)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.1967, 0.1967, 0.1967)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.8033, 0.1967, 0.1967)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+  q = (0.8033, 0.1967, 0.8033)  bands 3-4  ν = 5.493 THz  charges {3: 1}  → Weyl point
+Wrote phonon_nodes.dat  (89 nodes)
+Wrote phonon_topo_bands.png
+Wrote phonon_crossings.dat  (113 crossings)
+Wrote phonon_topo_summary.txt
+
+T = 100 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 87.311 Å³, P2_13 (#198), fit residual 0.096, mean force 0.0265 eV/Å, static offset 0.054 of rms
+Wrote phonon_nodes_T100.dat  (82 nodes)
+
+T = 300 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 88.253 Å³, P2_13 (#198), fit residual 0.169, mean force 0.0458 eV/Å, static offset 0.054 of rms
+Wrote phonon_nodes_T300.dat  (82 nodes)
+
+T = 600 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 88.906 Å³, P2_13 (#198), fit residual 0.240, mean force 0.0652 eV/Å, static offset 0.053 of rms
+Wrote phonon_nodes_T600.dat  (75 nodes)
+
+Searching the zone at T = 600 K for newly created nodes...
+Wrote weyl_trajectories.dat and phonon_topo_vs_T.txt
+Wrote weyl_nodes_vs_T.png

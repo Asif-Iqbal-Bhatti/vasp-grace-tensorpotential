@@ -1,0 +1,15 @@
+Phonon topology versus temperature
+==================================
+
+Effective harmonic force constants at T, fitted by phonopy (symfc) from classical
+GRACE MD snapshots. No zero-point motion. Error bars: two half-run fits.
+
+T = 100 K: NPT average at T (zero pressure), V = 87.585 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.058 Å, fit residual 0.099, mean force 0.0370 eV/Å, static offset 0.079 of rms
+T = 300 K: NPT average at T (zero pressure), V = 88.325 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.103 Å, fit residual 0.173, mean force 0.0649 eV/Å, static offset 0.080 of rms
+T = 600 K: NPT average at T (zero pressure), V = 89.187 Å³, P2_13 (#198), 150 snapshots every 200 fs, rms displacement 0.148 Å, fit residual 0.247, mean force 0.0936 eV/Å, static offset 0.080 of rms
+
+Events
+------
+- none: every node survived
+
+Nodes found only at the highest T: 0

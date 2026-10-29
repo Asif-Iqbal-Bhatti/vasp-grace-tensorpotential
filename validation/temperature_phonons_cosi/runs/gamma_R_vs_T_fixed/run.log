@@ -1,0 +1,56 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793264711.614274  100383 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793264711.618133  100383 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793264711.627348  100383 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793264711.627372  100383 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793264711.627374  100383 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793264711.627375  100383 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+I0000 00:00:1793264714.132829  100383 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 5560 MB memory:  -> device: 0, name: NVIDIA RTX 2000 Ada Generation Laptop GPU, pci bus id: 0000:01:00.0, compute capability: 8.9
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793264715.224503  100383 service.cc:152] XLA service 0x58378a2d6cf0 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793264715.224542  100383 service.cc:160]   StreamExecutor device (0): NVIDIA RTX 2000 Ada Generation Laptop GPU, Compute Capability 8.9
+I0000 00:00:1793264715.631097  100383 cuda_dnn.cc:529] Loaded cuDNN version 91002
+I0000 00:00:1793264718.629808  100383 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /home/asifem/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+Force constants: phonopy
+Computing phonon eigenvectors at 40 k-points...
+Modes: 24  |  Imaginary: 0
+Detected 112 crossing(s) with threshold 0.1 THz
+  q = (0.0000, 0.0000, 0.0000)  bands 4-5  ν = 6.078 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 6-8  ν = 6.425 THz  charges {6: 2, 7: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 9-11  ν = 6.926 THz  charges {9: 2, 10: 2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 12-14  ν = 8.791 THz  charges {12: -2, 13: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 15-16  ν = 8.932 THz  charges {}  → unresolved: charge differs between r and r/2 or the gap closes on the sphere (nodal line or surface, or a second node within --sphere_r)
+  q = (0.0000, 0.0000, 0.0000)  bands 17-19  ν = 9.909 THz  charges {17: -2, 18: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.0000, 0.0000, 0.0000)  bands 21-23  ν = 12.258 THz  charges {21: -2, 22: -2}  → threefold (spin-1) node, |C| = 2
+  q = (0.5000, 0.5000, 0.5000)  bands 0-3  ν = 5.101 THz  charges {1: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 4-7  ν = 5.263 THz  charges {5: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 8-11  ν = 7.249 THz  charges {9: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 12-15  ν = 7.738 THz  charges {13: -2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 16-19  ν = 9.970 THz  charges {17: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+  q = (0.5000, 0.5000, 0.5000)  bands 20-23  ν = 12.513 THz  charges {21: 2}  → fourfold node, charge 2 between its band pairs (charge-2 Dirac)
+Wrote phonon_nodes.dat  (13 nodes)
+Wrote phonon_topo_bands.png
+Wrote phonon_crossings.dat  (112 crossings)
+Wrote phonon_topo_summary.txt
+
+T = 100 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 87.585 Å³, P2_13 (#198), fit residual 0.099, mean force 0.0370 eV/Å, static offset 0.079 of rms
+Wrote phonon_nodes_T100.dat  (11 nodes)
+
+T = 300 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 88.325 Å³, P2_13 (#198), fit residual 0.173, mean force 0.0649 eV/Å, static offset 0.080 of rms
+Wrote phonon_nodes_T300.dat  (11 nodes)
+
+T = 600 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 89.187 Å³, P2_13 (#198), fit residual 0.247, mean force 0.0936 eV/Å, static offset 0.080 of rms
+Wrote phonon_nodes_T600.dat  (11 nodes)
+Wrote weyl_trajectories.dat and phonon_topo_vs_T.txt
+Wrote weyl_nodes_vs_T.png

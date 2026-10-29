@@ -1,0 +1,36 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1793261927.264706   97412 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1793261927.287884   97412 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1793261927.456245   97412 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793261927.456283   97412 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793261927.456284   97412 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1793261927.456285   97412 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+WARNING:tensorflow:UserWarning: enabling the new type promotion must happen at the beginning of the program. Please ensure no TF APIs have been used yet.
+I0000 00:00:1793261931.326168   97412 gpu_device.cc:2019] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 5560 MB memory:  -> device: 0, name: NVIDIA RTX 2000 Ada Generation Laptop GPU, pci bus id: 0000:01:00.0, compute capability: 8.9
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793261932.500376   97412 service.cc:152] XLA service 0x60f504bf5870 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+I0000 00:00:1793261932.500408   97412 service.cc:160]   StreamExecutor device (0): NVIDIA RTX 2000 Ada Generation Laptop GPU, Compute Capability 8.9
+I0000 00:00:1793261933.010244   97412 cuda_dnn.cc:529] Loaded cuDNN version 91002
+I0000 00:00:1793261936.159437   97412 device_compiler.h:188] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+[tensorpotential] Info: Environment variable TF_USE_LEGACY_KERAS is automatically set to '1'.
+[tensorpotential] Info: tf.experimental.numpy behavior enabled.
+[tensorpotential] Info: TensorFloat-32 execution disabled.
+Loading GRACE foundation model: GRACE-2L-OAM
+Using cached GRACE model from /home/asifem/.cache/grace/GRACE-2L-OAM
+Model license: Academic Software License
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+FD delta=0.005                     Γ[6,9,12,17,21]=[ 6.425  6.926  8.789  9.907 12.256]  R[0,8,20]=[ 5.099  7.248 12.511] 
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+FD delta=0.015                     Γ[6,9,12,17,21]=[ 6.425  6.926  8.791  9.909 12.258]  R[0,8,20]=[ 5.101  7.249 12.513] 
+phonopy: 4 symmetry-reduced displacements in a 3×3×3 supercell
+FD delta=0.03                      Γ[6,9,12,17,21]=[ 6.426  6.929  8.799  9.917 12.266]  R[0,8,20]=[ 5.105  7.251 12.519] 
+max |F| on perfect supercell: 0.0010025211570128117
+symfc random amp=0.01              Γ[6,9,12,17,21]=[ 6.438  6.932  8.791  9.908 12.259]  R[0,8,20]=[ 5.093  7.245 12.512] residual 0.0198
+  same, U-=mean                    Γ[6,9,12,17,21]=[ 6.438  6.932  8.791  9.908 12.259]  R[0,8,20]=[ 5.093  7.245 12.512] residual 0.0198
+  same, F-=F(perfect)              Γ[6,9,12,17,21]=[ 6.438  6.932  8.791  9.908 12.259]  R[0,8,20]=[ 5.093  7.246 12.514] residual 0.0165
+symfc random amp=0.03              Γ[6,9,12,17,21]=[ 6.462  6.951  8.811  9.924 12.285]  R[0,8,20]=[ 5.085  7.245 12.532] residual 0.0497
+  same, U-=mean                    Γ[6,9,12,17,21]=[ 6.462  6.951  8.811  9.924 12.285]  R[0,8,20]=[ 5.085  7.245 12.532] residual 0.0497
+  same, F-=F(perfect)              Γ[6,9,12,17,21]=[ 6.462  6.951  8.811  9.924 12.285]  R[0,8,20]=[ 5.085  7.245 12.532] residual 0.0495
+symfc random amp=0.06              Γ[6,9,12,17,21]=[ 6.497  6.992  8.873  9.984 12.366]  R[0,8,20]=[ 5.088  7.251 12.592] residual 0.0988
+  same, U-=mean                    Γ[6,9,12,17,21]=[ 6.497  6.992  8.873  9.984 12.366]  R[0,8,20]=[ 5.088  7.251 12.592] residual 0.0988
+  same, F-=F(perfect)              Γ[6,9,12,17,21]=[ 6.497  6.992  8.873  9.984 12.366]  R[0,8,20]=[ 5.088  7.251 12.592] residual 0.0988

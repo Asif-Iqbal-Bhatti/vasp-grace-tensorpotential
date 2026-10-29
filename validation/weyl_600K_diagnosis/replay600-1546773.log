@@ -1,0 +1,27 @@
+
+T = 600 K: GRACE MD and effective force constants...
+  NPT average at T (zero pressure): V = 89.187 Å³, P2_13 (#198), fit residual 0.247, mean force 0.0936 eV/Å, static offset 0.080 of rms
+Wrote phonon_nodes_T600.dat  (82 nodes)
+Counter({'tracked': 49, 'annihilated': 24, 'merged': 9})
+T = 600 K: node 33 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 34 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 35 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 36 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 37 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 38 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 39 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 40 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 41 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 42 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 43 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 44 unresolved: node 66 is 0.0068 1/Å away, inside the sphere; charges {3: 1} not reliable
+T = 600 K: node 57 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 58 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 59 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 60 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 61 re-converged onto node 11 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 11's
+T = 600 K: node 62 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 63 re-converged onto node 14 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 14's
+T = 600 K: node 64 re-converged onto node 11 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 11's
+T = 600 K: node 65 re-converged onto node 11 (or a symmetry copy) and is no longer followed; charges {3: -1} are node 11's
+T = 600 K: 24 nodes annihilated in +/- pairs (charge 0 on the sphere next to a node of opposite charge): ids [45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]

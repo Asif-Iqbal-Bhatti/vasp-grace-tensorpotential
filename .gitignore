@@ -67,7 +67,6 @@ Thumbs.db
 *.swo
 
 # Generated outputs
-validation/
 lammps_run/
 *.extxyz
 *.traj
