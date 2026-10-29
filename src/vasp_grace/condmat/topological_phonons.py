@@ -582,6 +582,50 @@ def _min_image_distance(qa, qb, rec):
     return float(np.linalg.norm(d @ rec))
 
 
+def crowded_nodes(nodes, rec, rotations, radius):
+    """
+    Nodes too close to another node for their charges to be resolved.
+
+    `nodes` are dicts with id, q, bands, `charges` (now) and `prev` (charges at
+    the previous T). Neighbours are searched over all symmetry copies, in the
+    same bands; a copy of a node with the same previous charges at the same q
+    is the node itself, not a neighbour. A neighbour closer than `radius` sits
+    inside the charge sphere, so the sphere no longer measures this node alone.
+    If the node's charge is now zero and the neighbour's previous charge was
+    opposite, the pair has annihilated (or is about to, within the resolution).
+    A node at the neighbour's q (closer than 1e-3 1/Å) otherwise has re-converged
+    onto the other node ("merged"), unless its own charge is unchanged, in which
+    case the other node landed on it; any other close pair is "unresolved".
+    Returns {id: (kind, neighbour id, distance)}.
+    """
+    copies = []
+    for n in nodes:
+        img = {"q": np.asarray(n["q"], float), "charges": n["prev"], "band_chern": []}
+        copies += [(n, img["q"], n["prev"])] + [(n, c["q"], c["charges"])
+                                                for c in symmetry_images(img, rotations)]
+    out = {}
+    for n in nodes:
+        best = None
+        for m, q, prev in copies:
+            if m["bands"] != n["bands"]:
+                continue
+            d = _min_image_distance(n["q"], q, rec)
+            if d < 1e-4 and prev == n["prev"]:
+                continue
+            if best is None or d < best[1]:
+                best = (m, d, prev)
+        if best is None or best[1] >= radius:
+            continue
+        m, d, prev = best
+        zero = not any(n["charges"].values())
+        opposite = bool(n["prev"]) and all(prev.get(g) == -c for g, c in n["prev"].items())
+        kind = "annihilated" if zero and opposite else "merged" if d < 1e-3 else "unresolved"
+        if kind == "merged" and n["charges"] == n["prev"]:
+            continue                      # the other node landed here; this one is intact
+        out[n["id"]] = (kind, m["id"], d)
+    return out
+
+
 def _assign_pinned(nodes, nu, vecs, degen_tol):
     """
     One-to-one assignment of symmetry-pinned nodes at one q to the multiplets of
@@ -617,7 +661,11 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
     is re-converged from its previous position, and its charge recomputed. The
     two half-fits give error bars on the node position and frequency. A node
     whose bands no longer meet has vanished; two vanishing nodes of opposite
-    charge in the same gap that were close together have annihilated. Nodes
+    charge in the same gap that were close together have annihilated. Nodes that
+    re-converge within the sphere radius of another node (symmetry copies
+    included) are checked by `crowded_nodes`: a zero charge next to a node of
+    opposite charge is a pair annihilation, a node that landed on another one is
+    merged and dropped, and any other such node is reported as unresolved. Nodes
     pinned by symmetry are matched one-to-one to the multiplets at their q by
     eigenvector overlap with the previous T (`ph0` gives the 0 K eigenvectors);
     an overlap below `min_overlap` is reported, as the modes have mixed, and one
@@ -650,7 +698,7 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
               f"static offset {info['static_offset']:.3f} of rms")
         rec = np.asarray(eff["prim"].cell.reciprocal())
         ph_a, ph_b = eff["halves"]
-        nodes_T, gone = [], []
+        nodes_T, gone, found = [], [], {}
         # nodes pinned by symmetry keep their q and multiplicity but can change band
         # index when frequencies reorder: assign them per q, one node per multiplet
         match, spectra = {}, {}
@@ -697,12 +745,59 @@ def track_nodes(base_nodes, temperatures, prim, calc, args, chern_args, ph0, nod
                 node["class"] = classify_node(node)
                 node["frequency_THz"] = row["freq"]
                 nodes_T.append(node)
+                found[t["id"]] = (t, row)
                 row["charges"] = node["charges"]
                 same_charges = sorted(node["charges"].values()) == sorted(t["charges"].values())
                 row["status"] = ("tracked" if same_charges
                                  else f"charges changed from {t['charges']}") + note
                 t["q"], t["freq"] = q, row["freq"]
             rows.append(row)
+        # nodes re-converged closer together than the charge sphere resolves
+        import spglib
+        p = eff["prim"]
+        ds = spglib.get_symmetry_dataset((p.cell.array, p.get_scaled_positions(), p.numbers),
+                                         symprec=1e-3)
+        rotations = ds.rotations if ds is not None else [np.eye(3, dtype=int)]
+        free = [{"id": i, "q": t["q"], "bands": t["bands"], "charges": row["charges"],
+                 "prev": t["charges"]} for i, (t, row) in found.items() if not t["fixed"]]
+        crowd = crowded_nodes(free, rec, rotations, chern_args["radius"])
+        gone_pairs = []
+        for i, (kind, j, d) in sorted(crowd.items()):
+            t, row = found[i]
+            if kind == "annihilated":
+                t["alive"] = False
+                gap = _multiplet_spread(eff["ph"], t["q"], *t["bands"])
+                row["status"] = (f"annihilated with node {j} or its copy ({d:.4f} 1/Å apart, "
+                                 f"bands {gap:.4f} THz apart)")
+                gone_pairs.append(i)
+            elif kind == "merged":
+                t["alive"] = False
+                row["status"] = f"merged: re-converged onto node {j}"
+                events.append(f"T = {T:g} K: node {i} re-converged onto node {j} (or a symmetry "
+                              f"copy) and is no longer followed; charges {row['charges']} are node {j}'s")
+            else:
+                row["status"] += f", unresolved (node {j} {d:.4f} 1/Å away)"
+                events.append(f"T = {T:g} K: node {i} unresolved: node {j} is {d:.4f} 1/Å away, "
+                              f"inside the sphere; charges {row['charges']} not reliable")
+        if gone_pairs:
+            events.append(f"T = {T:g} K: {len(gone_pairs)} nodes annihilated in +/- pairs (charge 0 on "
+                          f"the sphere next to a node of opposite charge): ids {gone_pairs}")
+        # charge 0 with no node inside the sphere: the minimum left behind is not a node
+        # (its partner annihilated with it and moved off, or it was never a crossing)
+        empty = [i for i, (t, row) in found.items() if i not in crowd and not t["fixed"]
+                 and row["charges"] and not any(row["charges"].values())]
+        for i in empty:
+            t, row = found[i]
+            t["alive"] = False
+            gap = _multiplet_spread(eff["ph"], t["q"], *t["bands"])
+            row["status"] = f"vanished (charge 0 on the sphere at a {gap:.4f} THz gap minimum)"
+        if empty:
+            events.append(f"T = {T:g} K: {len(empty)} nodes vanished: charge 0 on the sphere and no "
+                          f"other node inside it, so the gap minimum they converged to is not a node: "
+                          f"ids {empty}")
+        for i, (t, row) in found.items():
+            if i not in crowd and i not in empty and row["status"].startswith("charges changed"):
+                events.append(f"T = {T:g} K: node {i} {row['status']} to {row['charges']}")
         # opposite charges vanishing together close by: pair annihilation
         for i, (a, qa_) in enumerate(gone):
             for b, qb_ in gone[i + 1:]:

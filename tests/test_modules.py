@@ -575,6 +575,33 @@ rc, out = run([PYTHON, "-c", chern_models], timeout=120)
 record("Chern on sphere -- Weyl ±1, double Weyl ±2, spin-1 (2,0,-2), Weyl pair sums to 0",
        "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
 
+crowding_check = textwrap.dedent("""
+    import numpy as np
+    from vasp_grace.condmat.topological_phonons import crowded_nodes
+    C3 = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])    # proper rotation, q -> (q3, q1, q2)
+    rec, rot, r = np.eye(3), [np.eye(3, dtype=int), C3, C3 @ C3], 0.01
+    node = lambda i, q, now, prev: {"id": i, "q": np.array(q, float), "bands": (3, 4),
+                                    "charges": {3: now}, "prev": {3: prev}}
+    nodes = [node(0, [0.300, 0.2, 0.1], 0, -1),     # +1/-1 pair met at one q: annihilated
+             node(1, [0.300, 0.2, 0.1], 0, +1),
+             node(2, [0.306, 0.2, 0.1], -1, +1),    # inside the sphere of the pair: unresolved
+             node(4, [0.10, 0.6, 0.40], 1, 1),      # alone
+             node(3, [0.40, 0.1, 0.60], 1, 1),      # C3 copy of node 4 at its q: the same node
+             node(5, [0.10, 0.6, 0.415], 1, 1),     # 1.5 r from node 4: resolved
+             node(6, [0.70, 0.5, 0.25], -1, -1),    # a -1 node, and a +1 node that
+             node(7, [0.70, 0.5, 0.25], -1, +1)]    # re-converged onto it: merged
+    got = crowded_nodes(nodes, rec, rot, r)
+    assert got[0][0] == "annihilated" and got[0][1] == 1, got
+    assert got[1][0] == "annihilated" and got[1][1] == 0, got
+    assert got[2][0] == "unresolved", got
+    assert got[7][0] == "merged" and got[7][1] == 6, got
+    assert not {3, 4, 5, 6} & set(got), got
+    print("OK")
+""")
+rc, out = run([PYTHON, "-c", crowding_check], timeout=60)
+record("crowded_nodes -- pair annihilation, merged, unresolved neighbour, symmetry copies",
+       "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
 if not HAS_TP:
     record("grace-topo-phonons -- CoSi spin-1 node at Γ", "skip", "tensorpotential not installed")
 else:
@@ -618,6 +645,34 @@ else:
     """)
     rc, out = run([PYTHON, "-c", phonopy_check], timeout=900)
     record("phonopy force constants -- CoSi: periodic gauge, symmetry images of a node are nodes",
+           "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
+
+# Effective force constants from a short MD at 100 K stay close to harmonic
+rc_sf, _ = run([PYTHON, "-c", "import symfc"])
+if not HAS_TP or rc_pp != 0 or rc_sf != 0:
+    record("effective_phonons -- CoSi 100 K", "skip", "tensorpotential, phonopy or symfc not installed")
+else:
+    effective_check = textwrap.dedent(f"""
+        import numpy as np
+        from ase.spacegroup import crystal
+        from vasp_grace.calculator import load_calculator
+        from vasp_grace.condmat.phonon_tools import phonopy_phonons, effective_phonons, eigensystem
+        a = crystal(["Co", "Si"], [(0.143,)*3, (0.844,)*3], spacegroup=198, cellpar=[4.443]*3 + [90]*3)
+        calc = load_calculator("{GRACE_MODEL}", verbose=False)
+        harm = phonopy_phonons(a, calc, (2, 2, 2), 0.01, save=None)
+        eff = effective_phonons(a, calc, 100, (2, 2, 2), npt_steps=400, equil_steps=400,
+                                n_snapshots=40, sample_every=20, seed=0)
+        info = eff["info"]
+        assert info["space_group_kept"], info["space_group"]
+        assert info["static_offset"] < 0.35, info["static_offset"]   # noise level 1/sqrt(40) = 0.16
+        d = max(np.abs(eigensystem(eff["ph"], q)[0][3:] - eigensystem(harm, q)[0][3:]).max()
+                for q in ([0, 0, 0], [0.5, 0.5, 0.5], [0.5, 0, 0]))
+        assert d < 0.4, d
+        print("OK", round(d, 3), round(info["static_offset"], 3))
+    """)
+    rc, out = run([PYTHON, "-c", effective_check], timeout=1800)
+    record("effective_phonons -- CoSi 100 K: space group kept, static offset at noise level, "
+           "optical frequencies within 0.4 THz of harmonic",
            "pass" if rc == 0 and "OK" in out else "fail", out[-400:] if rc else "")
 
 
